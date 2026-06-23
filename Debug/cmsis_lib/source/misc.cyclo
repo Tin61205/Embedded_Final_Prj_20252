@@ -1,0 +1,5 @@
+../cmsis_lib/source/misc.c:118:6:NVIC_PriorityGroupConfig	1
+../cmsis_lib/source/misc.c:136:6:NVIC_Init	2
+../cmsis_lib/source/misc.c:180:6:NVIC_SetVectorTable	1
+../cmsis_lib/source/misc.c:199:6:NVIC_SystemLPConfig	2
+../cmsis_lib/source/misc.c:223:6:SysTick_CLKSourceConfig	2

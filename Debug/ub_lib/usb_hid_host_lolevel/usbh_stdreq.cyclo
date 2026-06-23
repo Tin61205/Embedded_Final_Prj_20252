@@ -1,0 +1,14 @@
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:38:13:USBH_Get_DevDesc	2
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:59:13:USBH_Get_CfgDesc	3
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:93:13:USBH_Get_StringDesc	2
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:115:13:USBH_GetDescriptor	2
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:139:13:USBH_SetAddress	1
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:156:13:USBH_SetCfg	1
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:172:13:USBH_SetInterface	1
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:190:13:USBH_ClrFeature	2
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:218:14:USBH_ParseDevDesc	2
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:244:14:USBH_ParseCfgDesc	11
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:338:14:USBH_ParseInterfaceDesc	1
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:353:14:USBH_ParseEPDesc	1
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:366:13:USBH_ParseStringDesc	3
+../ub_lib/usb_hid_host_lolevel/usbh_stdreq.c:397:21:USBH_GetNextDesc	1

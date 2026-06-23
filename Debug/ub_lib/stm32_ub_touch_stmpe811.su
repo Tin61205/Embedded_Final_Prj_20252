@@ -1,0 +1,10 @@
+../ub_lib/stm32_ub_touch_stmpe811.c:35:13:UB_Touch_Init	16	static
+../ub_lib/stm32_ub_touch_stmpe811.c:69:13:UB_Touch_Read	32	static
+../ub_lib/stm32_ub_touch_stmpe811.c:114:6:P_Touch_Reset	8	static
+../ub_lib/stm32_ub_touch_stmpe811.c:128:9:P_Touch_FnctCmd	24	static
+../ub_lib/stm32_ub_touch_stmpe811.c:154:6:P_Touch_Config	8	static
+../ub_lib/stm32_ub_touch_stmpe811.c:180:10:P_Touch_ReadID	16	static
+../ub_lib/stm32_ub_touch_stmpe811.c:203:9:P_Touch_IOAFConfig	24	static
+../ub_lib/stm32_ub_touch_stmpe811.c:229:17:P_Touch_Read_X	16	static
+../ub_lib/stm32_ub_touch_stmpe811.c:258:17:P_Touch_Read_Y	16	static
+../ub_lib/stm32_ub_touch_stmpe811.c:280:10:P_Touch_Read_16b	24	static

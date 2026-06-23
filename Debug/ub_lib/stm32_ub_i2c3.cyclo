@@ -1,0 +1,6 @@
+../ub_lib/stm32_ub_i2c3.c:29:6:UB_I2C3_Init	2
+../ub_lib/stm32_ub_i2c3.c:85:9:UB_I2C3_ReadByte	16
+../ub_lib/stm32_ub_i2c3.c:173:9:UB_I2C3_WriteByte	12
+../ub_lib/stm32_ub_i2c3.c:230:6:UB_I2C3_Delay	2
+../ub_lib/stm32_ub_i2c3.c:242:6:P_I2C3_InitI2C	1
+../ub_lib/stm32_ub_i2c3.c:267:9:P_I2C3_timeout	1

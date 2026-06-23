@@ -1,0 +1,10 @@
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:66:20:USBH_HID_InterfaceInit	40	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:159:6:USBH_HID_InterfaceDeInit	16	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:183:20:USBH_HID_ClassRequest	32	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:253:20:USBH_HID_Handle	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:325:20:USBH_Get_HID_ReportDescriptor	40	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:352:20:USBH_Get_HID_Descriptor	40	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:372:20:USBH_Set_Idle	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:393:13:USBH_Set_Report	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:416:20:USBH_Set_Protocol	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_hid_core.c:448:14:USBH_ParseHIDDesc	16	static

@@ -1,0 +1,4 @@
+../ub_lib/stm32_ub_font.c:29:6:UB_Font_DrawChar	40	static
+../ub_lib/stm32_ub_font.c:88:6:UB_Font_DrawString	40	static
+../ub_lib/stm32_ub_font.c:116:6:UB_Font_DrawChar32	40	static
+../ub_lib/stm32_ub_font.c:178:6:UB_Font_DrawString32	40	static

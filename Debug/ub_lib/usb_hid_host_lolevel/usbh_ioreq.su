@@ -1,0 +1,11 @@
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:21:13:USBH_CtlReq	32	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:67:13:USBH_CtlSendSetup	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:80:13:USBH_CtlSendData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:111:13:USBH_CtlReceiveData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:130:13:USBH_BulkSendData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:155:13:USBH_BulkReceiveData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:180:13:USBH_InterruptReceiveData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:210:13:USBH_InterruptSendData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:238:20:USBH_SubmitSetupRequest	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:257:13:USBH_IsocReceiveData	24	static
+../ub_lib/usb_hid_host_lolevel/usbh_ioreq.c:275:13:USBH_IsocSendData	24	static

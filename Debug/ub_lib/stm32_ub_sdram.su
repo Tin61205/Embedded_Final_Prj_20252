@@ -1,0 +1,13 @@
+../ub_lib/stm32_ub_sdram.c:64:13:UB_SDRAM_Init	16	static
+../ub_lib/stm32_ub_sdram.c:114:6:UB_SDRAM_Write8b	16	static
+../ub_lib/stm32_ub_sdram.c:127:9:UB_SDRAM_Read8b	24	static
+../ub_lib/stm32_ub_sdram.c:144:6:UB_SDRAM_Write16b	16	static
+../ub_lib/stm32_ub_sdram.c:157:10:UB_SDRAM_Read16b	24	static
+../ub_lib/stm32_ub_sdram.c:174:6:UB_SDRAM_Write32b	16	static
+../ub_lib/stm32_ub_sdram.c:187:10:UB_SDRAM_Read32b	24	static
+../ub_lib/stm32_ub_sdram.c:204:6:UB_SDRAM_WriteBuffer32b	32	static
+../ub_lib/stm32_ub_sdram.c:229:6:UB_SDRAM_ReadBuffer32b	32	static
+../ub_lib/stm32_ub_sdram.c:250:6:P_SDRAM_InitIO	16	static
+../ub_lib/stm32_ub_sdram.c:353:6:P_SDRAM_InitFMC	80	static
+../ub_lib/stm32_ub_sdram.c:395:6:P_SDRAM_InitSequence	32	static
+../ub_lib/stm32_ub_sdram.c:465:13:P_SDRAM_delay	24	static

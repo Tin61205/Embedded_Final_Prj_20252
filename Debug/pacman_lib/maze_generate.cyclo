@@ -1,0 +1,13 @@
+../pacman_lib/maze_generate.c:13:6:maze_generate_searchandset	13
+../pacman_lib/maze_generate.c:51:10:maze_generate_digpath_h	9
+../pacman_lib/maze_generate.c:80:10:maze_generate_digpath_v	9
+../pacman_lib/maze_generate.c:108:10:maze_generate_setportals	13
+../pacman_lib/maze_generate.c:162:10:maze_generate_setgate	5
+../pacman_lib/maze_generate.c:203:6:maze_generate_setwallskin_outside	11
+../pacman_lib/maze_generate.c:229:6:maze_generate_setonewallskin_outside	8
+../pacman_lib/maze_generate.c:260:6:maze_generate_setwallskin_inside	5
+../pacman_lib/maze_generate.c:276:6:maze_generate_setonewallskin_inside	13
+../pacman_lib/maze_generate.c:317:10:maze_generate_setskin_h	6
+../pacman_lib/maze_generate.c:338:10:maze_generate_setskin_v	6
+../pacman_lib/maze_generate.c:359:10:maze_generate_check	29
+../pacman_lib/maze_generate.c:471:10:maze_generate_count_dots	4

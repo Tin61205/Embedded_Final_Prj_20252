@@ -1,0 +1,13 @@
+../ub_lib/stm32_ub_sdram.c:64:13:UB_SDRAM_Init	5
+../ub_lib/stm32_ub_sdram.c:114:6:UB_SDRAM_Write8b	1
+../ub_lib/stm32_ub_sdram.c:127:9:UB_SDRAM_Read8b	1
+../ub_lib/stm32_ub_sdram.c:144:6:UB_SDRAM_Write16b	1
+../ub_lib/stm32_ub_sdram.c:157:10:UB_SDRAM_Read16b	1
+../ub_lib/stm32_ub_sdram.c:174:6:UB_SDRAM_Write32b	1
+../ub_lib/stm32_ub_sdram.c:187:10:UB_SDRAM_Read32b	1
+../ub_lib/stm32_ub_sdram.c:204:6:UB_SDRAM_WriteBuffer32b	3
+../ub_lib/stm32_ub_sdram.c:229:6:UB_SDRAM_ReadBuffer32b	3
+../ub_lib/stm32_ub_sdram.c:250:6:P_SDRAM_InitIO	1
+../ub_lib/stm32_ub_sdram.c:353:6:P_SDRAM_InitFMC	1
+../ub_lib/stm32_ub_sdram.c:395:6:P_SDRAM_InitSequence	7
+../ub_lib/stm32_ub_sdram.c:465:13:P_SDRAM_delay	2

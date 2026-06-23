@@ -1,0 +1,5 @@
+../ub_lib/stm32_ub_usb_hid_host.c:28:6:UB_USB_HID_HOST_Init	1
+../ub_lib/stm32_ub_usb_hid_host.c:61:23:UB_USB_HID_HOST_Do	6
+../ub_lib/stm32_ub_usb_hid_host.c:103:9:UB_USB_HID_HOST_GetKeyAnz	4
+../ub_lib/stm32_ub_usb_hid_host.c:126:9:UB_USB_HID_HOST_GetShift	2
+../ub_lib/stm32_ub_usb_hid_host.c:149:9:UB_USB_HID_HOST_GetMouse	3

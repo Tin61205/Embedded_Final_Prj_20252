@@ -1,0 +1,6 @@
+../pacman_lib/pacman.c:98:6:pacman_start	32	static
+../pacman_lib/pacman.c:204:10:pacman_hw_init	16	static
+../pacman_lib/pacman.c:226:6:pacman_init	16	static
+../pacman_lib/pacman.c:241:6:pacman_set_level	4	static
+../pacman_lib/pacman.c:260:10:pacman_play	24	static
+../pacman_lib/pacman.c:437:6:pacman_dec_mode_timer	4	static

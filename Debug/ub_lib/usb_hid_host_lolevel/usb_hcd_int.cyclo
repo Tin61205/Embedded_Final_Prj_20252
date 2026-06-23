@@ -1,0 +1,11 @@
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:36:10:USBH_OTG_ISR_Handler	11
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:99:17:USB_OTG_USBH_handle_hc_ISR	4
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:132:17:USB_OTG_USBH_handle_sof_ISR	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:147:17:USB_OTG_USBH_handle_Disconnect_ISR	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:163:17:USB_OTG_USBH_handle_nptxfempty_ISR	4
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:204:17:USB_OTG_USBH_handle_ptxfempty_ISR	4
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:245:17:USB_OTG_USBH_handle_port_ISR	12
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:338:10:USB_OTG_USBH_handle_hc_n_Out_ISR	19
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:465:10:USB_OTG_USBH_handle_hc_n_In_ISR	22
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:614:17:USB_OTG_USBH_handle_rx_qlvl_ISR	5
+../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c:675:17:USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR	1

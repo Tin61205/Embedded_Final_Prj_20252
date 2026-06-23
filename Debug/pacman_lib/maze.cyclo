@@ -1,0 +1,4 @@
+../pacman_lib/maze.c:17:6:maze_build	1
+../pacman_lib/maze.c:29:6:maze_make_rooms	3
+../pacman_lib/maze.c:170:6:maze_set_skin	1
+../pacman_lib/maze.c:255:6:maze_count_dots	1

@@ -1,0 +1,10 @@
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:18:10:HCD_Init	2
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:47:10:HCD_GetCurrentSpeed	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:56:10:HCD_ResetPort	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:70:10:HCD_IsDeviceConnected	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:76:10:HCD_GetCurrentFrame	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:82:11:HCD_GetURB_State	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:88:10:HCD_GetXferCnt	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:96:11:HCD_GetHCState	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:102:10:HCD_HC_Init	1
+../ub_lib/usb_hid_host_lolevel/usb_hcd.c:108:10:HCD_SubmitRequest	1

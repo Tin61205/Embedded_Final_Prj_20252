@@ -1,0 +1,7 @@
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:19:6:USB_OTG_BSP_Init	24	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:49:6:USB_OTG_BSP_EnableInterrupt	24	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:62:6:USB_OTG_BSP_DriveVBUS	16	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:78:7:USB_OTG_BSP_ConfigVBUS	24	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:100:6:USB_OTG_BSP_uDelay	24	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:116:6:USB_OTG_BSP_mDelay	16	static
+../ub_lib/usb_hid_host_lolevel/usb_bsp.c:123:6:OTG_HS_IRQHandler	8	static

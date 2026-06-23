@@ -1,0 +1,4 @@
+../pacman_lib/menu.c:25:6:menu_start	33
+../pacman_lib/menu.c:152:6:menu_redraw	3
+../pacman_lib/menu.c:188:6:menu_inc_value	3
+../pacman_lib/menu.c:197:6:menu_dec_value	3

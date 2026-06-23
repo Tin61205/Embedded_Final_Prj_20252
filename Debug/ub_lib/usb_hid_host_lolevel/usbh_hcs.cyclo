@@ -1,0 +1,6 @@
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:15:9:USBH_Open_Channel	2
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:43:9:USBH_Modify_Channel	6
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:72:9:USBH_Alloc_Channel	2
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:86:9:USBH_Free_Channel	2
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:97:9:USBH_DeAllocate_AllChannel	2
+../ub_lib/usb_hid_host_lolevel/usbh_hcs.c:109:17:USBH_GetFreeChannel	3
