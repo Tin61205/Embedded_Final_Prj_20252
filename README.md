@@ -21,7 +21,7 @@ Hãy kết nối các nút bấm của bạn với các chân trên hàng rào P
                  Lên     Phải    Xuống   Trái    Center/Start
                    |       |       |       |       |
                +---------------------------------------+
-               |                  GND                  | (Hoặc VCC cho PA0)
+               |                  GND                  | 
                +---------------------------------------+
 ```
 
@@ -36,56 +36,10 @@ Hãy kết nối các nút bấm của bạn với các chân trên hàng rào P
 
 ---
 
-## 2. Cấu hình chân trong mã nguồn
 
-Nếu muốn thay đổi chân GPIO điều khiển, bạn có thể chỉnh sửa mảng `BUTTON` trong file:
-👉 **`ub_lib/stm32_ub_button.c`**
 
-```c
-BUTTON_t BUTTON[] = {
-  // Tên nút   , PORT , PIN         , Clock              , Trở kéo   , Trạng thái mặc định
-  {BTN_UP    , GPIOC, GPIO_Pin_2  , RCC_AHB1Periph_GPIOC, GPIO_PuPd_UP, Bit_RESET},
-  {BTN_RIGHT , GPIOC, GPIO_Pin_3  , RCC_AHB1Periph_GPIOC, GPIO_PuPd_UP, Bit_RESET},
-  {BTN_DOWN  , GPIOC, GPIO_Pin_4  , RCC_AHB1Periph_GPIOC, GPIO_PuPd_UP, Bit_RESET},
-  {BTN_LEFT  , GPIOC, GPIO_Pin_5  , RCC_AHB1Periph_GPIOC, GPIO_PuPd_UP, Bit_RESET},
-  {BTN_CENTER, GPIOA, GPIO_Pin_0  , RCC_AHB1Periph_GPIOA, GPIO_PuPd_NOPULL, Bit_RESET}
-};
-```
 
----
-
-## 3. Cơ chế xử lý nút bấm độc lập (Direct GPIO Edge-Detection)
-
-Để tránh hiện tượng liệt nút ở menu do Timer 7 (`TIM7_IRQHandler`) không hoạt động trên một số kit hoặc trình biên dịch, hàm kiểm tra sự kiện bấm nút `UB_Button_OnClick()` đã được tối ưu hóa để **đọc trực tiếp thanh ghi GPIO** và tự nhận diện sườn xung:
-
-```c
-bool UB_Button_OnClick(BUTTON_NAME_t btn_name)
-{
-  uint8_t wert;
-  static uint8_t old_wert[5] = {Bit_SET, Bit_SET, Bit_SET, Bit_SET, Bit_RESET};
-
-  // Đọc trực tiếp trạng thái chân vật lý
-  wert = GPIO_ReadInputDataBit(BUTTON[btn_name].BUTTON_PORT, BUTTON[btn_name].BUTTON_PIN);
-
-  if (btn_name == BTN_CENTER) {
-    // PA0 (Center) là Active HIGH (nhấn = Bit_SET)
-    bool pressed = (wert == Bit_SET);
-    bool old_pressed = (old_wert[btn_name] == Bit_SET);
-    old_wert[btn_name] = wert;
-    return (pressed && !old_pressed);
-  } else {
-    // Các nút hướng còn lại là Active LOW (nhấn = Bit_RESET)
-    bool pressed = (wert == Bit_RESET);
-    bool old_pressed = (old_wert[btn_name] == Bit_RESET);
-    old_wert[btn_name] = wert;
-    return (pressed && !old_pressed);
-  }
-}
-```
-
----
-
-## 4. Hướng dẫn điều khiển menu
+## 2. Hướng dẫn điều khiển menu
 
 * **Di chuyển lên/xuống**: Nhấn nút Lên (`PC2`) hoặc Xuống (`PC4`) để chọn giữa các mục:
   * **Start level**: Thiết lập độ khó xuất phát.
@@ -98,7 +52,7 @@ bool UB_Button_OnClick(BUTTON_NAME_t btn_name)
 
 ---
 
-## 5. Cấu hình độ khó (Speed level)
+## 3. Cấu hình độ khó (Speed level)
 
 Hệ thống độ khó được lập trình bằng cách giảm thời gian trễ dịch chuyển (tính bằng mili-giây - ms) của Pacman và các Ghost. Càng lên level cao, các nhân vật di chuyển càng nhanh:
 
@@ -120,7 +74,7 @@ Hệ thống độ khó được lập trình bằng cách giảm thời gian tr
 
 ---
 
-## 6. Cấu hình Project và Biên dịch (STM32CubeIDE Settings)
+## 4. Cấu hình Project và Biên dịch (STM32CubeIDE Settings)
 
 Để biên dịch thành công dự án sử dụng Standard Peripheral Library (SPL) này trên STM32CubeIDE, cần cấu hình các thông số sau trong phần **Properties** của Project:
 
@@ -159,4 +113,7 @@ Do có sự trùng lặp định nghĩa hàm (multiple definitions) từ thư vi
 1. Click chuột phải vào file **`ub_lib/usb_hid_host_lolevel/usbh_hid_core.c`**.
 2. Chọn **Properties** -> tích vào mục **Exclude resource from build**.
 3. Nhấn **Apply and Close**.
+
+
+Do STM32CubeIDE tự động tạo file startup assembly tương thích GCC (`Startup/startup_stm32f429zitx.s`), thư mục startup cũ của CoIDE (`cmsis_boot/startup/`) đã được **loại bỏ khỏi quá trình build (Exclude from build)** nhằm tránh lỗi định nghĩa trùng lặp hàm khởi động (`Duplicate Symbol`).
 
