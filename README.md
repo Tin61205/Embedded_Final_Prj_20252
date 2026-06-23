@@ -109,11 +109,5 @@ Vào **Properties** -> **C/C++ Build** -> **Settings** -> **Tool Settings** -> *
 * **Instruction set**: `Thumb (-mthumb)`
 
 ### D. Loại trừ file khỏi Build (Exclude from Build)
-Do có sự trùng lặp định nghĩa hàm (multiple definitions) từ thư viện USB cấp thấp, cần loại trừ (Exclude) file sau khỏi quá trình biên dịch:
-1. Click chuột phải vào file **`ub_lib/usb_hid_host_lolevel/usbh_hid_core.c`**.
-2. Chọn **Properties** -> tích vào mục **Exclude resource from build**.
-3. Nhấn **Apply and Close**.
-
-
 Do STM32CubeIDE tự động tạo file startup assembly tương thích GCC (`Startup/startup_stm32f429zitx.s`), thư mục startup cũ của CoIDE (`cmsis_boot/startup/`) đã được **loại bỏ khỏi quá trình build (Exclude from build)** nhằm tránh lỗi định nghĩa trùng lặp hàm khởi động (`Duplicate Symbol`).
 
