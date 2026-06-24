@@ -1,5 +1,5 @@
 ../pacman_lib/pinky.c:14:6:pinky_init	16	static
 ../pacman_lib/pinky.c:42:6:pinky_move	8	static
 ../pacman_lib/pinky.c:190:6:pinky_change_skin	16	static
-../pacman_lib/pinky.c:241:6:pinky_check_event	24	static
-../pacman_lib/pinky.c:279:6:pinky_calc_next_move	24	static
+../pacman_lib/pinky.c:241:6:pinky_check_event	16	static
+../pacman_lib/pinky.c:268:6:pinky_calc_next_move	32	static

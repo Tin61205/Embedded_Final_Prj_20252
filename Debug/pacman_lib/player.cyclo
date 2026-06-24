@@ -1,5 +1,12 @@
-../pacman_lib/player.c:24:6:player_init	5
-../pacman_lib/player.c:54:6:player_move	33
-../pacman_lib/player.c:240:6:player_change_skin	18
-../pacman_lib/player.c:290:6:player_check_event	25
-../pacman_lib/player.c:406:6:player_change_direction	29
+../pacman_lib/player.c:20:6:player_init	1
+../pacman_lib/player.c:24:6:player2_init	1
+../pacman_lib/player.c:28:13:player_entity_init	9
+../pacman_lib/player.c:62:6:player_move	1
+../pacman_lib/player.c:66:6:player2_move	1
+../pacman_lib/player.c:70:13:player_entity_move	34
+../pacman_lib/player.c:194:13:player_entity_change_skin	18
+../pacman_lib/player.c:221:13:player_entity_handle_ghost_hit	4
+../pacman_lib/player.c:239:13:player_entity_check_event	21
+../pacman_lib/player.c:286:6:player_change_direction	1
+../pacman_lib/player.c:290:6:player2_change_direction	1
+../pacman_lib/player.c:294:13:player_entity_change_direction	30

@@ -1,51 +1,51 @@
 ub_lib/stm32_ub_usb_hid_host.o: ../ub_lib/stm32_ub_usb_hid_host.c \
  ../ub_lib/stm32_ub_usb_hid_host.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_usr.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_core.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_hcd.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_regs.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_conf.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_core.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_defines.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_def.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_conf.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_hid_core.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_stdreq.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_bsp.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_gpio.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_rcc.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/misc.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_ioreq.h \
- F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_hcs.h
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_usr.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_core.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_hcd.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_regs.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_conf.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_core.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_defines.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_def.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_conf.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_hid_core.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_stdreq.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_bsp.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_gpio.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_rcc.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/misc.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_ioreq.h \
+ D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_hcs.h
 ../ub_lib/stm32_ub_usb_hid_host.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_usr.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_core.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_hcd.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_regs.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_conf.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_core.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_defines.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_def.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_conf.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_hid_core.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_stdreq.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usb_bsp.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_gpio.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_rcc.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/misc.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_ioreq.h:
-F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel/usbh_hcs.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_usr.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_core.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_hcd.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_regs.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_conf.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_core.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_defines.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_def.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_conf.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_hid_core.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_stdreq.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usb_bsp.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_gpio.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_rcc.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/misc.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_ioreq.h:
+D:/Embedded_Final_Prj_20252/ub_lib/usb_hid_host_lolevel/usbh_hcs.h:

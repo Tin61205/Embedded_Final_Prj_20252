@@ -7,5 +7,6 @@
 ../ub_lib/stm32_ub_graphic2d.c:306:6:UB_Graphic2D_DrawCircleNormal	6
 ../ub_lib/stm32_ub_graphic2d.c:347:6:UB_Graphic2D_DrawFullCircleDMA	13
 ../ub_lib/stm32_ub_graphic2d.c:428:6:UB_Graphic2D_DrawImageRect	3
-../ub_lib/stm32_ub_graphic2d.c:464:6:UB_Graphic2D_DrawImageRectRotate	10
-../ub_lib/stm32_ub_graphic2d.c:526:9:P_Graphic2D_sgn	3
+../ub_lib/stm32_ub_graphic2d.c:458:6:UB_Graphic2D_DrawImageRectRecolor	4
+../ub_lib/stm32_ub_graphic2d.c:495:6:UB_Graphic2D_DrawImageRectRotate	10
+../ub_lib/stm32_ub_graphic2d.c:557:9:P_Graphic2D_sgn	3

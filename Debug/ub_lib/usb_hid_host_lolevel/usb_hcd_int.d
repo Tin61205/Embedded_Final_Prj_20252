@@ -2,26 +2,26 @@ ub_lib/usb_hid_host_lolevel/usb_hcd_int.o: \
  ../ub_lib/usb_hid_host_lolevel/usb_hcd_int.c \
  ../ub_lib/usb_hid_host_lolevel/usb_core.h \
  ../ub_lib/usb_hid_host_lolevel/usb_conf.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h \
  ../ub_lib/usb_hid_host_lolevel/usb_regs.h \
  ../ub_lib/usb_hid_host_lolevel/usb_defines.h \
  ../ub_lib/usb_hid_host_lolevel/usb_hcd_int.h \
  ../ub_lib/usb_hid_host_lolevel/usb_hcd.h
 ../ub_lib/usb_hid_host_lolevel/usb_core.h:
 ../ub_lib/usb_hid_host_lolevel/usb_conf.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h:
 ../ub_lib/usb_hid_host_lolevel/usb_regs.h:
 ../ub_lib/usb_hid_host_lolevel/usb_defines.h:
 ../ub_lib/usb_hid_host_lolevel/usb_hcd_int.h:

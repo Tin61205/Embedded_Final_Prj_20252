@@ -1,5 +1,12 @@
-../pacman_lib/player.c:24:6:player_init	16	static
-../pacman_lib/player.c:54:6:player_move	8	static
-../pacman_lib/player.c:240:6:player_change_skin	16	static
-../pacman_lib/player.c:290:6:player_check_event	24	static
-../pacman_lib/player.c:406:6:player_change_direction	16	static
+../pacman_lib/player.c:20:6:player_init	24	static
+../pacman_lib/player.c:24:6:player2_init	24	static
+../pacman_lib/player.c:28:13:player_entity_init	24	static
+../pacman_lib/player.c:62:6:player_move	8	static
+../pacman_lib/player.c:66:6:player2_move	8	static
+../pacman_lib/player.c:70:13:player_entity_move	16	static
+../pacman_lib/player.c:194:13:player_entity_change_skin	16	static
+../pacman_lib/player.c:221:13:player_entity_handle_ghost_hit	16	static
+../pacman_lib/player.c:239:13:player_entity_check_event	24	static
+../pacman_lib/player.c:286:6:player_change_direction	16	static
+../pacman_lib/player.c:290:6:player2_change_direction	16	static
+../pacman_lib/player.c:294:13:player_entity_change_direction	16	static

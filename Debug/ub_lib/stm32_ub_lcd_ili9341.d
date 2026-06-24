@@ -1,30 +1,30 @@
 ub_lib/stm32_ub_lcd_ili9341.o: ../ub_lib/stm32_ub_lcd_ili9341.c \
  ../ub_lib/stm32_ub_lcd_ili9341.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h \
- F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h \
- F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_gpio.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_rcc.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_spi.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_ltdc.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h \
+ D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h \
+ D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_gpio.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_rcc.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_spi.h \
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_ltdc.h \
  ../ub_lib/stm32_ub_spi5.h ../ub_lib/stm32_ub_sdram.h \
- F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_fmc.h
+ D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_fmc.h
 ../ub_lib/stm32_ub_lcd_ili9341.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmInstr.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cmFunc.h:
-F:/stm32_workspace/prj_cki/cmsis/core_cm4_simd.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/system_stm32f4xx.h:
-F:/stm32_workspace/prj_cki/cmsis_boot/stm32f4xx_conf.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_gpio.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_rcc.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_spi.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_ltdc.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmInstr.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cmFunc.h:
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4_simd.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/system_stm32f4xx.h:
+D:/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx_conf.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_gpio.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_rcc.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_spi.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_ltdc.h:
 ../ub_lib/stm32_ub_spi5.h:
 ../ub_lib/stm32_ub_sdram.h:
-F:/stm32_workspace/prj_cki/cmsis_lib/include/stm32f4xx_fmc.h:
+D:/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_fmc.h:
