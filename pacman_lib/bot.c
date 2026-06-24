@@ -140,6 +140,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
 uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t direction = 0;
+    uint32_t loop_count = 0;
 
     // take a random direction, but not go back
     do {
@@ -152,6 +153,16 @@ uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
             if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) ret_wert = MOVE_DOWN;
         } else if ((direction == 3) && (akt_dir != MOVE_RIGHT)) {
             if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) ret_wert = MOVE_LEFT;
+        }
+        loop_count++;
+        if (loop_count > 100) {
+            // Fallback: if we loop too many times without finding a non-reverse direction,
+            // accept any available door (even if it's backwards)
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) return MOVE_UP;
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) return MOVE_RIGHT;
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) return MOVE_DOWN;
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) return MOVE_LEFT;
+            break;
         }
     } while (ret_wert == MOVE_STOP);
 
@@ -424,6 +435,41 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
         ret_wert = MOVE_RIGHT;
     }
 
+    // Fallback: if no valid direction is found (e.g. dead end or corner case)
+    // select any available door (even if it is backwards)
+    if (ret_wert == MOVE_STOP) {
+        if ((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) {
+            d_up = bot_calc_distance(x2, y2, x1, y1 - 1);
+        }
+        if ((Maze.Room[x1][y1].door & ROOM_DOOR_R) != 0) {
+            d_right = bot_calc_distance(x2, y2, x1 + 1, y1);
+        }
+        if ((Maze.Room[x1][y1].door & ROOM_DOOR_D) != 0) {
+            d_down = bot_calc_distance(x2, y2, x1, y1 + 1);
+        }
+        if ((Maze.Room[x1][y1].door & ROOM_DOOR_L) != 0) {
+            d_left = bot_calc_distance(x2, y2, x1 - 1, y1);
+        }
+
+        d_min = INIT_DISTANCE;
+        if (d_up < d_min) {
+            d_min = d_up;
+            ret_wert = MOVE_UP;
+        }
+        if (d_left < d_min) {
+            d_min = d_left;
+            ret_wert = MOVE_LEFT;
+        }
+        if (d_down < d_min) {
+            d_min = d_down;
+            ret_wert = MOVE_DOWN;
+        }
+        if (d_right < d_min) {
+            d_min = d_right;
+            ret_wert = MOVE_RIGHT;
+        }
+    }
+
     return (ret_wert);
 }
 
@@ -567,6 +613,11 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         ghosts[i]->port = PORT_DONE;
         ghosts[i]->dot_cnt = 0;
         ghosts[i]->new_mode = 0;
+        
+        if (i == 0) ghosts[i]->frightened_buf = 30;
+        else if (i == 1) ghosts[i]->frightened_buf = 30;
+        else if (i == 2) ghosts[i]->frightened_buf = 30;
+        else ghosts[i]->frightened_buf = 30;
     }
 
     for (i = 0; i < ghost_count; i++) {

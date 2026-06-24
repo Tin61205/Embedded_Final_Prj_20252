@@ -1,4 +1,5 @@
 #include "maze.h"
+#include <string.h>
 #include "random.h"
 #include "stm32_ub_font.h"
 #include "stm32_ub_lcd_ili9341.h"
@@ -28,6 +29,7 @@ void maze_build(void) {
 }
 
 void maze_build_map(uint32_t map_id) {
+    memset(&Maze, 0, sizeof(Maze_t));
     Maze_selected_map = map_id;
     if (map_id == MAZE_MAP_OPEN) {
         maze_make_rooms_open();
@@ -205,8 +207,9 @@ void maze_make_rooms_open(void) {
     maze_generate_digpath_v(21, 1, 29, ROOM_POINTS_NORMAL);
     
     // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
     maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
 
@@ -307,42 +310,44 @@ void maze_set_skin(void) {
 
     //------------------------------
     // 3. set manually
-    //    outside wall skins
+    //    outside wall skins (only for Classic Map)
     //------------------------------
-    maze_generate_setskin_h(0, 0, 1, ROOM_SKIN_WALL_O_TOPLEFT1);
-    maze_generate_setskin_h(27, 0, 1, ROOM_SKIN_WALL_O_TOPRIGHT1);
-    maze_generate_setskin_h(13, 0, 1, ROOM_SKIN_WALL_O_HORTOP1);
-    maze_generate_setskin_h(14, 0, 1, ROOM_SKIN_WALL_O_HORTOP2);
-    maze_generate_setskin_h(0, 9, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT1);
-    maze_generate_setskin_h(27, 9, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT1);
-    maze_generate_setskin_h(1, 9, 4, ROOM_SKIN_WALL_O_BOTTOM);
-    maze_generate_setskin_h(23, 9, 4, ROOM_SKIN_WALL_O_BOTTOM);
-    maze_generate_setskin_h(5, 9, 1, ROOM_SKIN_WALL_O_TOPRIGHT2);
-    maze_generate_setskin_h(22, 9, 1, ROOM_SKIN_WALL_O_TOPLEFT2);
-    maze_generate_setskin_v(5, 10, 3, ROOM_SKIN_WALL_O_LEFT);
-    maze_generate_setskin_v(22, 10, 3, ROOM_SKIN_WALL_O_RIGHT);
-    maze_generate_setskin_h(5, 13, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT2);
-    maze_generate_setskin_h(22, 13, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT2);
-    maze_generate_setskin_h(0, 13, 5, ROOM_SKIN_WALL_O_TOP);
-    maze_generate_setskin_h(23, 13, 5, ROOM_SKIN_WALL_O_TOP);
-    maze_generate_setskin_h(0, 15, 5, ROOM_SKIN_WALL_O_BOTTOM);
-    maze_generate_setskin_h(23, 15, 5, ROOM_SKIN_WALL_O_BOTTOM);
-    maze_generate_setskin_h(5, 15, 1, ROOM_SKIN_WALL_O_TOPRIGHT2);
-    maze_generate_setskin_h(22, 15, 1, ROOM_SKIN_WALL_O_TOPLEFT2);
-    maze_generate_setskin_v(5, 16, 3, ROOM_SKIN_WALL_O_LEFT);
-    maze_generate_setskin_v(22, 16, 3, ROOM_SKIN_WALL_O_RIGHT);
-    maze_generate_setskin_h(5, 19, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT2);
-    maze_generate_setskin_h(22, 19, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT2);
-    maze_generate_setskin_h(1, 19, 4, ROOM_SKIN_WALL_O_TOP);
-    maze_generate_setskin_h(23, 19, 4, ROOM_SKIN_WALL_O_TOP);
-    maze_generate_setskin_h(0, 19, 1, ROOM_SKIN_WALL_O_TOPLEFT1);
-    maze_generate_setskin_h(27, 19, 1, ROOM_SKIN_WALL_O_TOPRIGHT1);
-    maze_generate_setskin_h(0, 24, 1, ROOM_SKIN_WALL_O_VERLEFT1);
-    maze_generate_setskin_h(0, 25, 1, ROOM_SKIN_WALL_O_VERLEFT2);
-    maze_generate_setskin_h(27, 24, 1, ROOM_SKIN_WALL_O_VERRIGHT1);
-    maze_generate_setskin_h(27, 25, 1, ROOM_SKIN_WALL_O_VERRIGHT2);
-    maze_generate_setskin_h(0, 30, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT1);
-    maze_generate_setskin_h(27, 30, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT1);
+    if (Maze_selected_map == MAZE_MAP_CLASSIC) {
+        maze_generate_setskin_h(0, 0, 1, ROOM_SKIN_WALL_O_TOPLEFT1);
+        maze_generate_setskin_h(27, 0, 1, ROOM_SKIN_WALL_O_TOPRIGHT1);
+        maze_generate_setskin_h(13, 0, 1, ROOM_SKIN_WALL_O_HORTOP1);
+        maze_generate_setskin_h(14, 0, 1, ROOM_SKIN_WALL_O_HORTOP2);
+        maze_generate_setskin_h(0, 9, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT1);
+        maze_generate_setskin_h(27, 9, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT1);
+        maze_generate_setskin_h(1, 9, 4, ROOM_SKIN_WALL_O_BOTTOM);
+        maze_generate_setskin_h(23, 9, 4, ROOM_SKIN_WALL_O_BOTTOM);
+        maze_generate_setskin_h(5, 9, 1, ROOM_SKIN_WALL_O_TOPRIGHT2);
+        maze_generate_setskin_h(22, 9, 1, ROOM_SKIN_WALL_O_TOPLEFT2);
+        maze_generate_setskin_v(5, 10, 3, ROOM_SKIN_WALL_O_LEFT);
+        maze_generate_setskin_v(22, 10, 3, ROOM_SKIN_WALL_O_RIGHT);
+        maze_generate_setskin_h(5, 13, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT2);
+        maze_generate_setskin_h(22, 13, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT2);
+        maze_generate_setskin_h(0, 13, 5, ROOM_SKIN_WALL_O_TOP);
+        maze_generate_setskin_h(23, 13, 5, ROOM_SKIN_WALL_O_TOP);
+        maze_generate_setskin_h(0, 15, 5, ROOM_SKIN_WALL_O_BOTTOM);
+        maze_generate_setskin_h(23, 15, 5, ROOM_SKIN_WALL_O_BOTTOM);
+        maze_generate_setskin_h(5, 15, 1, ROOM_SKIN_WALL_O_TOPRIGHT2);
+        maze_generate_setskin_h(22, 15, 1, ROOM_SKIN_WALL_O_TOPLEFT2);
+        maze_generate_setskin_v(5, 16, 3, ROOM_SKIN_WALL_O_LEFT);
+        maze_generate_setskin_v(22, 16, 3, ROOM_SKIN_WALL_O_RIGHT);
+        maze_generate_setskin_h(5, 19, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT2);
+        maze_generate_setskin_h(22, 19, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT2);
+        maze_generate_setskin_h(1, 19, 4, ROOM_SKIN_WALL_O_TOP);
+        maze_generate_setskin_h(23, 19, 4, ROOM_SKIN_WALL_O_TOP);
+        maze_generate_setskin_h(0, 19, 1, ROOM_SKIN_WALL_O_TOPLEFT1);
+        maze_generate_setskin_h(27, 19, 1, ROOM_SKIN_WALL_O_TOPRIGHT1);
+        maze_generate_setskin_h(0, 24, 1, ROOM_SKIN_WALL_O_VERLEFT1);
+        maze_generate_setskin_h(0, 25, 1, ROOM_SKIN_WALL_O_VERLEFT2);
+        maze_generate_setskin_h(27, 24, 1, ROOM_SKIN_WALL_O_VERRIGHT1);
+        maze_generate_setskin_h(27, 25, 1, ROOM_SKIN_WALL_O_VERRIGHT2);
+        maze_generate_setskin_h(0, 30, 1, ROOM_SKIN_WALL_O_BOTTOMLEFT1);
+        maze_generate_setskin_h(27, 30, 1, ROOM_SKIN_WALL_O_BOTTOMRIGHT1);
+    }
 
     //------------------------------
     // 5. set manually
@@ -422,8 +427,9 @@ void maze_make_rooms_map3(void) {
     maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
 
     // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
     maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
 
@@ -495,8 +501,9 @@ void maze_make_rooms_map4(void) {
     maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
 
     // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
     maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
 
@@ -564,8 +571,9 @@ void maze_make_rooms_map5(void) {
     maze_generate_digpath_v(23, 1, 29, ROOM_POINTS_NORMAL);
 
     // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
     maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
 
@@ -641,8 +649,9 @@ void maze_make_rooms_map6(void) {
     maze_generate_digpath_v(21, 1, 29, ROOM_POINTS_NORMAL);
     
     // Vertical connections above home base
-    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
 
     // 3. Dig lower half
     maze_generate_digpath_h(1, 24, 26, ROOM_POINTS_NORMAL);

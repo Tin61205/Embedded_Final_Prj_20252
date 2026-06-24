@@ -302,8 +302,12 @@ void clyde_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // (if this happens...error in maze design)
-        Clyde.next_move = MOVE_STOP;
+        // Fallback: keep moving in the same direction to try escaping
+        if (Clyde.move != MOVE_STOP) {
+            Clyde.next_move = Clyde.move;
+        } else {
+            Clyde.next_move = MOVE_STOP;
+        }
     } else if (door_cnt == 1) {
         // take the only possible way
         if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Clyde.next_move = MOVE_UP;

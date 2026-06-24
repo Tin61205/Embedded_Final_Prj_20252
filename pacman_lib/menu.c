@@ -512,7 +512,16 @@ static uint32_t menu_run_campaign_wizard(void) {
             menu_draw_campaign_wizard(sel_line);
             UB_Systick_Pause_ms(150);
         }
-        if (UB_Button_OnClick(BTN_LEFT) || UB_Button_OnClick(BTN_RIGHT)) {
+        if (UB_Button_OnClick(BTN_LEFT)) {
+            if (sel_line == 0) {
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
+            } else {
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
+            }
+            menu_draw_campaign_wizard(sel_line);
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_RIGHT)) {
             if (sel_line == 0) {
                 Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
             } else {
