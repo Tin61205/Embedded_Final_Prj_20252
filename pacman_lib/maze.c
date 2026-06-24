@@ -171,46 +171,70 @@ void maze_make_rooms_open(void) {
     room.deb_err = ROOM_DEB_OK;
     maze_generate_searchandset(SEARCH_ROOMS_ALL, room);
 
+    // 1. Dig border paths
     maze_generate_digpath_h(1, 1, 26, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(1, 8, 26, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(1, 15, 26, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(1, 22, 26, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(1, 29, 26, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(1, 1, 29, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(26, 1, 29, ROOM_POINTS_NORMAL);
 
-    maze_generate_digpath_v(1, 1, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(7, 1, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(13, 1, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(19, 1, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(25, 1, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(1, 22, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(7, 22, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(13, 22, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(19, 22, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(25, 22, 8, ROOM_POINTS_NORMAL);
+    // 2. Dig inner horizontal paths (avoiding home base region)
+    maze_generate_digpath_h(1, 5, 26, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(1, 9, 26, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(1, 20, 26, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(1, 25, 26, ROOM_POINTS_NORMAL);
 
-    maze_generate_digpath_v(1, 8, 15, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(7, 8, 15, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(13, 8, 15, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(19, 8, 15, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(25, 8, 15, ROOM_POINTS_NORMAL);
+    // 3. Dig horizontal connections on the sides of home base
+    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
 
+    // 4. Dig vertical paths connecting the horizontal paths
+    maze_generate_digpath_v(6, 1, 29, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(21, 1, 29, ROOM_POINTS_NORMAL);
+    
+    // Vertical connections above and below home base
+    maze_generate_digpath_v(12, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
+
+    // 5. Set all dug rooms (having doors) to PATH
     room.typ = ROOM_TYP_PATH;
     room.skin = ROOM_SKIN_PATH_STD;
     maze_generate_searchandset(SEARCH_DOORS_YES, room);
 
+    // 6. Set special PORTALs
     room.typ = ROOM_TYP_WALL;
     room.special = ROOM_SPEC_PORTAL;
     maze_generate_setportals(0, 14, room);
 
+    // 7. Set special GATEx and inner doors for Home Base (same as Classic)
     room.special = ROOM_SPEC_GATE;
     room.door = (ROOM_BGATE_D | ROOM_PGATE_D | ROOM_IGATE_D | ROOM_CGATE_D);
     maze_generate_setgate(14, 11, room, ROOM_DOOR_D);
+    room.special = ROOM_SPEC_GATE;
+    room.door = (ROOM_BGATE_D | ROOM_PGATE_D | ROOM_IGATE_D | ROOM_CGATE_D);
     maze_generate_setgate(14, 12, room, ROOM_DOOR_D);
+    room.special = ROOM_SPEC_GATE;
+    room.door = (ROOM_BGATE_D | ROOM_PGATE_D | ROOM_IGATE_D | ROOM_CGATE_D);
     maze_generate_setgate(14, 13, room, ROOM_DOOR_D);
+    room.special = ROOM_SPEC_GATE;
+    room.door = ROOM_CGATE_R; // gate for clyde (right)
+    maze_generate_setgate(14, 14, room, ROOM_DOOR_R);
+    room.special = ROOM_SPEC_GATE;
+    room.door = ROOM_IGATE_L; // gate for inky (left)
+    maze_generate_setgate(14, 14, room, ROOM_DOOR_L);
+    room.special = ROOM_SPEC_GATE;
+    room.door = ROOM_CGATE_R; // gate for clyde (right)
+    maze_generate_setgate(15, 14, room, ROOM_DOOR_R);
+    room.special = ROOM_SPEC_GATE;
+    room.door = ROOM_IGATE_L; // gate for inky (left)
+    maze_generate_setgate(13, 14, room, ROOM_DOOR_L);
 
+    // 8. Clear points at player start position
     Maze.Room[13][23].points = ROOM_POINTS_NONE;
     Maze.Room[14][23].points = ROOM_POINTS_NONE;
 
+    // 9. Place energy dots
     maze_place_energy_dots();
 }
 
@@ -237,16 +261,16 @@ void maze_draw_preview(uint32_t map_id, uint32_t dest_x, uint32_t dest_y, uint32
     uint32_t ph = ROOM_CNT_Y * cell_px;
 
     maze_build_map(map_id);
-    UB_Graphic2D_DrawRectDMA(dest_x, dest_y, pw, ph, RGB_COL_BLACK);
+    UB_Graphic2D_DrawFullRectDMA(dest_x, dest_y, pw, ph, RGB_COL_BLACK);
 
     for (x = 0; x < ROOM_CNT_X; x++) {
         for (y = 0; y < ROOM_CNT_Y; y++) {
-            if (Maze.Room[x][y].typ == ROOM_TYP_PATH) {
+            if (Maze.Room[x][y].typ == ROOM_TYP_WALL) {
                 color = RGB_COL_BLUE;
             } else {
                 color = RGB_COL_GREY;
             }
-            UB_Graphic2D_DrawRectDMA(dest_x + (x * cell_px), dest_y + (y * cell_px), cell_px, cell_px, color);
+            UB_Graphic2D_DrawFullRectDMA(dest_x + (x * cell_px), dest_y + (y * cell_px), cell_px, cell_px, color);
         }
     }
 }

@@ -128,12 +128,12 @@ void pacman_start(void) {
         skin_init();
     }
 
+    maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
     if (Game.play_type == GAME_PLAY_CUSTOM) {
         pacman_apply_custom_config();
     } else {
         pacman_set_level();
     }
-    maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
     check = maze_generate_check();
 
     // Wait for PA0 (BTN_CENTER) press to start
@@ -171,8 +171,14 @@ void pacman_start(void) {
             if (check == GAME_PLAYER_WIN) {
                 Player.level++;
             } else if (Game.player2_active != 0) {
-                if (Player.lives == 0 && Player2.lives == 0) {
-                    check = GAME_OVER;
+                if (bot_is_2p_coop()) {
+                    if (Player.lives == 0 && Player2.lives == 0) {
+                        check = GAME_OVER;
+                    }
+                } else {
+                    if (Player.lives == 0) {
+                        check = GAME_OVER;
+                    }
                 }
             } else {
                 Player.lives--;

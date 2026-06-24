@@ -177,7 +177,7 @@ static uint32_t menu_run_main(void) {
 
 static const char* menu_map_name(uint32_t map_id) {
     if (map_id == MAZE_MAP_OPEN) {
-        return "Open Grid";
+        return "Arena";
     }
     return "Classic";
 }

@@ -100,7 +100,7 @@ extern Player_t Player2;
 
 #define GHOST_STRATEGY_COUNT 7
 
-#define GHOST_SPAWN_MIN_DIST 800
+#define GHOST_SPAWN_MIN_DIST 64
 
 #define GHOST_SPEED_SLOW_MS 70
 #define GHOST_SPEED_NORMAL_MS 50

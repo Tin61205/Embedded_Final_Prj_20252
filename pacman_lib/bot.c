@@ -63,7 +63,7 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         return;
     }
 
-    if (bot_is_2p_coop()) {
+    if (Game.player2_active != 0) {
         if (p->lives > 0) {
             p->lives--;
         }
@@ -91,10 +91,13 @@ void bot_team_kill_pacman(void) {
 }
 
 uint32_t bot_coop_is_game_over(void) {
-    if (bot_is_2p_coop() == 0) {
-        return 0;
+    if (bot_is_2p_coop()) {
+        return (Player.lives == 0 && Player2.lives == 0) ? 1 : 0;
     }
-    return (Player.lives == 0 && Player2.lives == 0) ? 1 : 0;
+    if (bot_is_2p_vs_ghost()) {
+        return (Player.lives == 0) ? 1 : 0;
+    }
+    return 0;
 }
 
 void bot_team_win_pacman(void) {
@@ -292,7 +295,7 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
 
     d_clyde = bot_calc_distance(txp, typ, xp, yp);
 
-    if (d_clyde > 800) {
+    if (d_clyde > 64) {
         // player is far away (more than 8 Rooms) -> chase him directly
         ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
     } else {
@@ -429,43 +432,9 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
 // c = SQRT(a*a + b*b)
 //--------------------------------------------------------------
 uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2) {
-    uint32_t ret_wert = 0;
-    int32_t dx, dy; // signed int !!
-
-    dx = (x1 - x2);
-    dx = ABS(dx);
-
-    dy = (y1 - y2);
-    dy = ABS(dy);
-
-    // to increase resolution
-    dx = dx * SQRT_FAKTOR;
-    dy = dy * SQRT_FAKTOR;
-
-    if ((dx == 0) || (dy == 0)) {
-        if ((dx == 0) && (dy == 0)) {
-            ret_wert = 0;
-            return (ret_wert);
-        }
-        if (dx == 0) {
-            ret_wert = dy;
-            return (ret_wert);
-        }
-        if (dy == 0) {
-            ret_wert = dx;
-            return (ret_wert);
-        }
-    }
-
-    //-----------------------
-    // c = SQRT(a*a + b*b)
-    //-----------------------
-    dx = dx * dx;
-    dy = dy * dy;
-
-    ret_wert = UB_SQRT(dx + dy);
-
-    return (ret_wert);
+    int32_t dx = (int32_t)x1 - (int32_t)x2;
+    int32_t dy = (int32_t)y1 - (int32_t)y2;
+    return (uint32_t)(dx * dx + dy * dy);
 }
 
 //--------------------------------------------------------------
@@ -499,7 +468,7 @@ uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     bot_get_nearest_player(xp, yp, &txp, &typ);
     dist = bot_calc_distance(txp, typ, xp, yp);
 
-    if (dist <= (6 * SQRT_FAKTOR)) {
+    if (dist <= 36) {
         return bot_calc_move_blinky(xp, yp, akt_dir);
     }
     return bot_calc_move_random(xp, yp, akt_dir);
@@ -624,8 +593,10 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         }
 
         if (found == 0) {
-            sx = 14 - i;
-            sy = 11;
+            if (i == 0) { sx = 14; sy = 11; }
+            else if (i == 1) { sx = 14; sy = 14; }
+            else if (i == 2) { sx = 13; sy = 14; }
+            else { sx = 15; sy = 14; }
         }
 
         used_x[used_cnt] = sx;
