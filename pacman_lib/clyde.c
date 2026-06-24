@@ -246,7 +246,6 @@ void clyde_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void clyde_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
     xp = Clyde.xp;
     yp = Clyde.yp;

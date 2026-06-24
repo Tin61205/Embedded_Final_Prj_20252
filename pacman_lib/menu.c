@@ -27,13 +27,16 @@
 static uint32_t menu_touch_pressed(uint16_t *xp, uint16_t *yp);
 static uint32_t menu_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 static void menu_touch_wait_release(void);
-static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label);
+// static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label);
 static void menu_draw_main(uint32_t sel);
 static uint32_t menu_run_main(void);
 static void menu_custom_defaults(void);
 static void menu_draw_wizard(uint32_t step, uint32_t ghost_idx);
 static uint32_t menu_run_custom_wizard(void);
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir);
+static void menu_draw_campaign_wizard(uint32_t sel_line);
+static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty);
+static uint32_t menu_run_campaign_wizard(void);
 
 //--------------------------------------------------------------
 // entry: main menu then optional custom wizard
@@ -46,26 +49,24 @@ uint32_t menu_start(void) {
     GUI.refresh_buttons = GUI_REFRESH_VALUE;
 
     menu_custom_defaults();
+    Game.campaign_map_id = MAZE_MAP_CLASSIC;
+    Game.campaign_difficulty = 1;
 
-    do {
+    while (1) {
         srand_init++;
         result = menu_run_main();
-    } while (result == MENU_RESULT_NONE);
 
-    if (result == MENU_RESULT_CUSTOM) {
-        while (menu_run_custom_wizard() == 0) {
-            srand_init++;
-            result = menu_run_main();
-            if (result != MENU_RESULT_CUSTOM) {
+        if (result == MENU_RESULT_CAMPAIGN) {
+            if (menu_run_campaign_wizard() != 0) {
                 Game.play_type = GAME_PLAY_CAMPAIGN;
-                srand(srand_init);
-                return result;
+                break;
+            }
+        } else if (result == MENU_RESULT_CUSTOM) {
+            if (menu_run_custom_wizard() != 0) {
+                Game.play_type = GAME_PLAY_CUSTOM;
+                break;
             }
         }
-        Game.play_type = GAME_PLAY_CUSTOM;
-    } else {
-        Game.play_type = GAME_PLAY_CAMPAIGN;
-        Game.debug_mode = 0;
     }
 
     srand(srand_init);
@@ -109,6 +110,7 @@ static void menu_touch_wait_release(void) {
     UB_Systick_Pause_ms(120);
 }
 
+/*
 static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label) {
     if (show_back != 0) {
         UB_Font_DrawString(MENU_BTN_BACK_X, MENU_BTN_Y, "Back", &Arial_7x10, MENUE_COL_OFF, BACKGROUND_COL);
@@ -117,6 +119,7 @@ static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label) {
     }
     UB_Font_DrawString(MENU_BTN_NEXT_X, MENU_BTN_Y, next_label, &Arial_7x10, MENUE_COL_ON, BACKGROUND_COL);
 }
+*/
 
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir) {
     if (dir > 0) {
@@ -420,6 +423,107 @@ static uint32_t menu_run_custom_wizard(void) {
             return 1; // Start game
         }
 
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+//--------------------------------------------------------------
+// Campaign setup wizard functions
+//--------------------------------------------------------------
+static void menu_draw_campaign_wizard(uint32_t sel_line) {
+    char buf[32];
+    uint32_t color;
+
+    gui_clear_screen();
+    UB_Font_DrawString(60, 5, "CAMPAIGN SETUP", &Arial_7x10, FONT_COL, BACKGROUND_COL);
+
+    // 1. Map
+    color = (sel_line == 0) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 50, "Map:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", menu_map_name(Game.campaign_map_id));
+    UB_Font_DrawString(75, 50, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    // 2. Difficulty
+    color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 80, "Difficulty:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%u", (unsigned int)Game.campaign_difficulty);
+    UB_Font_DrawString(90, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    // Draw Preview Map
+    UB_Font_DrawString(120, 25, "Map Preview", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    maze_draw_preview(Game.campaign_map_id, 120, 40, 4);
+
+    // Draw Buttons
+    // Back Button (Blue border, white text)
+    UB_Graphic2D_DrawRectDMA(10, 275, 70, 25, RGB_COL_BLUE);
+    UB_Font_DrawString(25, 282, "Back", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+
+    // Start Button (Red border, white text)
+    UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
+    UB_Font_DrawString(175, 282, "Start", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+}
+
+static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
+    if (tx > 115) {
+        return 0;
+    }
+    // Map
+    if (ty >= 46 && ty <= 64) {
+        Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
+        return 1;
+    }
+    // Difficulty
+    if (ty >= 76 && ty <= 94) {
+        Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+        return 1;
+    }
+    return 0;
+}
+
+static uint32_t menu_run_campaign_wizard(void) {
+    uint32_t sel_line = 0;
+    uint16_t tx, ty;
+
+    menu_draw_campaign_wizard(sel_line);
+
+    while (1) {
+        if (menu_touch_pressed(&tx, &ty) != 0) {
+            // Check buttons
+            if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
+                menu_touch_wait_release();
+                return 0; // Back to main menu
+            }
+            if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
+                menu_touch_wait_release();
+                return 1; // Start game
+            }
+            // Check value tap
+            if (menu_handle_campaign_value_tap(tx, ty) != 0) {
+                if (ty >= 46 && ty <= 64) sel_line = 0;
+                else if (ty >= 76 && ty <= 94) sel_line = 1;
+                menu_touch_wait_release();
+                menu_draw_campaign_wizard(sel_line);
+            }
+        }
+
+        // Hard buttons
+        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
+            sel_line = 1 - sel_line;
+            menu_draw_campaign_wizard(sel_line);
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_LEFT) || UB_Button_OnClick(BTN_RIGHT)) {
+            if (sel_line == 0) {
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
+            } else {
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+            }
+            menu_draw_campaign_wizard(sel_line);
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_CENTER)) {
+            return 1; // Start
+        }
         UB_Systick_Pause_ms(30);
     }
 }

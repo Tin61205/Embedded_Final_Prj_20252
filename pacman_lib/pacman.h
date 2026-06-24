@@ -132,6 +132,14 @@ typedef struct {
 }
 CustomConfig_t;
 
+typedef struct {
+    uint32_t ghost_count;
+    uint32_t active_mask;
+    uint32_t ghost_speed;
+    uint32_t strategies[4];
+}
+CampaignDifficulty_t;
+
 //--------------------------------------------------------------
 // Main Game Structure
 //--------------------------------------------------------------
@@ -149,6 +157,8 @@ typedef struct {
     uint32_t ghost_active_mask;
     uint32_t player2_joy;
     uint32_t player2_active;
+    uint32_t campaign_map_id;
+    uint32_t campaign_difficulty;
     CustomConfig_t custom;
 }
 Game_t;
@@ -158,6 +168,7 @@ extern Game_t Game;
 // Global functions
 //--------------------------------------------------------------
 void pacman_start(void);
+void pacman_apply_campaign_difficulty(void);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);

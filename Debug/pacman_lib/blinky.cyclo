@@ -2,4 +2,4 @@
 ../pacman_lib/blinky.c:45:6:blinky_move	21
 ../pacman_lib/blinky.c:193:6:blinky_change_skin	14
 ../pacman_lib/blinky.c:244:6:blinky_check_event	4
-../pacman_lib/blinky.c:268:6:blinky_calc_next_move	40
+../pacman_lib/blinky.c:267:6:blinky_calc_next_move	40

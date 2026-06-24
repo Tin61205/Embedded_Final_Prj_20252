@@ -2,4 +2,4 @@
 ../pacman_lib/clyde.c:48:6:clyde_move	8	static
 ../pacman_lib/clyde.c:196:6:clyde_change_skin	16	static
 ../pacman_lib/clyde.c:247:6:clyde_check_event	16	static
-../pacman_lib/clyde.c:274:6:clyde_calc_next_move	32	static
+../pacman_lib/clyde.c:273:6:clyde_calc_next_move	32	static

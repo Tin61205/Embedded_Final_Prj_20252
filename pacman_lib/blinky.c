@@ -243,7 +243,6 @@ void blinky_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void blinky_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
     xp = Blinky.xp;
     yp = Blinky.yp;

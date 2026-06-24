@@ -85,6 +85,53 @@ Level_t Level[] = {
     },
 };
 
+CampaignDifficulty_t CampaignDifficultyScenario[10] = {
+    // 1: 1 Clyde (Drunk), 80ms
+    { 1, MOVE_CLYDE, 80, { GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    // 2: 1 Blinky (Lazy), 70ms
+    { 1, MOVE_BLINKY, 70, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    // 3: 2 Ghost (1 Drunk, 1 Lazy), 65ms
+    { 2, MOVE_BLINKY | MOVE_CLYDE, 65, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    // 4: 2 Ghost (1 Lazy, 1 Shy Clyde), 60ms
+    { 2, MOVE_BLINKY | MOVE_CLYDE, 60, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_CLYDE } },
+    // 5: 3 Ghost (1 Chase, 1 Drunk, 1 Lazy), 55ms
+    { 3, MOVE_BLINKY | MOVE_PINKY | MOVE_CLYDE, 55, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_LAZY } },
+    // 6: 3 Ghost (1 Chase, 1 Lazy, 1 Tricky Inky), 50ms
+    { 3, MOVE_BLINKY | MOVE_INKY | MOVE_CLYDE, 50, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_INKY, GHOST_STRATEGY_LAZY } },
+    // 7: 4 Ghost (2 Lazy, 1 Tricky, 1 Shy), 45ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 45, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } },
+    // 8: 4 Ghost (1 Chase, 1 Ambush, 1 Lazy, 1 Shy), 40ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 40, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_CLYDE } },
+    // 9: 4 Ghost (Chase, Ambush, Tricky, Shy) - Mức gốc, 32ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 32, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } },
+    // 10: 4 Ghost (Chase, Ambush, Tricky, Shy) - Ác mộng, 24ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 24, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } }
+};
+
+void pacman_apply_campaign_difficulty(void) {
+    uint32_t diff = Game.campaign_difficulty;
+    if (diff < 1) diff = 1;
+    if (diff > 10) diff = 10;
+    
+    CampaignDifficulty_t config = CampaignDifficultyScenario[diff - 1];
+    
+    Game.numberOfBots = config.ghost_count;
+    Game.ghost_active_mask = config.active_mask;
+    
+    Blinky.akt_speed_ms = config.ghost_speed;
+    Pinky.akt_speed_ms = config.ghost_speed;
+    Inky.akt_speed_ms = config.ghost_speed;
+    Clyde.akt_speed_ms = config.ghost_speed;
+    
+    Blinky.strategy = config.strategies[0];
+    Pinky.strategy = config.strategies[1];
+    Inky.strategy = config.strategies[2];
+    Clyde.strategy = config.strategies[3];
+    
+    Player.akt_speed_ms = 30; // Standard speed for player
+    Player.level = diff;
+}
+
 extern USB_HID_HOST_STATUS_t usb_status; // Trạng thái Keyboard
 uint32_t pacman_hw_init(void);
 uint32_t pacman_play(void);
@@ -97,7 +144,7 @@ void pacman_set_level(void);
 //--------------------------------------------------------------
 void pacman_start(void) {
     uint32_t check;
-    char buf[10];
+    char buf[32];
 
     Game.debug_mode = 0;
     Game.numberOfBots = 4;
@@ -128,11 +175,11 @@ void pacman_start(void) {
         skin_init();
     }
 
-    maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
+    maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
     if (Game.play_type == GAME_PLAY_CUSTOM) {
         pacman_apply_custom_config();
     } else {
-        pacman_set_level();
+        pacman_apply_campaign_difficulty();
     }
     check = maze_generate_check();
 
@@ -169,7 +216,9 @@ void pacman_start(void) {
 
             if (check == GAME_PLAYER_WIN) {
                 gui_show_win_screen(Player.score);
-                Player.level++;
+                if (Game.campaign_difficulty < 10) {
+                    Game.campaign_difficulty++;
+                }
             } else {
                 if (Game.player2_active != 0) {
                     if (bot_is_2p_coop()) {
@@ -205,6 +254,7 @@ void pacman_start(void) {
                 pinky_init(check);
                 inky_init(check);
                 clyde_init(check);
+                pacman_apply_campaign_difficulty();
             }
 
             if (check == GAME_OVER) {
@@ -212,15 +262,15 @@ void pacman_start(void) {
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
                     pacman_apply_custom_config();
                 } else {
-                    pacman_set_level();
                     blinky_init(GAME_OVER);
                     pinky_init(GAME_OVER);
                     inky_init(GAME_OVER);
                     clyde_init(GAME_OVER);
+                    pacman_apply_campaign_difficulty();
                 }
             }
             if ((check == GAME_PLAYER_WIN) || (check == GAME_OVER)) {
-                maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
+                maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
             }
         }
     } else {
@@ -232,9 +282,6 @@ void pacman_start(void) {
     }
 }
 
-//--------------------------------------------------------------
-// init complete hardware
-//--------------------------------------------------------------
 uint32_t pacman_hw_init(void) {
     uint32_t ret_wert = 0;
 

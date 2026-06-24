@@ -240,7 +240,6 @@ void pinky_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void pinky_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
     xp = Pinky.xp;
     yp = Pinky.yp;
