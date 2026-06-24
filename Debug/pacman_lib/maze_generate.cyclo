@@ -10,4 +10,6 @@
 ../pacman_lib/maze_generate.c:317:10:maze_generate_setskin_h	6
 ../pacman_lib/maze_generate.c:338:10:maze_generate_setskin_v	6
 ../pacman_lib/maze_generate.c:359:10:maze_generate_check	29
-../pacman_lib/maze_generate.c:471:10:maze_generate_count_dots	4
+../pacman_lib/maze_generate.c:471:6:maze_generate_sync_path_doors	8
+../pacman_lib/maze_generate.c:499:6:maze_generate_strip_orphan_wall_doors	20
+../pacman_lib/maze_generate.c:541:10:maze_generate_count_dots	4

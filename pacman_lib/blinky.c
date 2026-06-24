@@ -244,6 +244,7 @@ void blinky_change_skin(uint32_t direction) {
 void blinky_check_event(void) {
     uint32_t xp, yp;
 
+    bot_ghost_validate_position(&Blinky);
     xp = Blinky.xp;
     yp = Blinky.yp;
 
@@ -296,12 +297,7 @@ void blinky_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // Fallback: keep moving in the same direction to try escaping
-        if (Blinky.move != MOVE_STOP) {
-            Blinky.next_move = Blinky.move;
-        } else {
-            Blinky.next_move = MOVE_STOP;
-        }
+        Blinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         // take the only possible way
         if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Blinky.next_move = MOVE_UP;
@@ -335,18 +331,8 @@ void blinky_calc_next_move(void) {
             return;
         }
 
-        if (bot_is_2p_vs_ghost() != 0) {
-            if (Game.player2_joy == GUI_JOY_UP && (Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) {
-                Blinky.next_move = MOVE_UP;
-            } else if (Game.player2_joy == GUI_JOY_RIGHT && (Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) {
-                Blinky.next_move = MOVE_RIGHT;
-            } else if (Game.player2_joy == GUI_JOY_DOWN && (Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) {
-                Blinky.next_move = MOVE_DOWN;
-            } else if (Game.player2_joy == GUI_JOY_LEFT && (Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) {
-                Blinky.next_move = MOVE_LEFT;
-            } else {
-                Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
-            }
+        if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
+            Blinky.next_move = bot_calc_move_player_ghost(xp, yp, Blinky.move, Game.player2_joy);
             return;
         }
 

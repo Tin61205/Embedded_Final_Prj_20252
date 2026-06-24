@@ -163,7 +163,7 @@ static uint32_t USB_OTG_USBH_handle_Disconnect_ISR (USB_OTG_CORE_HANDLE *pdev)
 static uint32_t USB_OTG_USBH_handle_nptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
 {
   USB_OTG_GINTMSK_TypeDef      intmsk;
-  USB_OTG_HNPTXSTS_TypeDef     hnptxsts; 
+  USB_OTG_HNPTXSTS_TypeDef     hnptxsts = {0}; 
   uint16_t                     len_words , len; 
   
   hnptxsts.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->HNPTXSTS);
@@ -204,7 +204,7 @@ static uint32_t USB_OTG_USBH_handle_nptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
 static uint32_t USB_OTG_USBH_handle_ptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
 {
   USB_OTG_GINTMSK_TypeDef      intmsk;
-  USB_OTG_HPTXSTS_TypeDef      hptxsts; 
+  USB_OTG_HPTXSTS_TypeDef      hptxsts = {0}; 
   uint16_t                     len_words , len; 
   
   hptxsts.d32 = USB_OTG_READ_REG32(&pdev->regs.HREGS->HPTXSTS);

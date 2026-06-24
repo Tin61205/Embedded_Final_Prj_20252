@@ -94,12 +94,17 @@ static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *)) {
         if (ABS(p->delta_y) >= ROOM_HEIGHT) {
             p->delta_y = 0;
             if (p->port == PORT_DONE) {
-                p->yp--;
-                if (Maze.Room[p->xp][p->yp - 1].special == ROOM_SPEC_PORTAL) {
-                    p->port = PORT_UP0;
-                } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_U) == 0) {
+                if (!bot_is_walkable(p->xp, p->yp - 1, 0)) {
                     p->move = MOVE_STOP;
                     p->skin = PLAYER_SKIN_UP1;
+                } else {
+                    p->yp--;
+                    if (Maze.Room[p->xp][p->yp - 1].special == ROOM_SPEC_PORTAL) {
+                        p->port = PORT_UP0;
+                    } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_U) == 0) {
+                        p->move = MOVE_STOP;
+                        p->skin = PLAYER_SKIN_UP1;
+                    }
                 }
             } else if (p->port == PORT_UP0) {
                 p->yp = ROOM_CNT_Y - 2;
@@ -123,12 +128,17 @@ static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *)) {
         if (ABS(p->delta_x) >= ROOM_WIDTH) {
             p->delta_x = 0;
             if (p->port == PORT_DONE) {
-                p->xp++;
-                if (Maze.Room[p->xp + 1][p->yp].special == ROOM_SPEC_PORTAL) {
-                    p->port = PORT_RIGHT0;
-                } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_R) == 0) {
+                if (!bot_is_walkable(p->xp + 1, p->yp, 0)) {
                     p->move = MOVE_STOP;
                     p->skin = PLAYER_SKIN_RIGHT1;
+                } else {
+                    p->xp++;
+                    if (Maze.Room[p->xp + 1][p->yp].special == ROOM_SPEC_PORTAL) {
+                        p->port = PORT_RIGHT0;
+                    } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_R) == 0) {
+                        p->move = MOVE_STOP;
+                        p->skin = PLAYER_SKIN_RIGHT1;
+                    }
                 }
             } else if (p->port == PORT_RIGHT0) {
                 p->xp = 1;
@@ -152,12 +162,17 @@ static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *)) {
         if (ABS(p->delta_y) >= ROOM_HEIGHT) {
             p->delta_y = 0;
             if (p->port == PORT_DONE) {
-                p->yp++;
-                if (Maze.Room[p->xp][p->yp + 1].special == ROOM_SPEC_PORTAL) {
-                    p->port = PORT_DOWN0;
-                } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_D) == 0) {
+                if (!bot_is_walkable(p->xp, p->yp + 1, 0)) {
                     p->move = MOVE_STOP;
                     p->skin = PLAYER_SKIN_DOWN1;
+                } else {
+                    p->yp++;
+                    if (Maze.Room[p->xp][p->yp + 1].special == ROOM_SPEC_PORTAL) {
+                        p->port = PORT_DOWN0;
+                    } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_D) == 0) {
+                        p->move = MOVE_STOP;
+                        p->skin = PLAYER_SKIN_DOWN1;
+                    }
                 }
             } else if (p->port == PORT_DOWN0) {
                 p->yp = 1;
@@ -181,12 +196,17 @@ static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *)) {
         if (ABS(p->delta_x) >= ROOM_WIDTH) {
             p->delta_x = 0;
             if (p->port == PORT_DONE) {
-                p->xp--;
-                if (Maze.Room[p->xp - 1][p->yp].special == ROOM_SPEC_PORTAL) {
-                    p->port = PORT_LEFT0;
-                } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) == 0) {
+                if (!bot_is_walkable(p->xp - 1, p->yp, 0)) {
                     p->move = MOVE_STOP;
                     p->skin = PLAYER_SKIN_LEFT1;
+                } else {
+                    p->xp--;
+                    if (Maze.Room[p->xp - 1][p->yp].special == ROOM_SPEC_PORTAL) {
+                        p->port = PORT_LEFT0;
+                    } else if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) == 0) {
+                        p->move = MOVE_STOP;
+                        p->skin = PLAYER_SKIN_LEFT1;
+                    }
                 }
             } else if (p->port == PORT_LEFT0) {
                 p->xp = ROOM_CNT_X - 2;
@@ -303,6 +323,44 @@ void player2_change_direction(uint32_t joy) {
 static void player_entity_change_direction(Player_t *p, uint32_t joy) {
     if (p->status != PLAYER_STATUS_ALIVE) {
         return;
+    }
+
+    if ((p->move == MOVE_LEFT || p->move == MOVE_RIGHT) && (p->port == PORT_DONE) && (p->delta_y == 0)) {
+        if (ABS(p->delta_x) <= PLAYER_TURN_ALIGN) {
+            if (joy == GUI_JOY_UP && (p->move != MOVE_DOWN)) {
+                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_U) != 0) {
+                    p->delta_x = 0;
+                    p->move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN && (p->move != MOVE_UP)) {
+                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_D) != 0) {
+                    p->delta_x = 0;
+                    p->move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
+    }
+
+    if ((p->move == MOVE_UP || p->move == MOVE_DOWN) && (p->port == PORT_DONE) && (p->delta_x == 0)) {
+        if (ABS(p->delta_y) <= PLAYER_TURN_ALIGN) {
+            if (joy == GUI_JOY_LEFT && (p->move != MOVE_RIGHT)) {
+                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) != 0) {
+                    p->delta_y = 0;
+                    p->move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT && (p->move != MOVE_LEFT)) {
+                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_R) != 0) {
+                    p->delta_y = 0;
+                    p->move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
     }
 
     if (joy == GUI_JOY_UP) {

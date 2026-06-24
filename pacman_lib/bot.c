@@ -41,6 +41,51 @@ uint32_t bot_is_2p_vs_ghost(void) {
             Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) ? 1 : 0;
 }
 
+uint32_t bot_custom_ai_ghost_count(void) {
+    if (bot_is_2p_vs_ghost()) {
+        return (Game.custom.ghost_count > 0) ? (Game.custom.ghost_count - 1) : 0;
+    }
+    return Game.custom.ghost_count;
+}
+
+uint32_t bot_is_player_controlled_ghost(uint32_t ghost_id) {
+    return (bot_is_2p_vs_ghost() && ghost_id == GHOST_BLINKY) ? 1 : 0;
+}
+
+uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, uint32_t joy) {
+    if (joy == GUI_JOY_UP && (akt_dir != MOVE_DOWN) &&
+        ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0)) {
+        return MOVE_UP;
+    }
+    if (joy == GUI_JOY_RIGHT && (akt_dir != MOVE_LEFT) &&
+        ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0)) {
+        return MOVE_RIGHT;
+    }
+    if (joy == GUI_JOY_DOWN && (akt_dir != MOVE_UP) &&
+        ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0)) {
+        return MOVE_DOWN;
+    }
+    if (joy == GUI_JOY_LEFT && (akt_dir != MOVE_RIGHT) &&
+        ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0)) {
+        return MOVE_LEFT;
+    }
+
+    if (akt_dir == MOVE_UP && ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0)) {
+        return MOVE_UP;
+    }
+    if (akt_dir == MOVE_RIGHT && ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0)) {
+        return MOVE_RIGHT;
+    }
+    if (akt_dir == MOVE_DOWN && ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0)) {
+        return MOVE_DOWN;
+    }
+    if (akt_dir == MOVE_LEFT && ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0)) {
+        return MOVE_LEFT;
+    }
+
+    return MOVE_STOP;
+}
+
 void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ) {
     Player_t *target = bot_get_nearest_player_ptr(xp, yp);
     *txp = target->xp;
@@ -137,6 +182,68 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
     }
 }
 
+uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint16_t *color) {
+    if (color == 0 || ghost == 0) {
+        return 0;
+    }
+
+    if (bot_is_player_controlled_ghost(ghost_id) != 0) {
+        *color = GHOST_P2_COLOR;
+        return 1;
+    }
+
+    if (ghost->strategy == GHOST_STRATEGY_BLINKY) {
+        *color = GHOST_COLOR_CHASE;
+    } else if (ghost->strategy == GHOST_STRATEGY_PINKY) {
+        *color = GHOST_COLOR_AMBUSH;
+    } else if (ghost->strategy == GHOST_STRATEGY_INKY) {
+        *color = GHOST_COLOR_TRICKY;
+    } else if (ghost->strategy == GHOST_STRATEGY_CLYDE) {
+        *color = GHOST_COLOR_SHY;
+    } else if (ghost->strategy == GHOST_STRATEGY_DRUNK) {
+        *color = GHOST_COLOR_DRUNK;
+    } else if (ghost->strategy == GHOST_STRATEGY_LAZY) {
+        *color = GHOST_COLOR_LAZY;
+    } else {
+        *color = GHOST_COLOR_RANDOM;
+    }
+    return 1;
+}
+
+void bot_ghost_validate_position(Ghost_t *ghost) {
+    if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
+        ghost->move = MOVE_STOP;
+        ghost->next_move = MOVE_STOP;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
+    }
+}
+
+uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
+    Room_t *room;
+
+    if (x >= ROOM_CNT_X || y >= ROOM_CNT_Y) {
+        return 0;
+    }
+
+    room = &Maze.Room[x][y];
+    if (room->typ == ROOM_TYP_PATH) {
+        return 1;
+    }
+    if (room->special == ROOM_SPEC_PORTAL) {
+        return 1;
+    }
+    if (for_ghost != 0) {
+        if (room->special == ROOM_SPEC_GATE) {
+            return 1;
+        }
+        if ((room->typ == ROOM_TYP_WALL) && ((room->door & 0x0F) != 0)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t direction = 0;
@@ -146,22 +253,28 @@ uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     do {
         direction = rand() % (4); // [0...3]
         if ((direction == 0) && (akt_dir != MOVE_DOWN)) {
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) ret_wert = MOVE_UP;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 1)) {
+                ret_wert = MOVE_UP;
+            }
         } else if ((direction == 1) && (akt_dir != MOVE_LEFT)) {
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) ret_wert = MOVE_RIGHT;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) && bot_is_walkable(xp + 1, yp, 1)) {
+                ret_wert = MOVE_RIGHT;
+            }
         } else if ((direction == 2) && (akt_dir != MOVE_UP)) {
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) ret_wert = MOVE_DOWN;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) && bot_is_walkable(xp, yp + 1, 1)) {
+                ret_wert = MOVE_DOWN;
+            }
         } else if ((direction == 3) && (akt_dir != MOVE_RIGHT)) {
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) ret_wert = MOVE_LEFT;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) && bot_is_walkable(xp - 1, yp, 1)) {
+                ret_wert = MOVE_LEFT;
+            }
         }
         loop_count++;
         if (loop_count > 100) {
-            // Fallback: if we loop too many times without finding a non-reverse direction,
-            // accept any available door (even if it's backwards)
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) return MOVE_UP;
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) return MOVE_RIGHT;
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) return MOVE_DOWN;
-            if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) return MOVE_LEFT;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 1)) return MOVE_UP;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) && bot_is_walkable(xp + 1, yp, 1)) return MOVE_RIGHT;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) && bot_is_walkable(xp, yp + 1, 1)) return MOVE_DOWN;
+            if (((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) && bot_is_walkable(xp - 1, yp, 1)) return MOVE_LEFT;
             break;
         }
     } while (ret_wert == MOVE_STOP);
@@ -394,22 +507,22 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
 
     // calc for all possible directions the distance
     // but dont go back
-    if (((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) && (akt_dir != MOVE_DOWN)) {
+    if (((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) && (akt_dir != MOVE_DOWN) && bot_is_walkable(x1, y1 - 1, 1)) {
         xn = x1;
         yn = y1 - 1;
         d_up = bot_calc_distance(x2, y2, xn, yn);
     }
-    if (((Maze.Room[x1][y1].door & ROOM_DOOR_R) != 0) && (akt_dir != MOVE_LEFT)) {
+    if (((Maze.Room[x1][y1].door & ROOM_DOOR_R) != 0) && (akt_dir != MOVE_LEFT) && bot_is_walkable(x1 + 1, y1, 1)) {
         xn = x1 + 1;
         yn = y1;
         d_right = bot_calc_distance(x2, y2, xn, yn);
     }
-    if (((Maze.Room[x1][y1].door & ROOM_DOOR_D) != 0) && (akt_dir != MOVE_UP)) {
+    if (((Maze.Room[x1][y1].door & ROOM_DOOR_D) != 0) && (akt_dir != MOVE_UP) && bot_is_walkable(x1, y1 + 1, 1)) {
         xn = x1;
         yn = y1 + 1;
         d_down = bot_calc_distance(x2, y2, xn, yn);
     }
-    if (((Maze.Room[x1][y1].door & ROOM_DOOR_L) != 0) && (akt_dir != MOVE_RIGHT)) {
+    if (((Maze.Room[x1][y1].door & ROOM_DOOR_L) != 0) && (akt_dir != MOVE_RIGHT) && bot_is_walkable(x1 - 1, y1, 1)) {
         xn = x1 - 1;
         yn = y1;
         d_left = bot_calc_distance(x2, y2, xn, yn);
@@ -438,16 +551,16 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
     // Fallback: if no valid direction is found (e.g. dead end or corner case)
     // select any available door (even if it is backwards)
     if (ret_wert == MOVE_STOP) {
-        if ((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) {
+        if (((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) && bot_is_walkable(x1, y1 - 1, 1)) {
             d_up = bot_calc_distance(x2, y2, x1, y1 - 1);
         }
-        if ((Maze.Room[x1][y1].door & ROOM_DOOR_R) != 0) {
+        if (((Maze.Room[x1][y1].door & ROOM_DOOR_R) != 0) && bot_is_walkable(x1 + 1, y1, 1)) {
             d_right = bot_calc_distance(x2, y2, x1 + 1, y1);
         }
-        if ((Maze.Room[x1][y1].door & ROOM_DOOR_D) != 0) {
+        if (((Maze.Room[x1][y1].door & ROOM_DOOR_D) != 0) && bot_is_walkable(x1, y1 + 1, 1)) {
             d_down = bot_calc_distance(x2, y2, x1, y1 + 1);
         }
-        if ((Maze.Room[x1][y1].door & ROOM_DOOR_L) != 0) {
+        if (((Maze.Room[x1][y1].door & ROOM_DOOR_L) != 0) && bot_is_walkable(x1 - 1, y1, 1)) {
             d_left = bot_calc_distance(x2, y2, x1 - 1, y1);
         }
 
@@ -602,7 +715,15 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
     ghosts[3] = &Clyde;
 
     for (i = 0; i < 4; i++) {
-        ghosts[i]->strategy = strategies[i];
+        if (bot_is_2p_vs_ghost()) {
+            if (i == 0) {
+                ghosts[i]->strategy = GHOST_STRATEGY_RANDOM;
+            } else {
+                ghosts[i]->strategy = strategies[i - 1];
+            }
+        } else {
+            ghosts[i]->strategy = strategies[i];
+        }
         ghosts[i]->akt_speed_ms = speed_ms;
         ghosts[i]->status = GHOST_STATUS_DEAD;
         ghosts[i]->move = MOVE_STOP;

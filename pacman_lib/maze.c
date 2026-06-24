@@ -44,6 +44,8 @@ void maze_build_map(uint32_t map_id) {
     } else {
         maze_make_rooms_classic();
     }
+    maze_generate_sync_path_doors();
+    maze_generate_strip_orphan_wall_doors();
     maze_set_skin();
     maze_count_dots();
 }

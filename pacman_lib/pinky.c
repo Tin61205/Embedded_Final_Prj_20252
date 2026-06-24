@@ -241,6 +241,7 @@ void pinky_change_skin(uint32_t direction) {
 void pinky_check_event(void) {
     uint32_t xp, yp;
 
+    bot_ghost_validate_position(&Pinky);
     xp = Pinky.xp;
     yp = Pinky.yp;
 
@@ -296,12 +297,7 @@ void pinky_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // Fallback: keep moving in the same direction to try escaping
-        if (Pinky.move != MOVE_STOP) {
-            Pinky.next_move = Pinky.move;
-        } else {
-            Pinky.next_move = MOVE_STOP;
-        }
+        Pinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         // take the only possible way
         if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Pinky.next_move = MOVE_UP;

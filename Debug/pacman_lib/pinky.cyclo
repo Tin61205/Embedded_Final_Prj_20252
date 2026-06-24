@@ -2,4 +2,4 @@
 ../pacman_lib/pinky.c:42:6:pinky_move	22
 ../pacman_lib/pinky.c:190:6:pinky_change_skin	14
 ../pacman_lib/pinky.c:241:6:pinky_check_event	4
-../pacman_lib/pinky.c:267:6:pinky_calc_next_move	31
+../pacman_lib/pinky.c:268:6:pinky_calc_next_move	31

@@ -18,6 +18,8 @@ void gui_draw_player2(void);
 void gui_clear_player2(void);
 void gui_draw_blinky(void);
 void gui_clear_blinky(void);
+static void gui_draw_ghost_sprite(Image2LCD_t koord, Skin_t *skin_table, uint32_t skin_idx,
+                                uint32_t ghost_id, Ghost_t *ghost);
 void gui_draw_pinky(void);
 void gui_clear_pinky(void);
 void gui_clear_inky(void);
@@ -287,6 +289,20 @@ void gui_clear_player2(void) {
     }
 }
 
+static void gui_draw_ghost_sprite(Image2LCD_t koord, Skin_t *skin_table, uint32_t skin_idx,
+                                uint32_t ghost_id, Ghost_t *ghost) {
+    uint16_t body_color;
+
+    koord.source_xp = skin_table[skin_idx].xp;
+    koord.source_yp = skin_table[skin_idx].yp;
+    if ((skin_idx < GHOST_SKIN_FRIGHTEN1) &&
+        (bot_ghost_get_body_color(ghost_id, ghost, &body_color) != 0)) {
+        UB_Graphic2D_DrawImageRectRecolor(koord, body_color);
+    } else {
+        UB_Graphic2D_DrawImageRect(koord);
+    }
+}
+
 //--------------------------------------------------------------
 // draw bot : Blinky
 //--------------------------------------------------------------
@@ -308,17 +324,7 @@ void gui_draw_blinky(void) {
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
         s = Blinky.skin;
-        if (s>8){
-        	// Debug
-        	koord.source_xp = Blinky_Skin[s].xp;
-			koord.source_yp = Blinky_Skin[s].yp;
-			UB_Graphic2D_DrawImageRect(koord);
-        }
-        else{
-        	 koord.source_xp = Blinky_Skin[s].xp;
-			koord.source_yp = Blinky_Skin[s].yp;
-			UB_Graphic2D_DrawImageRect(koord);
-        }
+        gui_draw_ghost_sprite(koord, Blinky_Skin, s, GHOST_BLINKY, &Blinky);
     }
 }
 
@@ -381,9 +387,7 @@ void gui_draw_pinky(void) {
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
         s = Pinky.skin;
-        koord.source_xp = Pinky_Skin[s].xp;
-        koord.source_yp = Pinky_Skin[s].yp;
-        UB_Graphic2D_DrawImageRect(koord);
+        gui_draw_ghost_sprite(koord, Pinky_Skin, s, GHOST_PINKY, &Pinky);
     }
 }
 
@@ -446,9 +450,7 @@ void gui_draw_inky(void) {
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
         s = Inky.skin;
-        koord.source_xp = Inky_Skin[s].xp;
-        koord.source_yp = Inky_Skin[s].yp;
-        UB_Graphic2D_DrawImageRect(koord);
+        gui_draw_ghost_sprite(koord, Inky_Skin, s, GHOST_INKY, &Inky);
     }
 }
 
@@ -511,9 +513,7 @@ void gui_draw_clyde(void) {
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
         s = Clyde.skin;
-        koord.source_xp = Clyde_Skin[s].xp;
-        koord.source_yp = Clyde_Skin[s].yp;
-        UB_Graphic2D_DrawImageRect(koord);
+        gui_draw_ghost_sprite(koord, Clyde_Skin, s, GHOST_CLYDE, &Clyde);
     }
 }
 
