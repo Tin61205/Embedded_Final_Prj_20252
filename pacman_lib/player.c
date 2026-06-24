@@ -5,6 +5,13 @@
 //--------------------------------------------------------------
 // Includes
 //--------------------------------------------------------------
+//--------------------------------------------------------------
+// File     : player.c
+//--------------------------------------------------------------
+
+//--------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------
 #include "player.h"
 
 #include <stdio.h>
@@ -16,6 +23,8 @@ static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *));
 static void player_entity_change_skin(Player_t *p, uint32_t direction);
 static void player_entity_check_event(Player_t *p);
 static void player_entity_change_direction(Player_t *p, uint32_t joy);
+static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost);
+static void player_check_entity_collision(Player_t *p);
 
 void player_init(uint32_t mode) {
     player_entity_init(&Player, PLAYER_START_X, PLAYER_START_Y, mode, 1);
@@ -342,6 +351,40 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
         if ((p->delta_x == 0) && (p->delta_y == 0)) {
             if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) != 0) {
                 p->move = MOVE_LEFT;
+            }
+        }
+    }
+}
+
+void player_check_collisions(void) {
+    if (Game.collision == BOOL_FALSE) {
+        return;
+    }
+
+    if (Player.status == PLAYER_STATUS_ALIVE) {
+        player_check_entity_collision(&Player);
+    }
+
+    if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_ALIVE) {
+        player_check_entity_collision(&Player2);
+    }
+}
+
+static void player_check_entity_collision(Player_t *p) {
+    Ghost_t *ghosts[4] = { &Blinky, &Pinky, &Inky, &Clyde };
+    uint32_t active_ghost_mask[4] = { MOVE_BLINKY, MOVE_PINKY, MOVE_INKY, MOVE_CLYDE };
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        Ghost_t *g = ghosts[i];
+        if ((Game.ghost_active_mask & active_ghost_mask[i]) != 0 && g->status == GHOST_STATUS_ALIVE) {
+            int32_t px = ((int32_t)p->xp * ROOM_WIDTH) + p->delta_x;
+            int32_t py = ((int32_t)p->yp * ROOM_HEIGHT) + p->delta_y;
+            int32_t gx = ((int32_t)g->xp * ROOM_WIDTH) + g->delta_x;
+            int32_t gy = ((int32_t)g->yp * ROOM_HEIGHT) + g->delta_y;
+
+            if (ABS(px - gx) < 6 && ABS(py - gy) < 6) {
+                player_entity_handle_ghost_hit(p, g);
             }
         }
     }

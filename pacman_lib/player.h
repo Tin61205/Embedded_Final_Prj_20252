@@ -45,6 +45,7 @@ void player_move(void);
 void player2_move(void);
 void player_change_direction(uint32_t joy);
 void player2_change_direction(uint32_t joy);
+void player_check_collisions(void);
 
 
 

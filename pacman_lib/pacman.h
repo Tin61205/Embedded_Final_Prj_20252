@@ -172,7 +172,7 @@ void pacman_apply_campaign_difficulty(void);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);
-void pacman_apply_custom_config(void);
+void pacman_apply_custom_config(uint32_t mode);
 uint32_t pacman_play(void);
 void pacman_dec_mode_timer(void);
 

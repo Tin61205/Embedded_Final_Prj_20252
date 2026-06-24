@@ -177,7 +177,7 @@ void pacman_start(void) {
 
     maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
     if (Game.play_type == GAME_PLAY_CUSTOM) {
-        pacman_apply_custom_config();
+        pacman_apply_custom_config(GAME_OVER);
     } else {
         pacman_apply_campaign_difficulty();
     }
@@ -247,7 +247,7 @@ void pacman_start(void) {
             pacman_init(check);
             player_init(check);
             if (Game.play_type == GAME_PLAY_CUSTOM) {
-                pacman_apply_custom_config();
+                pacman_apply_custom_config(check);
             } else {
                 Game.player2_active = 0;
                 blinky_init(check);
@@ -260,7 +260,7 @@ void pacman_start(void) {
             if (check == GAME_OVER) {
                 menu_start();
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
-                    pacman_apply_custom_config();
+                    pacman_apply_custom_config(GAME_OVER);
                 } else {
                     blinky_init(GAME_OVER);
                     pinky_init(GAME_OVER);
@@ -335,7 +335,7 @@ void pacman_set_level(void) {
     }
 }
 
-void pacman_apply_custom_config(void) {
+void pacman_apply_custom_config(uint32_t mode) {
     uint32_t speed_ms = GHOST_SPEED_NORMAL_MS;
     uint32_t i;
 
@@ -345,9 +345,12 @@ void pacman_apply_custom_config(void) {
         speed_ms = GHOST_SPEED_FAST_MS;
     }
 
-    Player.level = 1;
-    Player.lives = PLAYER_START_LIVES;
-    Player2.lives = PLAYER_START_LIVES;
+    if (mode == GAME_OVER) {
+        Player.level = 1;
+        Player.lives = PLAYER_START_LIVES;
+        Player2.lives = PLAYER_START_LIVES;
+        Player.score = 0;
+    }
     Player.akt_speed_ms = Level[0].player_speed;
 
     Game.ghost_active_mask = 0;
@@ -364,7 +367,7 @@ void pacman_apply_custom_config(void) {
     if (Game.custom.player_count == CUSTOM_PLAYER_2 &&
         Game.custom.two_player_mode == CUSTOM_2P_COOP) {
         Game.player2_active = 1;
-        player2_init(GAME_OVER);
+        player2_init(mode);
     }
 }
 
@@ -541,6 +544,7 @@ uint32_t pacman_play(void) {
         // 3. redraw all Bots + 4. LCD refresh
         //----------------------------------------
         if (movement != MOVE_NOBODY) {
+            player_check_collisions();
             gui_draw_bots();
             gui_draw_gui(joy);
             UB_LCD_Refresh();
