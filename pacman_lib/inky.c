@@ -252,18 +252,7 @@ void inky_check_event(void) {
     yp = Inky.yp;
 
     // check if contact
-    if ((Game.collision == BOOL_TRUE) && (Inky.status == GHOST_STATUS_ALIVE)) {
-        pxp = Player.xp;
-        pyp = Player.yp;
-        if ((xp == pxp) && (yp == pyp)) {
-            if (Game.frightened == BOOL_FALSE) {
-                Player.status = PLAYER_STATUS_DEAD;
-            } else {
-                Inky.status = GHOST_STATUS_DEAD;
-            }
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-        }
-    }
+    bot_ghost_hit_pacman(xp, yp, &Inky);
 
     // check if home position after dead
     if (Inky.status == GHOST_STATUS_DEAD) {

@@ -90,6 +90,7 @@ Level_t;
 #define MOVE_PINKY 0x04 // Bit2
 #define MOVE_INKY 0x08 // Bit3
 #define MOVE_CLYDE 0x10 // Bit4
+#define MOVE_PLAYER2 0x20 // Bit5
 
 //--------------------------------------------------------------
 #define BOOL_FALSE 0
@@ -147,6 +148,7 @@ typedef struct {
     uint32_t play_type;
     uint32_t ghost_active_mask;
     uint32_t player2_joy;
+    uint32_t player2_active;
     CustomConfig_t custom;
 }
 Game_t;

@@ -248,19 +248,7 @@ void blinky_check_event(void) {
     xp = Blinky.xp;
     yp = Blinky.yp;
 
-    // check if contact
-    if ((Game.collision == BOOL_TRUE) && (Blinky.status == GHOST_STATUS_ALIVE)) {
-        pxp = Player.xp;
-        pyp = Player.yp;
-        if ((xp == pxp) && (yp == pyp)) {
-            if (Game.frightened == BOOL_FALSE) {
-                Player.status = PLAYER_STATUS_DEAD;
-            } else {
-                Blinky.status = GHOST_STATUS_DEAD;
-            }
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-        }
-    }
+    bot_ghost_hit_pacman(xp, yp, &Blinky);
 
     // check if home position after dead
     if (Blinky.status == GHOST_STATUS_DEAD) {
@@ -344,16 +332,7 @@ void blinky_calc_next_move(void) {
             return;
         }
 
-        if (Game.frightened == BOOL_TRUE) {
-            // frightened (make a random move)
-            Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
-            return;
-        }
-
-        if (Game.play_type == GAME_PLAY_CUSTOM &&
-            Game.custom.player_count == CUSTOM_PLAYER_2 &&
-            Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST &&
-            Game.player2_joy != GUI_JOY_NONE) {
+        if (bot_is_2p_vs_ghost() != 0) {
             if (Game.player2_joy == GUI_JOY_UP && (Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) {
                 Blinky.next_move = MOVE_UP;
             } else if (Game.player2_joy == GUI_JOY_RIGHT && (Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) {
@@ -362,7 +341,14 @@ void blinky_calc_next_move(void) {
                 Blinky.next_move = MOVE_DOWN;
             } else if (Game.player2_joy == GUI_JOY_LEFT && (Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) {
                 Blinky.next_move = MOVE_LEFT;
+            } else {
+                Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
             }
+            return;
+        }
+
+        if (Game.frightened == BOOL_TRUE) {
+            Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
             return;
         }
 

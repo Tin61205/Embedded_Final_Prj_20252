@@ -13,6 +13,8 @@ GUI_t GUI;
 //--------------------------------------------------------------
 void gui_draw_player(void);
 void gui_clear_player(void);
+void gui_draw_player2(void);
+void gui_clear_player2(void);
 void gui_draw_blinky(void);
 void gui_clear_blinky(void);
 void gui_draw_pinky(void);
@@ -36,6 +38,7 @@ void gui_clear_screen(void) {
 //--------------------------------------------------------------
 void gui_clear_bots(void) {
     gui_clear_player();
+    if (Game.player2_active != 0) gui_clear_player2();
     if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_clear_blinky();
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_clear_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_clear_inky();
@@ -47,6 +50,7 @@ void gui_clear_bots(void) {
 //--------------------------------------------------------------
 void gui_draw_bots(void) {
     gui_draw_player();
+    if (Game.player2_active != 0) gui_draw_player2();
     if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_draw_blinky();
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_draw_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_draw_inky();
@@ -191,6 +195,68 @@ void gui_clear_player(void) {
     if (Player.move == MOVE_RIGHT) xmin = xp - 2;
     if (Player.move == MOVE_DOWN) ymin = yp - 2;
     if (Player.move == MOVE_LEFT) xmax = xp + 2;
+
+    if (xmin < 0) xmin = 0;
+    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
+    if (ymin < 0) ymin = 0;
+    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
+
+    koord.w = ROOM_WIDTH;
+    koord.h = ROOM_HEIGHT;
+
+    for (y = ymin; y <= ymax; y++) {
+        for (x = xmin; x <= xmax; x++) {
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
+            s = Maze.Room[x][y].skin;
+            koord.source_xp = Room_Skin[s].xp;
+            koord.source_yp = Room_Skin[s].yp;
+            UB_Graphic2D_DrawImageRect(koord);
+        }
+    }
+}
+
+void gui_draw_player2(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+
+    x = Player2.xp;
+    y = Player2.yp;
+
+    if (Player2.port != PORT_DONE) {
+        return;
+    }
+    koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player2.delta_x + BOTS_DIFF_X + 1;
+    koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player2.delta_y + BOTS_DIFF_Y;
+    if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+    if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+    koord.w = BOTS_WIDTH;
+    koord.h = BOTS_HEIGHT;
+    s = Player2.skin;
+    koord.source_xp = Player_Skin[s].xp;
+    koord.source_yp = Player_Skin[s].yp;
+    UB_Graphic2D_DrawImageRect(koord);
+}
+
+void gui_clear_player2(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+    uint32_t xp, yp;
+    int16_t xmin, xmax;
+    int16_t ymin, ymax;
+
+    xp = Player2.xp;
+    yp = Player2.yp;
+
+    xmin = xp - 1;
+    xmax = xp + 1;
+    ymin = yp - 1;
+    ymax = yp + 1;
+
+    if (Player2.move == MOVE_UP) ymax = yp + 2;
+    if (Player2.move == MOVE_RIGHT) xmin = xp - 2;
+    if (Player2.move == MOVE_DOWN) ymin = yp - 2;
+    if (Player2.move == MOVE_LEFT) xmax = xp + 2;
 
     if (xmin < 0) xmin = 0;
     if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;

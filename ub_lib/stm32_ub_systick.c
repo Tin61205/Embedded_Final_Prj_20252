@@ -11,6 +11,7 @@ uint32_t keyboard_timer;
 uint32_t  Gui_Touch_Timer_ms;
 uint32_t  Mode_Systic_Timer_ms;
 uint32_t  Player_Systick_Timer_ms;
+uint32_t  Player2_Systick_Timer_ms;
 uint32_t  Blinky_Systic_Timer_ms;
 uint32_t  Pinky_Systic_Timer_ms;
 uint32_t  Inky_Systic_Timer_ms;
@@ -42,6 +43,7 @@ void UB_Systick_Init(void) {
   Systick_Delay=0;
   keyboard_timer=0;
   Player_Systick_Timer_ms=0;
+  Player2_Systick_Timer_ms=0;
   Gui_Touch_Timer_ms=0;
   Blinky_Systic_Timer_ms=0;
   Mode_Systic_Timer_ms=0;
@@ -135,6 +137,10 @@ void SysTick_Handler(void)
 
   if(Player_Systick_Timer_ms!=0) {
     Player_Systick_Timer_ms--;
+  }
+
+  if(Player2_Systick_Timer_ms!=0) {
+    Player2_Systick_Timer_ms--;
   }
 
   if(Blinky_Systic_Timer_ms!=0) {

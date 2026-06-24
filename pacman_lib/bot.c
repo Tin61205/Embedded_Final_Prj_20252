@@ -8,9 +8,12 @@
 #include <stdio.h>
 
 #include "gui.h"
+#include "pacman.h"
+#include "player.h"
 
 // Global variable definitions (declared extern in header)
 Player_t Player;
+Player_t Player2;
 Ghost_t Blinky;
 Ghost_t Pinky;
 Ghost_t Inky;
@@ -25,6 +28,81 @@ uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
 // move randomly to the next room
 // (but don't go backwards to avoid toggling)
 //--------------------------------------------------------------
+uint32_t bot_is_2p_coop(void) {
+    return (Game.play_type == GAME_PLAY_CUSTOM &&
+            Game.custom.player_count == CUSTOM_PLAYER_2 &&
+            Game.custom.two_player_mode == CUSTOM_2P_COOP &&
+            Game.player2_active != 0) ? 1 : 0;
+}
+
+uint32_t bot_is_2p_vs_ghost(void) {
+    return (Game.play_type == GAME_PLAY_CUSTOM &&
+            Game.custom.player_count == CUSTOM_PLAYER_2 &&
+            Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) ? 1 : 0;
+}
+
+void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ) {
+    Player_t *target = bot_get_nearest_player_ptr(xp, yp);
+    *txp = target->xp;
+    *typ = target->yp;
+}
+
+Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
+    if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE) {
+        uint32_t d1 = bot_calc_distance(xp, yp, Player.xp, Player.yp);
+        uint32_t d2 = bot_calc_distance(xp, yp, Player2.xp, Player2.yp);
+        if (d2 < d1) {
+            return &Player2;
+        }
+    }
+    return &Player;
+}
+
+void bot_team_kill_pacman(void) {
+    Player.status = PLAYER_STATUS_DEAD;
+    if (bot_is_2p_coop()) {
+        Player2.status = PLAYER_STATUS_DEAD;
+    }
+    GUI.refresh_value = GUI_REFRESH_VALUE;
+}
+
+void bot_team_win_pacman(void) {
+    Player.status = PLAYER_STATUS_WIN;
+    if (bot_is_2p_coop()) {
+        Player2.status = PLAYER_STATUS_WIN;
+    }
+    GUI.refresh_value = GUI_REFRESH_VALUE;
+}
+
+void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
+    if (Game.collision == BOOL_FALSE || ghost->status != GHOST_STATUS_ALIVE) {
+        return;
+    }
+
+    if (Player.status == PLAYER_STATUS_ALIVE && Player.xp == gxp && Player.yp == gyp) {
+        if (Game.frightened == BOOL_FALSE) {
+            bot_team_kill_pacman();
+        } else {
+            ghost->status = GHOST_STATUS_DEAD;
+            Player.score += Game.frightened_points;
+            Game.frightened_points += Game.frightened_points;
+        }
+        GUI.refresh_value = GUI_REFRESH_VALUE;
+        return;
+    }
+
+    if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE && Player2.xp == gxp && Player2.yp == gyp) {
+        if (Game.frightened == BOOL_FALSE) {
+            bot_team_kill_pacman();
+        } else {
+            ghost->status = GHOST_STATUS_DEAD;
+            Player.score += Game.frightened_points;
+            Game.frightened_points += Game.frightened_points;
+        }
+        GUI.refresh_value = GUI_REFRESH_VALUE;
+    }
+}
+
 uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t direction = 0;
@@ -56,9 +134,7 @@ uint32_t bot_calc_move_blinky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
-    // spot the player as target
-    txp = Player.xp;
-    typ = Player.yp;
+    bot_get_nearest_player(xp, yp, &txp, &typ);
 
     // calc the new move
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
@@ -76,28 +152,25 @@ uint32_t bot_calc_move_pinky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     int32_t txp, typ; // signed int !!
     uint32_t p_dir = MOVE_STOP;
+    Player_t *target = bot_get_nearest_player_ptr(xp, yp);
 
-    // spot the player
-    txp = Player.xp;
-    typ = Player.yp;
+    txp = target->xp;
+    typ = target->yp;
 
-    // check the player orientation
-    if (Player.move == MOVE_STOP) {
-        // player dont move (check the skin direction
-        if (Player.skin == PLAYER_SKIN_UP1) p_dir = MOVE_UP;
-        if (Player.skin == PLAYER_SKIN_RIGHT1) p_dir = MOVE_RIGHT;
-        if (Player.skin == PLAYER_SKIN_DOWN1) p_dir = MOVE_DOWN;
-        if (Player.skin == PLAYER_SKIN_LEFT1) p_dir = MOVE_LEFT;
+    if (target->move == MOVE_STOP) {
+        if (target->skin == PLAYER_SKIN_UP1) p_dir = MOVE_UP;
+        if (target->skin == PLAYER_SKIN_RIGHT1) p_dir = MOVE_RIGHT;
+        if (target->skin == PLAYER_SKIN_DOWN1) p_dir = MOVE_DOWN;
+        if (target->skin == PLAYER_SKIN_LEFT1) p_dir = MOVE_LEFT;
     }
 
-    // set the target (4 Rooms in Front of the Player position)
-    if ((Player.move == MOVE_UP) || (p_dir == MOVE_UP)) {
+    if ((target->move == MOVE_UP) || (p_dir == MOVE_UP)) {
         typ -= 4;
         if (typ < 0) typ = 0;
-    } else if ((Player.move == MOVE_RIGHT) || (p_dir == MOVE_RIGHT)) {
+    } else if ((target->move == MOVE_RIGHT) || (p_dir == MOVE_RIGHT)) {
         txp += 4;
         if (txp >= ROOM_CNT_X) txp = ROOM_CNT_X - 1;
-    } else if ((Player.move == MOVE_DOWN) || (p_dir == MOVE_DOWN)) {
+    } else if ((target->move == MOVE_DOWN) || (p_dir == MOVE_DOWN)) {
         typ += 4;
         if (typ >= ROOM_CNT_Y) txp = ROOM_CNT_Y - 1;
     } else {
@@ -125,26 +198,23 @@ uint32_t bot_calc_move_inky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     int32_t dxp, dyp; // signed int !!
     uint32_t bxp, byp;
     uint32_t p_dir = MOVE_STOP;
+    Player_t *target = bot_get_nearest_player_ptr(xp, yp);
 
-    // spot the player
-    txp = Player.xp;
-    typ = Player.yp;
+    txp = target->xp;
+    typ = target->yp;
 
-    // check the player orientation
-    if (Player.move == MOVE_STOP) {
-        // player dont move (check the skin direction
-        if (Player.skin == PLAYER_SKIN_UP1) p_dir = MOVE_UP;
-        if (Player.skin == PLAYER_SKIN_RIGHT1) p_dir = MOVE_RIGHT;
-        if (Player.skin == PLAYER_SKIN_DOWN1) p_dir = MOVE_DOWN;
-        if (Player.skin == PLAYER_SKIN_LEFT1) p_dir = MOVE_LEFT;
+    if (target->move == MOVE_STOP) {
+        if (target->skin == PLAYER_SKIN_UP1) p_dir = MOVE_UP;
+        if (target->skin == PLAYER_SKIN_RIGHT1) p_dir = MOVE_RIGHT;
+        if (target->skin == PLAYER_SKIN_DOWN1) p_dir = MOVE_DOWN;
+        if (target->skin == PLAYER_SKIN_LEFT1) p_dir = MOVE_LEFT;
     }
 
-    // set the target (2 Rooms in Front of the Player position)
-    if ((Player.move == MOVE_UP) || (p_dir == MOVE_UP)) {
+    if ((target->move == MOVE_UP) || (p_dir == MOVE_UP)) {
         typ -= 2;
-    } else if ((Player.move == MOVE_RIGHT) || (p_dir == MOVE_RIGHT)) {
+    } else if ((target->move == MOVE_RIGHT) || (p_dir == MOVE_RIGHT)) {
         txp += 2;
-    } else if ((Player.move == MOVE_DOWN) || (p_dir == MOVE_DOWN)) {
+    } else if ((target->move == MOVE_DOWN) || (p_dir == MOVE_DOWN)) {
         typ += 2;
     } else {
         txp -= 2;
@@ -187,11 +257,8 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
     uint32_t txp, typ;
     uint32_t d_clyde = INIT_DISTANCE;
 
-    // spot the player
-    txp = Player.xp;
-    typ = Player.yp;
+    bot_get_nearest_player(xp, yp, &txp, &typ);
 
-    // calculate the distance to the player
     d_clyde = bot_calc_distance(txp, typ, xp, yp);
 
     if (d_clyde > 800) {
@@ -394,7 +461,12 @@ uint32_t UB_SQRT(uint32_t wert) {
 // otherwise wander randomly
 //--------------------------------------------------------------
 uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
-    uint32_t dist = bot_calc_distance(Player.xp, Player.yp, xp, yp);
+    uint32_t txp;
+    uint32_t typ;
+    uint32_t dist;
+
+    bot_get_nearest_player(xp, yp, &txp, &typ);
+    dist = bot_calc_distance(txp, typ, xp, yp);
 
     if (dist <= (6 * SQRT_FAKTOR)) {
         return bot_calc_move_blinky(xp, yp, akt_dir);
@@ -451,6 +523,12 @@ static uint32_t bot_find_spawn_pos(uint32_t *xp, uint32_t *yp) {
 
         if (Maze.Room[cx][cy].typ == ROOM_TYP_PATH) {
             uint32_t dist = bot_calc_distance(px, py, cx, cy);
+            if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE) {
+                uint32_t dist2 = bot_calc_distance(Player2.xp, Player2.yp, cx, cy);
+                if (dist2 < dist) {
+                    dist = dist2;
+                }
+            }
             if (dist >= GHOST_SPAWN_MIN_DIST) {
                 *xp = cx;
                 *yp = cy;

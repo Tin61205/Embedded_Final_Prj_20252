@@ -67,6 +67,7 @@ typedef struct {
 Player_t;
 
 extern Player_t Player;
+extern Player_t Player2;
 
 //--------------------------------------------------------------
 // Ghosts
@@ -146,6 +147,13 @@ uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms);
 const char* bot_strategy_name(uint32_t strategy);
+uint32_t bot_is_2p_coop(void);
+uint32_t bot_is_2p_vs_ghost(void);
+void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ);
+Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp);
+void bot_team_kill_pacman(void);
+void bot_team_win_pacman(void);
+void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_BOT_H

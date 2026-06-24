@@ -104,6 +104,7 @@ void pacman_start(void) {
     Game.play_type = GAME_PLAY_CAMPAIGN;
     Game.ghost_active_mask = MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE;
     Game.player2_joy = GUI_JOY_NONE;
+    Game.player2_active = 0;
 
     pacman_init(GAME_OVER);
     check = pacman_hw_init();
@@ -181,6 +182,7 @@ void pacman_start(void) {
             if (Game.play_type == GAME_PLAY_CUSTOM) {
                 pacman_apply_custom_config();
             } else {
+                Game.player2_active = 0;
                 blinky_init(check);
                 pinky_init(check);
                 inky_init(check);
@@ -291,6 +293,13 @@ void pacman_apply_custom_config(void) {
     }
 
     bot_apply_custom_ghosts(Game.custom.ghost_count, Game.custom.ghost_strategies, speed_ms);
+
+    Game.player2_active = 0;
+    if (Game.custom.player_count == CUSTOM_PLAYER_2 &&
+        Game.custom.two_player_mode == CUSTOM_2P_COOP) {
+        Game.player2_active = 1;
+        player2_init(GAME_OVER);
+    }
 }
 
 //--------------------------------------------------------------
@@ -313,11 +322,14 @@ uint32_t pacman_play(void) {
             Gui_Touch_Timer_ms = GUI_TOUCH_INTERVALL_MS;
 
             joy = gui_check_button();
+            if (joy == GUI_JOY_NONE) {
+                joy = gui_check_touch();
+            }
             Game.player2_joy = GUI_JOY_NONE;
             if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
                 uint32_t kb_joy = gui_check_keyboard();
-                if (Game.custom.two_player_mode == CUSTOM_2P_COOP && kb_joy != GUI_JOY_NONE) {
-                    joy = kb_joy;
+                if (Game.custom.two_player_mode == CUSTOM_2P_COOP) {
+                    Game.player2_joy = kb_joy;
                 } else if (Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) {
                     Game.player2_joy = kb_joy;
                 }
@@ -338,6 +350,17 @@ uint32_t pacman_play(void) {
                 Player_Systick_Timer_ms = pl_speed;
             }
             movement |= MOVE_PLAYER;
+        }
+
+        if (Game.player2_active != 0 && Player2_Systick_Timer_ms == 0) {
+            if (Game.frightened == BOOL_FALSE) {
+                Player2_Systick_Timer_ms = Player2.akt_speed_ms;
+            } else {
+                pl_speed = Player2.akt_speed_ms - Player2.frightened_buf;
+                if (pl_speed < PLAYER_MAX_SPEED) pl_speed = PLAYER_MAX_SPEED;
+                Player2_Systick_Timer_ms = pl_speed;
+            }
+            movement |= MOVE_PLAYER2;
         }
 
         //----------------------------------------
@@ -427,9 +450,11 @@ uint32_t pacman_play(void) {
             player_change_direction(joy);
         }
 
-        //----------------------------------------
-        // 2b. Blinky movement
-        //----------------------------------------
+        if ((movement & MOVE_PLAYER2) != 0 && Game.player2_active != 0) {
+            player2_move();
+            player2_change_direction(Game.player2_joy);
+        }
+
         if ((movement & MOVE_BLINKY) != 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
             blinky_move();
         }
@@ -458,10 +483,12 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // check if game over
         //----------------------------------------
-        if (Player.status == PLAYER_STATUS_DEAD) {
+        if (Player.status == PLAYER_STATUS_DEAD ||
+            (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD)) {
             ret_wert = GAME_PLAYER_LOSE;
         }
-        if (Player.status == PLAYER_STATUS_WIN) {
+        if (Player.status == PLAYER_STATUS_WIN ||
+            (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_WIN)) {
             ret_wert = GAME_PLAYER_WIN;
         }
     }
