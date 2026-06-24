@@ -93,7 +93,15 @@ extern Maze_t Maze;
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
+#define MAZE_MAP_CLASSIC 0
+#define MAZE_MAP_OPEN 1
+#define MAZE_MAP_COUNT 2
+
+extern uint32_t Maze_selected_map;
+
 void maze_build(void);
+void maze_build_map(uint32_t map_id);
+void maze_draw_preview(uint32_t map_id, uint32_t dest_x, uint32_t dest_y, uint32_t cell_px);
 
 
 //--------------------------------------------------------------

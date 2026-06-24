@@ -94,6 +94,16 @@ extern Player_t Player;
 #define GHOST_STRATEGY_PINKY 2
 #define GHOST_STRATEGY_INKY 3
 #define GHOST_STRATEGY_CLYDE 4
+#define GHOST_STRATEGY_DRUNK 5
+#define GHOST_STRATEGY_LAZY 6
+
+#define GHOST_STRATEGY_COUNT 7
+
+#define GHOST_SPAWN_MIN_DIST 800
+
+#define GHOST_SPEED_SLOW_MS 70
+#define GHOST_SPEED_NORMAL_MS 50
+#define GHOST_SPEED_FAST_MS 30
 
 //--------------------------------------------------------------
 // ghost structure
@@ -130,8 +140,12 @@ uint32_t bot_calc_move_blinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_pinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_inky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
+uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir);
+uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
+void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms);
+const char* bot_strategy_name(uint32_t strategy);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_BOT_H

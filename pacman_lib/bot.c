@@ -387,3 +387,147 @@ uint32_t UB_SQRT(uint32_t wert) {
 
     return (ret_wert);
 }
+
+//--------------------------------------------------------------
+// bot strategy : lazy
+// chase (greedy) only when player is within 6 cells radius
+// otherwise wander randomly
+//--------------------------------------------------------------
+uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+    uint32_t dist = bot_calc_distance(Player.xp, Player.yp, xp, yp);
+
+    if (dist <= (6 * SQRT_FAKTOR)) {
+        return bot_calc_move_blinky(xp, yp, akt_dir);
+    }
+    return bot_calc_move_random(xp, yp, akt_dir);
+}
+
+//--------------------------------------------------------------
+// resolve ghost personality to movement
+//--------------------------------------------------------------
+uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+    if (strategy == GHOST_STRATEGY_RANDOM || strategy == GHOST_STRATEGY_DRUNK) {
+        return bot_calc_move_random(xp, yp, akt_dir);
+    }
+    if (strategy == GHOST_STRATEGY_LAZY) {
+        return bot_calc_move_lazy(xp, yp, akt_dir);
+    }
+    if (strategy == GHOST_STRATEGY_BLINKY) {
+        return bot_calc_move_blinky(xp, yp, akt_dir);
+    }
+    if (strategy == GHOST_STRATEGY_PINKY) {
+        return bot_calc_move_pinky(xp, yp, akt_dir);
+    }
+    if (strategy == GHOST_STRATEGY_INKY) {
+        return bot_calc_move_inky(xp, yp, akt_dir);
+    }
+    return bot_calc_move_clyde(ghost, xp, yp, akt_dir);
+}
+
+//--------------------------------------------------------------
+// human-readable ghost personality label
+//--------------------------------------------------------------
+const char* bot_strategy_name(uint32_t strategy) {
+    if (strategy == GHOST_STRATEGY_BLINKY) return "Chase";
+    if (strategy == GHOST_STRATEGY_PINKY) return "Ambush";
+    if (strategy == GHOST_STRATEGY_INKY) return "Tricky";
+    if (strategy == GHOST_STRATEGY_CLYDE) return "Shy";
+    if (strategy == GHOST_STRATEGY_DRUNK) return "Drunk";
+    if (strategy == GHOST_STRATEGY_LAZY) return "Lazy";
+    return "Random";
+}
+
+//--------------------------------------------------------------
+// find random path cell far enough from pacman start
+//--------------------------------------------------------------
+static uint32_t bot_find_spawn_pos(uint32_t *xp, uint32_t *yp) {
+    uint32_t tries = 0;
+    uint32_t px = Player.xp;
+    uint32_t py = Player.yp;
+
+    while (tries < 200) {
+        uint32_t cx = (uint32_t)(rand() % (ROOM_CNT_X - 2)) + 1;
+        uint32_t cy = (uint32_t)(rand() % (ROOM_CNT_Y - 2)) + 1;
+
+        if (Maze.Room[cx][cy].typ == ROOM_TYP_PATH) {
+            uint32_t dist = bot_calc_distance(px, py, cx, cy);
+            if (dist >= GHOST_SPAWN_MIN_DIST) {
+                *xp = cx;
+                *yp = cy;
+                return 1;
+            }
+        }
+        tries++;
+    }
+    return 0;
+}
+
+//--------------------------------------------------------------
+// apply custom ghost setup: count, personality, speed, spawn
+//--------------------------------------------------------------
+void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms) {
+    Ghost_t *ghosts[4];
+    uint32_t i;
+    uint32_t used_x[4];
+    uint32_t used_y[4];
+    uint32_t used_cnt = 0;
+
+    ghosts[0] = &Blinky;
+    ghosts[1] = &Pinky;
+    ghosts[2] = &Inky;
+    ghosts[3] = &Clyde;
+
+    for (i = 0; i < 4; i++) {
+        ghosts[i]->strategy = strategies[i];
+        ghosts[i]->akt_speed_ms = speed_ms;
+        ghosts[i]->status = GHOST_STATUS_DEAD;
+        ghosts[i]->move = MOVE_STOP;
+        ghosts[i]->next_move = MOVE_STOP;
+        ghosts[i]->delta_x = 0;
+        ghosts[i]->delta_y = 0;
+        ghosts[i]->skin_cnt = 0;
+        ghosts[i]->port = PORT_DONE;
+        ghosts[i]->dot_cnt = 0;
+        ghosts[i]->new_mode = 0;
+    }
+
+    for (i = 0; i < ghost_count; i++) {
+        uint32_t sx = 14;
+        uint32_t sy = 11;
+        uint32_t found = 0;
+        uint32_t try_idx;
+        uint32_t u;
+
+        for (try_idx = 0; try_idx < 50; try_idx++) {
+            if (bot_find_spawn_pos(&sx, &sy) == 0) {
+                break;
+            }
+            found = 1;
+            for (u = 0; u < used_cnt; u++) {
+                if (used_x[u] == sx && used_y[u] == sy) {
+                    found = 0;
+                    break;
+                }
+            }
+            if (found != 0) {
+                break;
+            }
+        }
+
+        if (found == 0) {
+            sx = 14 - i;
+            sy = 11;
+        }
+
+        used_x[used_cnt] = sx;
+        used_y[used_cnt] = sy;
+        used_cnt++;
+
+        ghosts[i]->status = GHOST_STATUS_ALIVE;
+        ghosts[i]->xp = sx;
+        ghosts[i]->yp = sy;
+        ghosts[i]->skin = GHOST_SKIN_LEFT1;
+        ghosts[i]->move = MOVE_LEFT;
+        ghosts[i]->next_move = MOVE_LEFT;
+    }
+}

@@ -350,19 +350,24 @@ void blinky_calc_next_move(void) {
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            // chase
-            if (Blinky.strategy == GHOST_STRATEGY_RANDOM) {
-                Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_BLINKY) {
-                Blinky.next_move = bot_calc_move_blinky(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_PINKY) {
-                Blinky.next_move = bot_calc_move_pinky(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_INKY) {
-                Blinky.next_move = bot_calc_move_inky(xp, yp, Blinky.move);
-            } else {
-                Blinky.next_move = bot_calc_move_clyde(GHOST_BLINKY, xp, yp, Blinky.move);
+        if (Game.play_type == GAME_PLAY_CUSTOM &&
+            Game.custom.player_count == CUSTOM_PLAYER_2 &&
+            Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST &&
+            Game.player2_joy != GUI_JOY_NONE) {
+            if (Game.player2_joy == GUI_JOY_UP && (Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) {
+                Blinky.next_move = MOVE_UP;
+            } else if (Game.player2_joy == GUI_JOY_RIGHT && (Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) {
+                Blinky.next_move = MOVE_RIGHT;
+            } else if (Game.player2_joy == GUI_JOY_DOWN && (Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) {
+                Blinky.next_move = MOVE_DOWN;
+            } else if (Game.player2_joy == GUI_JOY_LEFT && (Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) {
+                Blinky.next_move = MOVE_LEFT;
             }
+            return;
+        }
+
+        if (Game.mode == GAME_MODE_CHASE) {
+            Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
         } else {
             // scatter
             Blinky.next_move = bot_calc_move_scatter(GHOST_BLINKY, xp, yp, Blinky.move);

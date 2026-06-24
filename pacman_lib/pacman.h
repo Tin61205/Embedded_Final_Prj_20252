@@ -103,6 +103,34 @@ Level_t;
 #define GAME_MODE_SCATTER 0
 #define GAME_MODE_CHASE 1
 
+#define GAME_PLAY_CAMPAIGN 0
+#define GAME_PLAY_CUSTOM 1
+
+#define CUSTOM_PLAYER_1 1
+#define CUSTOM_PLAYER_2 2
+
+#define CUSTOM_2P_COOP 0
+#define CUSTOM_2P_VS_GHOST 1
+
+#define CUSTOM_SPEED_SLOW 0
+#define CUSTOM_SPEED_NORMAL 1
+#define CUSTOM_SPEED_FAST 2
+
+#define CUSTOM_MAX_GHOSTS 4
+
+//--------------------------------------------------------------
+// Custom game configuration
+//--------------------------------------------------------------
+typedef struct {
+    uint32_t player_count;
+    uint32_t map_id;
+    uint32_t ghost_speed_idx;
+    uint32_t two_player_mode;
+    uint32_t ghost_count;
+    uint32_t ghost_strategies[CUSTOM_MAX_GHOSTS];
+}
+CustomConfig_t;
+
 //--------------------------------------------------------------
 // Main Game Structure
 //--------------------------------------------------------------
@@ -116,6 +144,10 @@ typedef struct {
     uint32_t frightened_points;
     uint32_t debug_mode;
     uint32_t numberOfBots;
+    uint32_t play_type;
+    uint32_t ghost_active_mask;
+    uint32_t player2_joy;
+    CustomConfig_t custom;
 }
 Game_t;
 extern Game_t Game;
@@ -127,6 +159,7 @@ void pacman_start(void);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);
+void pacman_apply_custom_config(void);
 uint32_t pacman_play(void);
 void pacman_dec_mode_timer(void);
 

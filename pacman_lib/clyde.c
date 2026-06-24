@@ -356,18 +356,7 @@ void clyde_calc_next_move(void) {
         }
 
         if (Game.mode == GAME_MODE_CHASE) {
-            // chase
-            if (Clyde.strategy == GHOST_STRATEGY_RANDOM) {
-                Clyde.next_move = bot_calc_move_random(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_BLINKY) {
-                Clyde.next_move = bot_calc_move_blinky(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_PINKY) {
-                Clyde.next_move = bot_calc_move_pinky(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_INKY) {
-                Clyde.next_move = bot_calc_move_inky(xp, yp, Clyde.move);
-            } else {
-                Clyde.next_move = bot_calc_move_clyde(GHOST_CLYDE, xp, yp, Clyde.move);
-            }
+            Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
         } else {
             // scatter
             Clyde.next_move = bot_calc_move_scatter(GHOST_CLYDE, xp, yp, Clyde.move);

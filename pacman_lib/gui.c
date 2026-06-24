@@ -36,10 +36,10 @@ void gui_clear_screen(void) {
 //--------------------------------------------------------------
 void gui_clear_bots(void) {
     gui_clear_player();
-    gui_clear_blinky();
-    gui_clear_pinky();
-    gui_clear_inky();
-    gui_clear_clyde();
+    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_clear_blinky();
+    if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_clear_pinky();
+    if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_clear_inky();
+    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_clear_clyde();
 }
 
 //--------------------------------------------------------------
@@ -47,10 +47,10 @@ void gui_clear_bots(void) {
 //--------------------------------------------------------------
 void gui_draw_bots(void) {
     gui_draw_player();
-    gui_draw_blinky();
-    gui_draw_pinky();
-    gui_draw_inky();
-    gui_draw_clyde();
+    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_draw_blinky();
+    if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_draw_pinky();
+    if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_draw_inky();
+    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_draw_clyde();
 }
 
 //--------------------------------------------------------------

@@ -100,7 +100,10 @@ void pacman_start(void) {
     char buf[10];
 
     Game.debug_mode = 0;
-    Game.numberOfBots = 1;
+    Game.numberOfBots = 4;
+    Game.play_type = GAME_PLAY_CAMPAIGN;
+    Game.ghost_active_mask = MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE;
+    Game.player2_joy = GUI_JOY_NONE;
 
     pacman_init(GAME_OVER);
     check = pacman_hw_init();
@@ -118,16 +121,18 @@ void pacman_start(void) {
     inky_init(GAME_OVER);
     clyde_init(GAME_OVER);
 
-    // Gọi menu
     menu_start();
 
-    // Nếu chưa bật debug_mode, khởi tạo skin
     if (Game.debug_mode == 0) {
         skin_init();
     }
 
-    pacman_set_level();
-    maze_build();
+    if (Game.play_type == GAME_PLAY_CUSTOM) {
+        pacman_apply_custom_config();
+    } else {
+        pacman_set_level();
+    }
+    maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
     check = maze_generate_check();
 
     // Wait for PA0 (BTN_CENTER) press to start
@@ -171,22 +176,31 @@ void pacman_start(void) {
                 }
             }
 
-            // Chuẩn bị chơi lại
             pacman_init(check);
             player_init(check);
-            blinky_init(check);
-            pinky_init(check);
-            inky_init(check);
-            clyde_init(check);
+            if (Game.play_type == GAME_PLAY_CUSTOM) {
+                pacman_apply_custom_config();
+            } else {
+                blinky_init(check);
+                pinky_init(check);
+                inky_init(check);
+                clyde_init(check);
+            }
 
             if (check == GAME_OVER) {
-                // Quay lại menu
                 menu_start();
-                pacman_set_level();
+                if (Game.play_type == GAME_PLAY_CUSTOM) {
+                    pacman_apply_custom_config();
+                } else {
+                    pacman_set_level();
+                    blinky_init(GAME_OVER);
+                    pinky_init(GAME_OVER);
+                    inky_init(GAME_OVER);
+                    clyde_init(GAME_OVER);
+                }
             }
             if ((check == GAME_PLAYER_WIN) || (check == GAME_OVER)) {
-                // Xây lại mê cung
-                maze_build();
+                maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : MAZE_MAP_CLASSIC);
             }
         }
     } else {
@@ -254,6 +268,31 @@ void pacman_set_level(void) {
     }
 }
 
+void pacman_apply_custom_config(void) {
+    uint32_t speed_ms = GHOST_SPEED_NORMAL_MS;
+    uint32_t i;
+
+    if (Game.custom.ghost_speed_idx == CUSTOM_SPEED_SLOW) {
+        speed_ms = GHOST_SPEED_SLOW_MS;
+    } else if (Game.custom.ghost_speed_idx == CUSTOM_SPEED_FAST) {
+        speed_ms = GHOST_SPEED_FAST_MS;
+    }
+
+    Player.level = 1;
+    Player.lives = PLAYER_START_LIVES;
+    Player.akt_speed_ms = Level[0].player_speed;
+
+    Game.ghost_active_mask = 0;
+    for (i = 0; i < Game.custom.ghost_count; i++) {
+        if (i == 0) Game.ghost_active_mask |= MOVE_BLINKY;
+        if (i == 1) Game.ghost_active_mask |= MOVE_PINKY;
+        if (i == 2) Game.ghost_active_mask |= MOVE_INKY;
+        if (i == 3) Game.ghost_active_mask |= MOVE_CLYDE;
+    }
+
+    bot_apply_custom_ghosts(Game.custom.ghost_count, Game.custom.ghost_strategies, speed_ms);
+}
+
 //--------------------------------------------------------------
 // play one round pacman (until pacman die or level complete)
 //--------------------------------------------------------------
@@ -274,6 +313,15 @@ uint32_t pacman_play(void) {
             Gui_Touch_Timer_ms = GUI_TOUCH_INTERVALL_MS;
 
             joy = gui_check_button();
+            Game.player2_joy = GUI_JOY_NONE;
+            if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
+                uint32_t kb_joy = gui_check_keyboard();
+                if (Game.custom.two_player_mode == CUSTOM_2P_COOP && kb_joy != GUI_JOY_NONE) {
+                    joy = kb_joy;
+                } else if (Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) {
+                    Game.player2_joy = kb_joy;
+                }
+            }
         }
 
         movement = MOVE_NOBODY;
@@ -295,7 +343,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Blinky Timer
         //----------------------------------------
-        if (Blinky_Systic_Timer_ms == 0) {
+        if (Blinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
             if (Blinky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Blinky_Systic_Timer_ms = Blinky.akt_speed_ms;
@@ -311,7 +359,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Pinky Timer
         //----------------------------------------
-        if (Pinky_Systic_Timer_ms == 0) {
+        if (Pinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
             if (Pinky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Pinky_Systic_Timer_ms = Pinky.akt_speed_ms;
@@ -327,7 +375,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Inky Timer
         //----------------------------------------
-        if (Inky_Systic_Timer_ms == 0) {
+        if (Inky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
             if (Inky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Inky_Systic_Timer_ms = Inky.akt_speed_ms;
@@ -343,7 +391,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Clyde Timer
         //----------------------------------------
-        if (Clyde_Systic_Timer_ms == 0) {
+        if (Clyde_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
             if (Clyde.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Clyde_Systic_Timer_ms = Clyde.akt_speed_ms;
@@ -382,28 +430,19 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // 2b. Blinky movement
         //----------------------------------------
-        if ((movement & MOVE_BLINKY) != 0) {
+        if ((movement & MOVE_BLINKY) != 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
             blinky_move();
         }
 
-        //----------------------------------------
-        // 2c. Pinky movement
-        //----------------------------------------
-        if ((movement & MOVE_PINKY) != 0) {
+        if ((movement & MOVE_PINKY) != 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
             pinky_move();
         }
 
-        //----------------------------------------
-        // 2d. Inky movement
-        //----------------------------------------
-        if ((movement & MOVE_INKY) != 0) {
+        if ((movement & MOVE_INKY) != 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
             inky_move();
         }
 
-        //----------------------------------------
-        // 2e. Clyde movement
-        //----------------------------------------
-        if ((movement & MOVE_CLYDE) != 0) {
+        if ((movement & MOVE_CLYDE) != 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
             clyde_move();
         }
 
