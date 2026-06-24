@@ -176,9 +176,11 @@ static uint32_t menu_run_main(void) {
 }
 
 static const char* menu_map_name(uint32_t map_id) {
-    if (map_id == MAZE_MAP_OPEN) {
-        return "Arena";
-    }
+    if (map_id == MAZE_MAP_OPEN) return "Arena";
+    if (map_id == MAZE_MAP_THREE) return "Spiral";
+    if (map_id == MAZE_MAP_FOUR) return "Blocks";
+    if (map_id == MAZE_MAP_FIVE) return "Columns";
+    if (map_id == MAZE_MAP_SIX) return "Divide";
     return "Classic";
 }
 

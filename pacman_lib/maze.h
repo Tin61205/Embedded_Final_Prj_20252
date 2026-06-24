@@ -95,7 +95,11 @@ extern Maze_t Maze;
 //--------------------------------------------------------------
 #define MAZE_MAP_CLASSIC 0
 #define MAZE_MAP_OPEN 1
-#define MAZE_MAP_COUNT 2
+#define MAZE_MAP_THREE 2
+#define MAZE_MAP_FOUR 3
+#define MAZE_MAP_FIVE 4
+#define MAZE_MAP_SIX 5
+#define MAZE_MAP_COUNT 6
 
 extern uint32_t Maze_selected_map;
 

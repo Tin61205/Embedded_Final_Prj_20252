@@ -115,8 +115,8 @@ uint32_t gui_check_button(void);
 uint32_t gui_check_keyboard(void);
 void gui_draw_buttons(uint32_t joy);
 void gui_debug_uart(char *ptr);
-
-
+void gui_show_win_screen(uint32_t score);
+void gui_show_lost_screen(uint32_t score);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_GUI_H

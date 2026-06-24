@@ -206,7 +206,7 @@ uint32_t bot_calc_move_pinky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
         if (txp >= ROOM_CNT_X) txp = ROOM_CNT_X - 1;
     } else if ((target->move == MOVE_DOWN) || (p_dir == MOVE_DOWN)) {
         typ += 4;
-        if (typ >= ROOM_CNT_Y) txp = ROOM_CNT_Y - 1;
+        if (typ >= ROOM_CNT_Y) typ = ROOM_CNT_Y - 1;
     } else {
         txp -= 4;
         if (txp < 0) txp = 0;
@@ -270,7 +270,7 @@ uint32_t bot_calc_move_inky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     if (txp < 0) txp = 0;
     if (txp >= ROOM_CNT_X) txp = ROOM_CNT_X - 1;
     if (typ < 0) typ = 0;
-    if (typ >= ROOM_CNT_Y) txp = ROOM_CNT_Y - 1;
+    if (typ >= ROOM_CNT_Y) typ = ROOM_CNT_Y - 1;
 
     // calc the new move
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);

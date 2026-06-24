@@ -762,6 +762,174 @@ uint32_t gui_check_keyboard(void) {
     }
 
     return (ret_wert);
+    }
+
+    if (GUI.refresh_buttons > 0) {
+        GUI.refresh_buttons--;
+        gui_draw_buttons(joy);
+    }
+}
+
+//--------------------------------------------------------------
+// draw all buttons
+//--------------------------------------------------------------
+void gui_draw_buttons(uint32_t joy) {
+    Image2LCD_t koord;
+    uint32_t su, sd, sr, sl;
+
+    su = BUTTON_SKIN1;
+    sd = BUTTON_SKIN1;
+    sr = BUTTON_SKIN1;
+    sl = BUTTON_SKIN1;
+
+    if (joy == GUI_JOY_UP) su = BUTTON_SKIN2;
+    if (joy == GUI_JOY_LEFT) sl = BUTTON_SKIN2;
+    if (joy == GUI_JOY_DOWN) sd = BUTTON_SKIN2;
+    if (joy == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
+
+    // Button up
+    koord.dest_xp = GUI_BTN_UP_X;
+    koord.dest_yp = GUI_BTN_UP_Y;
+    koord.w = BUTTON_WIDTH;
+    koord.h = BUTTON_HEIGHT;
+    koord.source_xp = Button_Skin[su].xp;
+    koord.source_yp = Button_Skin[su].yp;
+    UB_Graphic2D_DrawImageRectRotate(koord, 3);
+
+    // Button down
+    koord.dest_xp = GUI_BTN_DOWN_X;
+    koord.dest_yp = GUI_BTN_DOWN_Y;
+    koord.w = BUTTON_WIDTH;
+    koord.h = BUTTON_HEIGHT;
+    koord.source_xp = Button_Skin[sd].xp;
+    koord.source_yp = Button_Skin[sd].yp;
+    UB_Graphic2D_DrawImageRectRotate(koord, 2);
+
+    // Button right
+    koord.dest_xp = GUI_BTN_RIGHT_X;
+    koord.dest_yp = GUI_BTN_RIGHT_Y;
+    koord.w = BUTTON_WIDTH;
+    koord.h = BUTTON_HEIGHT;
+    koord.source_xp = Button_Skin[sr].xp;
+    koord.source_yp = Button_Skin[sr].yp;
+    UB_Graphic2D_DrawImageRectRotate(koord, 0);
+
+    // Button left
+    koord.dest_xp = GUI_BTN_LEFT_X;
+    koord.dest_yp = GUI_BTN_LEFT_Y;
+    koord.w = BUTTON_WIDTH;
+    koord.h = BUTTON_HEIGHT;
+    koord.source_xp = Button_Skin[sl].xp;
+    koord.source_yp = Button_Skin[sl].yp;
+    UB_Graphic2D_DrawImageRectRotate(koord, 1);
+}
+
+//--------------------------------------------------------------
+// check 4 buttons on the touch
+//--------------------------------------------------------------
+uint32_t gui_check_touch(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    uint32_t xp, yp;
+    static uint32_t old_button = 999;
+
+    UB_Touch_Read();
+    xp = Touch_Data.xp;
+    yp = Touch_Data.yp;
+
+    if (Touch_Data.status == TOUCH_PRESSED) {
+        if ((yp > GUI_BTN_UP_Y) && (yp < GUI_BTN_UP_Y + BUTTON_HEIGHT)) {
+            if ((xp > GUI_BTN_UP_X) && (xp < GUI_BTN_UP_X + BUTTON_WIDTH)) {
+                ret_wert = GUI_JOY_UP;
+            }
+        }
+        if ((yp > GUI_BTN_LEFT_Y) && (yp < GUI_BTN_LEFT_Y + BUTTON_HEIGHT)) {
+            if ((xp > GUI_BTN_LEFT_X) && (xp < GUI_BTN_LEFT_X + BUTTON_WIDTH)) {
+                ret_wert = GUI_JOY_LEFT;
+            }
+        }
+        if ((yp > GUI_BTN_DOWN_Y) && (yp < GUI_BTN_DOWN_Y + BUTTON_HEIGHT)) {
+            if ((xp > GUI_BTN_DOWN_X) && (xp < GUI_BTN_DOWN_X + BUTTON_WIDTH)) {
+                ret_wert = GUI_JOY_DOWN;
+            }
+        }
+        if ((yp > GUI_BTN_RIGHT_Y) && (yp < GUI_BTN_RIGHT_Y + BUTTON_HEIGHT)) {
+            if ((xp > GUI_BTN_RIGHT_X) && (xp < GUI_BTN_RIGHT_X + BUTTON_WIDTH)) {
+                ret_wert = GUI_JOY_RIGHT;
+            }
+        }
+    } else {
+        ret_wert = GUI_JOY_NONE;
+    }
+
+    if (old_button != ret_wert) {
+        old_button = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
+}
+
+//--------------------------------------------------------------
+// check 4 external buttons
+// if button aktiv = GND -> "BTN_RELEASED"
+// if button aktiv = VCC -> "BTN_PRESSED"
+//--------------------------------------------------------------
+uint32_t gui_check_button(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    static uint32_t old_button = 999;
+
+    if (UB_Button_Read(BTN_UP) == BTN_RELEASED) {
+        ret_wert = GUI_JOY_UP;
+    }
+    if (UB_Button_Read(BTN_RIGHT) == BTN_RELEASED) {
+        ret_wert = GUI_JOY_RIGHT;
+    }
+    if (UB_Button_Read(BTN_DOWN) == BTN_RELEASED) {
+        ret_wert = GUI_JOY_DOWN;
+    }
+    if (UB_Button_Read(BTN_LEFT) == BTN_RELEASED) {
+        ret_wert = GUI_JOY_LEFT;
+    }
+
+    if (old_button != ret_wert) {
+        old_button = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
+}
+
+// Check keyboard
+uint32_t gui_check_keyboard(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    static uint32_t old_button = 999;
+
+    if (akt_usb_status == USB_HID_KEYBOARD_CONNECTED) {
+        if (UB_USB_HID_HOST_GetKeyAnz() > 0) {
+            // Nhan dang phim tu keyboard
+            if (USB_KEY_DATA.akt_key1 == 79) {
+                ret_wert = GUI_JOY_LEFT;
+            } // 79=cursor left
+            if (USB_KEY_DATA.akt_key1 == 89) {
+                ret_wert = GUI_JOY_RIGHT;
+            } // 89=cursor right
+            if (USB_KEY_DATA.akt_key1 == 83) {
+                ret_wert = GUI_JOY_UP;
+            }
+        } // 83=cursor up
+        if (USB_KEY_DATA.akt_key1 == 84) {
+            ret_wert = GUI_JOY_DOWN;
+        } // 84=cursor down
+    } else {
+        ret_wert = GUI_JOY_NONE;
+    }
+
+    if (old_button != ret_wert) {
+        old_button = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
 }
 
 //--------------------------------------------------------------
@@ -771,4 +939,151 @@ void gui_debug_uart(char * ptr) {
     #if USE_GUI_UART_DEBUG == 1
     UB_Uart_SendString(COM1, ptr, CRLF); // for DEBUG
     #endif
+}
+
+//--------------------------------------------------------------
+// Scale drawing and result screens implementation
+//--------------------------------------------------------------
+void gui_draw_char_scale(uint16_t x, uint16_t y, uint8_t ascii, UB_Font *font, uint16_t vg, uint16_t bg, uint8_t scale) {
+    uint16_t xn, yn, start_maske, maske;
+    const uint16_t *wert;
+
+    ascii -= 32;
+    wert = &font->table[ascii * font->height];
+
+    start_maske = 0x80;
+    if (font->width > 8) start_maske = 0x8000;
+
+    for (yn = 0; yn < font->height; yn++) {
+        maske = start_maske;
+        for (xn = 0; xn < font->width; xn++) {
+            uint16_t color = ((wert[yn] & maske) == 0x00) ? bg : vg;
+            if (color != bg) {
+                UB_Graphic2D_DrawFullRectDMA(x + xn * scale, y + yn * scale, scale, scale, color);
+            } else {
+                UB_Graphic2D_DrawFullRectDMA(x + xn * scale, y + yn * scale, scale, scale, bg);
+            }
+            maske = (maske >> 1);
+        }
+    }
+}
+
+void gui_draw_string_scale(uint16_t x, uint16_t y, char *ptr, UB_Font *font, uint16_t vg, uint16_t bg, uint8_t scale) {
+    uint16_t pos = x;
+    while (*ptr != 0) {
+        gui_draw_char_scale(pos, y, *ptr, font, vg, bg, scale);
+        pos += font->width * scale;
+        ptr++;
+    }
+}
+
+static uint32_t gui_wait_touch_pressed(uint16_t *xp, uint16_t *yp) {
+    UB_Touch_Read();
+    *xp = Touch_Data.xp;
+    *yp = Touch_Data.yp;
+    return (Touch_Data.status == TOUCH_PRESSED) ? 1 : 0;
+}
+
+static void gui_wait_touch_release(void) {
+    uint16_t xp, yp;
+    while (gui_wait_touch_pressed(&xp, &yp) != 0) {
+        UB_Systick_Pause_ms(20);
+    }
+    UB_Systick_Pause_ms(120);
+}
+
+void gui_wait_interaction(void) {
+    uint16_t tx, ty;
+    UB_Systick_Pause_ms(500); // Prevent accidental double taps
+    
+    // Clear previous center button click state
+    UB_Button_OnClick(BTN_CENTER);
+    
+    while (1) {
+        if (gui_wait_touch_pressed(&tx, &ty) != 0) {
+            gui_wait_touch_release();
+            break;
+        }
+        if (UB_Button_OnClick(BTN_CENTER)) {
+            break;
+        }
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+void gui_show_win_screen(uint32_t score) {
+    char buf[32];
+    
+    UB_Graphic2D_ClearSreenDMA(RGB_COL_BLACK);
+    
+    // Double border decoration
+    UB_Graphic2D_DrawRectDMA(10, 10, 220, 300, RGB_COL_GREEN);
+    UB_Graphic2D_DrawRectDMA(13, 13, 214, 294, RGB_COL_YELLOW);
+    
+    // YOU WIN! text
+    gui_draw_string_scale(36, 60, "YOU WIN!", &Arial_7x10, RGB_COL_GREEN, RGB_COL_BLACK, 3);
+    
+    // Draw a big Pacman character at center (120, 140), r=20
+    UB_Graphic2D_DrawFullCircleDMA(120, 140, 20, RGB_COL_YELLOW);
+    UB_Graphic2D_DrawFullCircleDMA(125, 130, 3, RGB_COL_BLACK); // eye
+    // Pacman dots
+    UB_Graphic2D_DrawFullCircleDMA(160, 140, 4, RGB_COL_YELLOW);
+    UB_Graphic2D_DrawFullCircleDMA(185, 140, 4, RGB_COL_YELLOW);
+    
+    // Score
+    sprintf(buf, "SCORE: %u", (unsigned int)score);
+    uint16_t score_w = strlen(buf) * 7 * 2;
+    gui_draw_string_scale((240 - score_w) / 2, 200, buf, &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK, 2);
+    
+    // Level
+    sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
+    uint16_t lvl_w = strlen(buf) * 7 * 2;
+    gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK, 2);
+    
+    // Interaction instructions
+    UB_Font_DrawString((240 - strlen("TOUCH TO CONTINUE") * 7) / 2, 275, "TOUCH TO CONTINUE", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK);
+    UB_Font_DrawString((240 - strlen("OR PRESS CENTER KEY") * 7) / 2, 290, "OR PRESS CENTER KEY", &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK);
+    
+    UB_LCD_Refresh();
+    
+    gui_wait_interaction();
+}
+
+void gui_show_lost_screen(uint32_t score) {
+    char buf[32];
+    
+    UB_Graphic2D_ClearSreenDMA(RGB_COL_BLACK);
+    
+    // Double border decoration
+    UB_Graphic2D_DrawRectDMA(10, 10, 220, 300, RGB_COL_RED);
+    UB_Graphic2D_DrawRectDMA(13, 13, 214, 294, RGB_COL_GREY);
+    
+    // YOU LOST text
+    gui_draw_string_scale(36, 60, "YOU LOST", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK, 3);
+    
+    // Draw a Blinky ghost at center
+    UB_Graphic2D_DrawFullCircleDMA(120, 135, 16, RGB_COL_RED);
+    UB_Graphic2D_DrawFullRectDMA(104, 135, 32, 16, RGB_COL_RED);
+    UB_Graphic2D_DrawFullCircleDMA(113, 132, 4, RGB_COL_WHITE); // left eye
+    UB_Graphic2D_DrawFullCircleDMA(127, 132, 4, RGB_COL_WHITE); // right eye
+    UB_Graphic2D_DrawFullCircleDMA(114, 132, 2, RGB_COL_BLUE);  // pupils
+    UB_Graphic2D_DrawFullCircleDMA(128, 132, 2, RGB_COL_BLUE);
+    
+    // Score
+    sprintf(buf, "SCORE: %u", (unsigned int)score);
+    uint16_t score_w = strlen(buf) * 7 * 2;
+    gui_draw_string_scale((240 - score_w) / 2, 200, buf, &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK, 2);
+    
+    // Level
+    sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
+    uint16_t lvl_w = strlen(buf) * 7 * 2;
+    gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_GREY, RGB_COL_BLACK, 2);
+    
+    // Interaction instructions
+    UB_Font_DrawString((240 - strlen("TOUCH TO CONTINUE") * 7) / 2, 275, "TOUCH TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
+    UB_Font_DrawString((240 - strlen("OR PRESS CENTER KEY") * 7) / 2, 290, "OR PRESS CENTER KEY", &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK);
+    
+    UB_LCD_Refresh();
+    
+    gui_wait_interaction();
 }

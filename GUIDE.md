@@ -388,6 +388,28 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## 15. Giao diện thông báo kết quả (You Win / You Lost)
+
+Trò chơi đã được bổ sung thêm 2 màn hình thông báo kết quả chuyên nghiệp và sinh động khi một ván đấu kết thúc:
+
+### 15.1. Màn hình chiến thắng (You Win)
+- **Kích hoạt khi:** Người chơi ăn sạch tất cả các chấm trên bản đồ (Level complete).
+- **Nội dung hiển thị:**
+  - Tiêu đề **YOU WIN!** lớn (gấp 3 lần font gốc) màu xanh lá.
+  - Hình vẽ Pacman vàng ăn chấm sinh động ở trung tâm màn hình.
+  - Điểm số (**SCORE**) hiện tại màu trắng.
+  - Cấp độ vừa hoàn thành (**LEVEL**) màu cyan.
+- **Tương tác:** Chờ người chơi chạm màn hình cảm ứng hoặc nhấn phím cứng **CENTER (PA0)** để tiếp tục sang level tiếp theo.
+
+### 15.2. Màn hình thất bại (You Lost)
+- **Kích hoạt khi:** Người chơi hết sạch mạng (lives == 0) dẫn đến Game Over.
+- **Nội dung hiển thị:**
+  - Tiêu đề **YOU LOST** lớn màu đỏ.
+  - Hình vẽ Ghost Blinky màu đỏ sinh động ở trung tâm màn hình.
+  - Điểm số chung cuộc (**SCORE**) đạt được màu trắng.
+  - Cấp độ cao nhất đạt được (**LEVEL**) màu xám.
+- **Tương tác:** Chờ người chơi chạm màn hình hoặc nhấn phím cứng **CENTER (PA0)** để quay lại màn hình Menu chính.
+
 ---
 
-*Tài liệu cập nhật theo nhánh `feature/custom-menu-ghosts` — menu Campaign/Custom, Co-op 2 Pacman, USB keyboard Player 2.*
+*Tài liệu cập nhật theo nhánh `feature/custom-menu-ghosts` — menu Campaign/Custom, Co-op 2 Pacman, USB keyboard Player 2, màn hình Win/Lose hiển thị điểm.*

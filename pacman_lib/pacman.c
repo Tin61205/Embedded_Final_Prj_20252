@@ -166,24 +166,32 @@ void pacman_start(void) {
             UB_Font_DrawString(10, 305, "    GO   ", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
 
             check = pacman_play();
-            UB_Systick_Pause_ms(5000);
 
             if (check == GAME_PLAYER_WIN) {
+                gui_show_win_screen(Player.score);
                 Player.level++;
-            } else if (Game.player2_active != 0) {
-                if (bot_is_2p_coop()) {
-                    if (Player.lives == 0 && Player2.lives == 0) {
-                        check = GAME_OVER;
+            } else {
+                if (Game.player2_active != 0) {
+                    if (bot_is_2p_coop()) {
+                        if (Player.lives == 0 && Player2.lives == 0) {
+                            check = GAME_OVER;
+                        }
+                    } else {
+                        if (Player.lives == 0) {
+                            check = GAME_OVER;
+                        }
                     }
                 } else {
+                    Player.lives--;
                     if (Player.lives == 0) {
                         check = GAME_OVER;
                     }
                 }
-            } else {
-                Player.lives--;
-                if (Player.lives == 0) {
-                    check = GAME_OVER;
+
+                if (check == GAME_OVER) {
+                    gui_show_lost_screen(Player.score);
+                } else {
+                    UB_Systick_Pause_ms(2000); // Delay for respawn feedback
                 }
             }
 
