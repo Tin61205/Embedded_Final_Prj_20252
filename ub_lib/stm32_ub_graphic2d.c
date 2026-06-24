@@ -455,6 +455,37 @@ void UB_Graphic2D_DrawImageRect(Image2LCD_t koord)
 
 }
 
+void UB_Graphic2D_DrawImageRectRecolor(Image2LCD_t koord, uint16_t body_color)
+{
+	uint32_t x,y;
+	uint16_t c;
+	uint32_t Yaddress = 0;
+	uint32_t xp,yp;
+	uint32_t h,w;
+	uint32_t xs,ys,ws;
+
+	xp=koord.dest_xp;
+	yp=koord.dest_yp;
+	h=koord.h;
+	w=koord.w;
+
+	xs=koord.source_xp;
+	ys=koord.source_yp;
+	ws=Skin1.width;
+
+	for(y=0;y<h;y++) {
+		UB_LCD_SetCursor2Draw(xp,yp+y);
+		for(x=0;x<w;x++) {
+			Yaddress = ((ys+y)*ws)+xs+x;
+			c=Skin1.table[Yaddress];
+			if (c != RGB_COL_BLACK) {
+				c = body_color;
+			}
+			UB_LCD_DrawPixel(c);
+		}
+	}
+}
+
 
 //--------------------------------------------------------------
 // zeichnet einen Teilbereich

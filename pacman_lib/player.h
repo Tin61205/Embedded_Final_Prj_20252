@@ -22,6 +22,8 @@
 #define  PLAYER2_START_X    13
 #define  PLAYER2_START_Y    23
 
+#define  PLAYER2_BODY_COLOR RGB_COL_CYAN
+
 //--------------------------------------------------------------
 #define  PLAYER_START_LIVES   3 // The number of live
 

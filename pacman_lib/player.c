@@ -22,7 +22,7 @@ void player_init(uint32_t mode) {
 }
 
 void player2_init(uint32_t mode) {
-    player_entity_init(&Player2, PLAYER2_START_X, PLAYER2_START_Y, mode, 0);
+    player_entity_init(&Player2, PLAYER2_START_X, PLAYER2_START_Y, mode, 2);
 }
 
 static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, uint32_t mode, uint32_t owns_meta) {
@@ -37,12 +37,15 @@ static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, 
     p->port = PORT_DONE;
     p->frightened_buf = PLAYER_FRIGHTENED_BUF;
 
-    if (owns_meta != 0 && mode == GAME_OVER) {
+    if (owns_meta == 1 && mode == GAME_OVER) {
         p->level = 1;
         p->score = 0;
         p->lives = PLAYER_START_LIVES;
     }
-    if (owns_meta != 0) {
+    if (owns_meta == 2 && mode == GAME_OVER) {
+        p->lives = PLAYER_START_LIVES;
+    }
+    if (owns_meta == 1) {
         if (p->level <= GAME_MAX_LEVEL) {
             p->akt_speed_ms = Level[p->level - 1].player_speed;
         } else {
@@ -215,12 +218,16 @@ static void player_entity_change_skin(Player_t *p, uint32_t direction) {
     }
 }
 
-static void player_entity_handle_ghost_hit(Ghost_t *ghost) {
+static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
     if (ghost->status != GHOST_STATUS_ALIVE) {
         return;
     }
     if (Game.frightened == BOOL_FALSE) {
-        bot_team_kill_pacman();
+        if (p == &Player2) {
+            bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
+        } else {
+            bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
+        }
     } else {
         ghost->status = GHOST_STATUS_DEAD;
         Player.score += Game.frightened_points;
@@ -262,16 +269,16 @@ static void player_entity_check_event(Player_t *p) {
 
     if (Game.collision == BOOL_TRUE) {
         if (Blinky.status == GHOST_STATUS_ALIVE && Blinky.xp == xp && Blinky.yp == yp) {
-            player_entity_handle_ghost_hit(&Blinky);
+            player_entity_handle_ghost_hit(p, &Blinky);
         }
         if (Pinky.status == GHOST_STATUS_ALIVE && Pinky.xp == xp && Pinky.yp == yp) {
-            player_entity_handle_ghost_hit(&Pinky);
+            player_entity_handle_ghost_hit(p, &Pinky);
         }
         if (Inky.status == GHOST_STATUS_ALIVE && Inky.xp == xp && Inky.yp == yp) {
-            player_entity_handle_ghost_hit(&Inky);
+            player_entity_handle_ghost_hit(p, &Inky);
         }
         if (Clyde.status == GHOST_STATUS_ALIVE && Clyde.xp == xp && Clyde.yp == yp) {
-            player_entity_handle_ghost_hit(&Clyde);
+            player_entity_handle_ghost_hit(p, &Clyde);
         }
     }
 }

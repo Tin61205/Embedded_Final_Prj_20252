@@ -153,6 +153,10 @@ void gui_draw_player(void) {
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    if (Player.status != PLAYER_STATUS_ALIVE) {
+        return;
+    }
+
     x = Player.xp;
     y = Player.yp;
 
@@ -220,13 +224,17 @@ void gui_draw_player2(void) {
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    if (Player2.status != PLAYER_STATUS_ALIVE) {
+        return;
+    }
+
     x = Player2.xp;
     y = Player2.yp;
 
     if (Player2.port != PORT_DONE) {
         return;
     }
-    koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player2.delta_x + BOTS_DIFF_X + 1;
+    koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player2.delta_x + BOTS_DIFF_X;
     koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player2.delta_y + BOTS_DIFF_Y;
     if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
     if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
@@ -235,7 +243,7 @@ void gui_draw_player2(void) {
     s = Player2.skin;
     koord.source_xp = Player_Skin[s].xp;
     koord.source_yp = Player_Skin[s].yp;
-    UB_Graphic2D_DrawImageRect(koord);
+    UB_Graphic2D_DrawImageRectRecolor(koord, PLAYER2_BODY_COLOR);
 }
 
 void gui_clear_player2(void) {
@@ -561,17 +569,30 @@ void gui_draw_gui(uint32_t joy) {
         sprintf(buf, "score : %d", (int)(Player.score));
         UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
 
-        sprintf(buf, "lives : %d", (int)(Player.lives));
-        UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        if (Game.player2_active != 0) {
+            sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
+            UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        } else {
+            sprintf(buf, "lives : %d", (int)(Player.lives));
+            UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        }
 
         if (Player.status == PLAYER_STATUS_WIN) {
             UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
+            UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         } else if (Player.status == PLAYER_STATUS_DEAD) {
-            if (Player.lives >= 2) {
-                UB_Font_DrawString(10, 305, "player lose", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-            } else {
-                UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            if (Player.lives >= 1) {
+                UB_Font_DrawString(10, 305, "P1 respawn", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            } else if (Game.player2_active == 0) {
+                if (Player.lives >= 2) {
+                    UB_Font_DrawString(10, 305, "player lose", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+                } else {
+                    UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+                }
             }
+        } else if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD && Player2.lives == 0) {
+            UB_Font_DrawString(10, 305, "P2 out", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         }
     }
 

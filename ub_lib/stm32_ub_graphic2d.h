@@ -57,6 +57,7 @@ void UB_Graphic2D_DrawFullRectDMA(uint16_t xp, uint16_t yp, uint16_t w, uint16_t
 void UB_Graphic2D_DrawCircleNormal(uint16_t xp, uint16_t yp, uint16_t r, uint16_t c);
 void UB_Graphic2D_DrawFullCircleDMA(uint16_t xp, uint16_t yp, uint16_t r, uint16_t c);
 void UB_Graphic2D_DrawImageRect(Image2LCD_t koord);
+void UB_Graphic2D_DrawImageRectRecolor(Image2LCD_t koord, uint16_t body_color);
 void UB_Graphic2D_DrawImageRectRotate(Image2LCD_t koord, uint32_t m);
 
 

@@ -58,12 +58,43 @@ Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
     return &Player;
 }
 
-void bot_team_kill_pacman(void) {
-    Player.status = PLAYER_STATUS_DEAD;
+void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
+    if (p->status != PLAYER_STATUS_ALIVE) {
+        return;
+    }
+
     if (bot_is_2p_coop()) {
-        Player2.status = PLAYER_STATUS_DEAD;
+        if (p->lives > 0) {
+            p->lives--;
+        }
+        if (p->lives == 0) {
+            p->status = PLAYER_STATUS_DEAD;
+        } else {
+            p->xp = start_x;
+            p->yp = start_y;
+            p->delta_x = 0;
+            p->delta_y = 0;
+            p->move = MOVE_STOP;
+            p->skin = PLAYER_SKIN_LEFT1;
+            p->skin_cnt = 0;
+            p->port = PORT_DONE;
+            p->status = PLAYER_STATUS_ALIVE;
+        }
+    } else {
+        p->status = PLAYER_STATUS_DEAD;
     }
     GUI.refresh_value = GUI_REFRESH_VALUE;
+}
+
+void bot_team_kill_pacman(void) {
+    bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
+}
+
+uint32_t bot_coop_is_game_over(void) {
+    if (bot_is_2p_coop() == 0) {
+        return 0;
+    }
+    return (Player.lives == 0 && Player2.lives == 0) ? 1 : 0;
 }
 
 void bot_team_win_pacman(void) {
@@ -81,7 +112,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
 
     if (Player.status == PLAYER_STATUS_ALIVE && Player.xp == gxp && Player.yp == gyp) {
         if (Game.frightened == BOOL_FALSE) {
-            bot_team_kill_pacman();
+            bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
         } else {
             ghost->status = GHOST_STATUS_DEAD;
             Player.score += Game.frightened_points;
@@ -93,7 +124,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
 
     if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE && Player2.xp == gxp && Player2.yp == gyp) {
         if (Game.frightened == BOOL_FALSE) {
-            bot_team_kill_pacman();
+            bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
         } else {
             ghost->status = GHOST_STATUS_DEAD;
             Player.score += Game.frightened_points;

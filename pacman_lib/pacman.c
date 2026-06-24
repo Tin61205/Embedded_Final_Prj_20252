@@ -170,6 +170,10 @@ void pacman_start(void) {
 
             if (check == GAME_PLAYER_WIN) {
                 Player.level++;
+            } else if (Game.player2_active != 0) {
+                if (Player.lives == 0 && Player2.lives == 0) {
+                    check = GAME_OVER;
+                }
             } else {
                 Player.lives--;
                 if (Player.lives == 0) {
@@ -282,6 +286,7 @@ void pacman_apply_custom_config(void) {
 
     Player.level = 1;
     Player.lives = PLAYER_START_LIVES;
+    Player2.lives = PLAYER_START_LIVES;
     Player.akt_speed_ms = Level[0].player_speed;
 
     Game.ghost_active_mask = 0;
@@ -483,8 +488,11 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // check if game over
         //----------------------------------------
-        if (Player.status == PLAYER_STATUS_DEAD ||
-            (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD)) {
+        if (Game.player2_active != 0) {
+            if (bot_coop_is_game_over() != 0) {
+                ret_wert = GAME_PLAYER_LOSE;
+            }
+        } else if (Player.status == PLAYER_STATUS_DEAD) {
             ret_wert = GAME_PLAYER_LOSE;
         }
         if (Player.status == PLAYER_STATUS_WIN ||

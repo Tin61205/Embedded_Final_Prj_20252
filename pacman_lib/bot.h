@@ -151,7 +151,9 @@ uint32_t bot_is_2p_coop(void);
 uint32_t bot_is_2p_vs_ghost(void);
 void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ);
 Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp);
+void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y);
 void bot_team_kill_pacman(void);
+uint32_t bot_coop_is_game_over(void);
 void bot_team_win_pacman(void);
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost);
 
