@@ -20,9 +20,13 @@ __ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
 
 __IO uint8_t start_toggle = 0;
 
+#define HID_NO_BOOT_INTERFACE 0xFFU
+
 
 static USBH_Status USBH_HID_InterfaceInit  (USB_OTG_CORE_HANDLE *pdev , 
                                             void *phost);
+
+static uint8_t USBH_HID_FindBootInterface(USBH_HOST *phost);
 
 static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf);
 
@@ -63,97 +67,129 @@ USBH_Class_cb_TypeDef  HID_cb =
 
 
 //--------------------------------------------------------------
-static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev, 
+static uint8_t USBH_HID_FindBootInterface(USBH_HOST *phost)
+{
+  uint8_t if_ix;
+  uint8_t max_itf;
+
+  max_itf = phost->device_prop.Cfg_Desc.bNumInterfaces;
+  if(max_itf > USBH_MAX_NUM_INTERFACES)
+  {
+    max_itf = USBH_MAX_NUM_INTERFACES;
+  }
+
+  for(if_ix = 0; if_ix < max_itf; if_ix++)
+  {
+    if((phost->device_prop.Itf_Desc[if_ix].bInterfaceClass == USB_HID_CLASS) &&
+       (phost->device_prop.Itf_Desc[if_ix].bInterfaceSubClass == HID_BOOT_CODE) &&
+       ((phost->device_prop.Itf_Desc[if_ix].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE) ||
+        (phost->device_prop.Itf_Desc[if_ix].bInterfaceProtocol == HID_MOUSE_BOOT_CODE)))
+    {
+      return if_ix;
+    }
+  }
+
+  return HID_NO_BOOT_INTERFACE;
+}
+
+//--------------------------------------------------------------
+static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
                                            void *phost)
-{	
+{
   uint8_t maxEP;
   USBH_HOST *pphost = phost;
-    
-  uint8_t num =0;
-  USBH_Status status = USBH_BUSY ;
+  uint8_t num = 0;
+  uint8_t if_ix;
+  uint8_t in_ep_found = 0;
+  USBH_Status status = USBH_BUSY;
+
   HID_Machine.state = HID_ERROR;
-  
-  
-  if(pphost->device_prop.Itf_Desc[0].bInterfaceSubClass  == HID_BOOT_CODE)
+  if_ix = USBH_HID_FindBootInterface(pphost);
+
+  if(if_ix != HID_NO_BOOT_INTERFACE)
   {
-    /*Decode Bootclass Protocl: Mouse or Keyboard*/
-    if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
+    HID_Machine.itf_idx = if_ix;
+
+    /* Decode Bootclass Protocol: Mouse or Keyboard */
+    if(pphost->device_prop.Itf_Desc[HID_Machine.itf_idx].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
       HID_Machine.cb = &HID_KEYBRD_cb;
     }
-    else if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)		  
+    else if(pphost->device_prop.Itf_Desc[HID_Machine.itf_idx].bInterfaceProtocol == HID_MOUSE_BOOT_CODE)
     {
       HID_Machine.cb = &HID_MOUSE_cb;
     }
-    
-    HID_Machine.state     = HID_IDLE;
-    HID_Machine.ctl_state = HID_REQ_IDLE; 
-    HID_Machine.ep_addr   = pphost->device_prop.Ep_Desc[0][0].bEndpointAddress;
-    HID_Machine.length    = pphost->device_prop.Ep_Desc[0][0].wMaxPacketSize;
-    HID_Machine.poll      = pphost->device_prop.Ep_Desc[0][0].bInterval ;
-    
-    if (HID_Machine.poll  < HID_MIN_POLL) 
-    {
-       HID_Machine.poll = HID_MIN_POLL;
-    }
 
-    
-    /* Check fo available number of endpoints */
-    /* Find the number of EPs in the Interface Descriptor */      
-    /* Choose the lower number in order not to overrun the buffer allocated */
-    maxEP = ( (pphost->device_prop.Itf_Desc[0].bNumEndpoints <= USBH_MAX_NUM_ENDPOINTS) ? 
-             pphost->device_prop.Itf_Desc[0].bNumEndpoints :
-                 USBH_MAX_NUM_ENDPOINTS); 
-    
-    
-    /* Decode endpoint IN and OUT address from interface descriptor */
-    for (num=0; num < maxEP; num++)
+    HID_Machine.state     = HID_IDLE;
+    HID_Machine.ctl_state = HID_REQ_IDLE;
+    HID_Machine.length    = 0;
+    HID_Machine.poll      = HID_MIN_POLL;
+
+    /* Check for available number of endpoints. */
+    maxEP = ((pphost->device_prop.Itf_Desc[HID_Machine.itf_idx].bNumEndpoints <= USBH_MAX_NUM_ENDPOINTS) ?
+             pphost->device_prop.Itf_Desc[HID_Machine.itf_idx].bNumEndpoints :
+             USBH_MAX_NUM_ENDPOINTS);
+
+    /* Decode endpoint IN and OUT address from selected interface descriptor. */
+    for(num = 0; num < maxEP; num++)
     {
-      if(pphost->device_prop.Ep_Desc[0][num].bEndpointAddress & 0x80)
+      if(pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress & 0x80)
       {
-        HID_Machine.HIDIntInEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
-        HID_Machine.hc_num_in  =\
-               USBH_Alloc_Channel(pdev, 
-                                  pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
-        
-        /* Open channel for IN endpoint */
-        USBH_Open_Channel  (pdev,
-                            HID_Machine.hc_num_in,
-                            pphost->device_prop.address,
-                            pphost->device_prop.speed,
-                            EP_TYPE_INTR,
-                            HID_Machine.length); 
+        HID_Machine.HIDIntInEp = pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress;
+        HID_Machine.ep_addr    = pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress;
+        HID_Machine.length     = pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].wMaxPacketSize;
+        HID_Machine.poll       = pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bInterval;
+        in_ep_found = 1;
+
+        if(HID_Machine.poll < HID_MIN_POLL)
+        {
+          HID_Machine.poll = HID_MIN_POLL;
+        }
+
+        HID_Machine.hc_num_in = USBH_Alloc_Channel(pdev,
+                                                   pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress);
+
+        /* Open channel for IN endpoint. */
+        USBH_Open_Channel(pdev,
+                          HID_Machine.hc_num_in,
+                          pphost->device_prop.address,
+                          pphost->device_prop.speed,
+                          EP_TYPE_INTR,
+                          HID_Machine.length);
       }
       else
       {
-        HID_Machine.HIDIntOutEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
-        HID_Machine.hc_num_out  =\
-                USBH_Alloc_Channel(pdev, 
-                                   pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
-        
-        /* Open channel for OUT endpoint */
-        USBH_Open_Channel  (pdev,
-                            HID_Machine.hc_num_out,
-                            pphost->device_prop.address,
-                            pphost->device_prop.speed,
-                            EP_TYPE_INTR,
-                            HID_Machine.length); 
+        HID_Machine.HIDIntOutEp = pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress;
+        HID_Machine.hc_num_out  = USBH_Alloc_Channel(pdev,
+                                                     pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].bEndpointAddress);
+
+        /* Open channel for OUT endpoint. */
+        USBH_Open_Channel(pdev,
+                          HID_Machine.hc_num_out,
+                          pphost->device_prop.address,
+                          pphost->device_prop.speed,
+                          EP_TYPE_INTR,
+                          pphost->device_prop.Ep_Desc[HID_Machine.itf_idx][num].wMaxPacketSize);
       }
-      
-    }   
-    
-     start_toggle =0;
-     status = USBH_OK; 
+    }
+
+    if(in_ep_found != 0)
+    {
+      start_toggle = 0;
+      status = USBH_OK;
+    }
+    else
+    {
+      pphost->usr_cb->DeviceNotSupported();
+    }
   }
   else
   {
-    pphost->usr_cb->DeviceNotSupported();   
+    pphost->usr_cb->DeviceNotSupported();
   }
-  
-  return status;
-  
-}
 
+  return status;
+}
 
 //--------------------------------------------------------------
 void USBH_HID_InterfaceDeInit ( USB_OTG_CORE_HANDLE *pdev,
@@ -326,47 +362,28 @@ static USBH_Status USBH_Get_HID_ReportDescriptor (USB_OTG_CORE_HANDLE *pdev,
                                                   USBH_HOST *phost,
                                                   uint16_t length)
 {
-  
-  USBH_Status status;
-  
-  status = USBH_GetDescriptor(pdev,
-                              phost,
-                              USB_REQ_RECIPIENT_INTERFACE
-                                | USB_REQ_TYPE_STANDARD,                                  
-                                USB_DESC_HID_REPORT, 
-                                pdev->host.Rx_Buffer,
-                                length);
-  
-  /* HID report descriptor is available in pdev->host.Rx_Buffer.
-  In case of USB Boot Mode devices for In report handling ,
-  HID report descriptor parsing is not required.
-  In case, for supporting Non-Boot Protocol devices and output reports,
-  user may parse the report descriptor*/
-  
-  
-  return status;
-}
+  phost->Control.setup.b.bmRequestType = USB_D2H | USB_REQ_RECIPIENT_INTERFACE | USB_REQ_TYPE_STANDARD;
+  phost->Control.setup.b.bRequest = USB_REQ_GET_DESCRIPTOR;
+  phost->Control.setup.b.wValue.w = USB_DESC_HID_REPORT;
+  phost->Control.setup.b.wIndex.w = HID_Machine.itf_idx;
+  phost->Control.setup.b.wLength.w = length;
 
+  return USBH_CtlReq(pdev, phost, pdev->host.Rx_Buffer, length);
+}
 
 //--------------------------------------------------------------
 static USBH_Status USBH_Get_HID_Descriptor (USB_OTG_CORE_HANDLE *pdev,
                                             USBH_HOST *phost,
                                             uint16_t length)
 {
-  
-  USBH_Status status;
-  
-  status = USBH_GetDescriptor(pdev, 
-                              phost,
-                              USB_REQ_RECIPIENT_INTERFACE
-                                | USB_REQ_TYPE_STANDARD,                                  
-                                USB_DESC_HID,
-                                pdev->host.Rx_Buffer,
-                                length);
- 
-  return status;
-}
+  phost->Control.setup.b.bmRequestType = USB_D2H | USB_REQ_RECIPIENT_INTERFACE | USB_REQ_TYPE_STANDARD;
+  phost->Control.setup.b.bRequest = USB_REQ_GET_DESCRIPTOR;
+  phost->Control.setup.b.wValue.w = USB_DESC_HID;
+  phost->Control.setup.b.wIndex.w = HID_Machine.itf_idx;
+  phost->Control.setup.b.wLength.w = length;
 
+  return USBH_CtlReq(pdev, phost, pdev->host.Rx_Buffer, length);
+}
 
 //--------------------------------------------------------------
 static USBH_Status USBH_Set_Idle (USB_OTG_CORE_HANDLE *pdev,
@@ -382,7 +399,7 @@ static USBH_Status USBH_Set_Idle (USB_OTG_CORE_HANDLE *pdev,
   phost->Control.setup.b.bRequest = USB_HID_SET_IDLE;
   phost->Control.setup.b.wValue.w = (duration << 8 ) | reportId;
   
-  phost->Control.setup.b.wIndex.w = 0;
+  phost->Control.setup.b.wIndex.w = HID_Machine.itf_idx;
   phost->Control.setup.b.wLength.w = 0;
   
   return USBH_CtlReq(pdev, phost, 0 , 0 );
@@ -405,7 +422,7 @@ USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
   phost->Control.setup.b.bRequest = USB_HID_SET_REPORT;
   phost->Control.setup.b.wValue.w = (reportType << 8 ) | reportId;
   
-  phost->Control.setup.b.wIndex.w = 0;
+  phost->Control.setup.b.wIndex.w = HID_Machine.itf_idx;
   phost->Control.setup.b.wLength.w = reportLen;
   
   return USBH_CtlReq(pdev, phost, reportBuff , reportLen );
@@ -425,18 +442,9 @@ static USBH_Status USBH_Set_Protocol(USB_OTG_CORE_HANDLE *pdev,
   
   phost->Control.setup.b.bRequest = USB_HID_SET_PROTOCOL;
   
-  if(protocol != 0)
-  {
-    /* Boot Protocol */
-    phost->Control.setup.b.wValue.w = 0;
-  }
-  else
-  {
-    /*Report Protocol*/
-    phost->Control.setup.b.wValue.w = 1;
-  }
+  phost->Control.setup.b.wValue.w = protocol;
   
-  phost->Control.setup.b.wIndex.w = 0;
+  phost->Control.setup.b.wIndex.w = HID_Machine.itf_idx;
   phost->Control.setup.b.wLength.w = 0;
   
   return USBH_CtlReq(pdev, phost, 0 , 0 );

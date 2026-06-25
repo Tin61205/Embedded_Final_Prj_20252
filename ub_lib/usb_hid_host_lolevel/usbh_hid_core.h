@@ -87,6 +87,7 @@ typedef struct _HID_Process
   HID_CtlState         ctl_state;
   uint16_t             length;
   uint8_t              ep_addr;
+  uint8_t              itf_idx;
   uint16_t             poll; 
   __IO uint16_t        timer; 
   HID_cb_TypeDef             *cb;
