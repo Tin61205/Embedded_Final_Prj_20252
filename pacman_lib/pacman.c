@@ -132,7 +132,6 @@ void pacman_apply_campaign_difficulty(void) {
     Player.level = diff;
 }
 
-extern USB_HID_HOST_STATUS_t usb_status; // Trạng thái Keyboard
 uint32_t pacman_hw_init(void);
 uint32_t pacman_play(void);
 void pacman_dec_mode_timer(void);
@@ -301,7 +300,6 @@ uint32_t pacman_hw_init(void) {
     }
 
     UB_Systick_Init();
-    UB_USB_HID_HOST_Init();
     UB_Uart_Init();
     UB_Button_Init();
 #if JOYSTICK_USE_ADC == 1
@@ -406,15 +404,12 @@ uint32_t pacman_play(void) {
 
             joy = gui_check_button();
             if (joy == GUI_JOY_NONE) {
-                joy = gui_check_joystick();
-            }
-            if (joy == GUI_JOY_NONE) {
                 joy = gui_check_touch();
             }
         }
 
         if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
-            Game.player2_joy = gui_check_keyboard();
+            Game.player2_joy = gui_check_joystick();
         } else {
             Game.player2_joy = GUI_JOY_NONE;
         }

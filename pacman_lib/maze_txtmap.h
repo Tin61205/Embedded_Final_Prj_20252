@@ -27,22 +27,23 @@
 // Number of txt-imported maps available
 // Increase this when adding new maps
 //--------------------------------------------------------------
-#define MAZE_TXTMAP_COUNT  1
+#define MAZE_TXTMAP_COUNT  0
 
-//--------------------------------------------------------------
-// Map data arrays (defined in individual .c files)
-//--------------------------------------------------------------
-extern const uint8_t maze_txtmap_sample1[MAZE_TXTMAP_SIZE];
+#if MAZE_TXTMAP_COUNT > 0
+#define MAZE_TXTMAP_ARRAY_SIZE MAZE_TXTMAP_COUNT
+#else
+#define MAZE_TXTMAP_ARRAY_SIZE 1
+#endif
 
 //--------------------------------------------------------------
 // Table of all txt-imported maps for indexing
 //--------------------------------------------------------------
-extern const uint8_t * const maze_txtmap_table[MAZE_TXTMAP_COUNT];
+extern const uint8_t * const maze_txtmap_table[MAZE_TXTMAP_ARRAY_SIZE];
 
 //--------------------------------------------------------------
 // Map names for menu display
 //--------------------------------------------------------------
-extern const char * const maze_txtmap_names[MAZE_TXTMAP_COUNT];
+extern const char * const maze_txtmap_names[MAZE_TXTMAP_ARRAY_SIZE];
 
 //--------------------------------------------------------------
 // Build function: loads a txt-imported map into the Maze structure

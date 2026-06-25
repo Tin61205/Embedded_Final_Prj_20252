@@ -540,14 +540,6 @@ void gui_draw_gui(uint32_t joy) {
             UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         }
 
-        if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
-            if (akt_usb_status == USB_HID_KEYBOARD_CONNECTED) {
-                UB_Font_DrawString(170, 260, "P2: KB OK", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-            } else {
-                UB_Font_DrawString(170, 260, "P2: NO KB", & Arial_7x10, FONT_COL, BACKGROUND_COL);
-            }
-        }
-
         if (Player.status == PLAYER_STATUS_WIN) {
             UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
@@ -720,60 +712,6 @@ uint32_t gui_check_joystick(void) {
 
     return (ret_wert);
 }
-
-static uint32_t gui_map_key_to_joy(uint8_t key_code) {
-    switch (key_code) {
-        case 83: /* arrow up */
-        case 18: /* W */
-        case 75: /* keypad 8 */
-            return GUI_JOY_UP;
-        case 84: /* arrow down */
-        case 32: /* S */
-        case 85: /* keypad 2 */
-            return GUI_JOY_DOWN;
-        case 79: /* arrow left */
-        case 31: /* A */
-        case 76: /* keypad 4 */
-            return GUI_JOY_LEFT;
-        case 89: /* arrow right */
-        case 33: /* D */
-        case 80: /* keypad 6 */
-            return GUI_JOY_RIGHT;
-        default:
-            return GUI_JOY_NONE;
-    }
-}
-
-// Check keyboard
-uint32_t gui_check_keyboard(void) {
-    uint32_t ret_wert = GUI_JOY_NONE;
-    static uint32_t old_button = 999;
-    uint32_t joy1;
-    uint32_t joy2;
-
-    if (akt_usb_status == USB_HID_KEYBOARD_CONNECTED) {
-        if (UB_USB_HID_HOST_GetKeyAnz() > 0) {
-            joy1 = gui_map_key_to_joy(USB_KEY_DATA.akt_key1);
-            if (joy1 != GUI_JOY_NONE) {
-                ret_wert = joy1;
-            }
-            if (UB_USB_HID_HOST_GetKeyAnz() > 1) {
-                joy2 = gui_map_key_to_joy(USB_KEY_DATA.akt_key2);
-                if (joy2 != GUI_JOY_NONE) {
-                    ret_wert = joy2;
-                }
-            }
-        }
-    }
-
-    if (old_button != ret_wert) {
-        old_button = ret_wert;
-        GUI.refresh_buttons = GUI_REFRESH_VALUE;
-    }
-
-    return (ret_wert);
-}
-
 //--------------------------------------------------------------
 // debug UART
 //--------------------------------------------------------------
@@ -993,8 +931,7 @@ void gui_show_win_screen(uint32_t score) {
     gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK, 2);
     
     // Interaction instructions
-    UB_Font_DrawString((240 - strlen("TOUCH TO CONTINUE") * 7) / 2, 275, "TOUCH TO CONTINUE", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK);
-    UB_Font_DrawString((240 - strlen("OR PRESS CENTER KEY") * 7) / 2, 290, "OR PRESS CENTER KEY", &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK);
+    UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK);
     
     UB_LCD_Refresh();
     
@@ -1032,8 +969,7 @@ void gui_show_lost_screen(uint32_t score) {
     gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_GREY, RGB_COL_BLACK, 2);
     
     // Interaction instructions
-    UB_Font_DrawString((240 - strlen("TOUCH TO CONTINUE") * 7) / 2, 275, "TOUCH TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
-    UB_Font_DrawString((240 - strlen("OR PRESS CENTER KEY") * 7) / 2, 290, "OR PRESS CENTER KEY", &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK);
+    UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
     
     UB_LCD_Refresh();
     

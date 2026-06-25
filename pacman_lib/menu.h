@@ -12,7 +12,6 @@
 //--------------------------------------------------------------
 #include "stm32f4xx.h"
 #include "gui.h"
-#include "stm32_ub_usb_hid_host.h"
 #include "stm32f4xx_tim.h"
 #include "misc.h"
 #include "stm32_ub_systick.h"

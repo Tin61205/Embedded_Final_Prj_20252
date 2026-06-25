@@ -13,15 +13,15 @@
 //--------------------------------------------------------------
 // Table of all txt-imported map data pointers
 //--------------------------------------------------------------
-const uint8_t * const maze_txtmap_table[MAZE_TXTMAP_COUNT] = {
-    maze_txtmap_sample1,
+const uint8_t * const maze_txtmap_table[MAZE_TXTMAP_ARRAY_SIZE] = {
+    NULL
 };
 
 //--------------------------------------------------------------
 // Display names for the menu
 //--------------------------------------------------------------
-const char * const maze_txtmap_names[MAZE_TXTMAP_COUNT] = {
-    "Sample1",
+const char * const maze_txtmap_names[MAZE_TXTMAP_ARRAY_SIZE] = {
+    "None"
 };
 
 //--------------------------------------------------------------
@@ -239,11 +239,18 @@ void maze_make_rooms_txtmap(uint32_t txt_map_index) {
     uint32_t x, y;
     Room_t room;
 
+    if (MAZE_TXTMAP_COUNT == 0) {
+        return;
+    }
+
     if (txt_map_index >= MAZE_TXTMAP_COUNT) {
         txt_map_index = 0;
     }
 
     data = maze_txtmap_table[txt_map_index];
+    if (data == NULL) {
+        return;
+    }
 
     // 1. Initialize all rooms as WALL
     room.typ = ROOM_TYP_WALL;

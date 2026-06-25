@@ -33,8 +33,6 @@
 
 #include "menu.h"
 
-#include "stm32_ub_usb_hid_host.h"
-
 
 //--------------------------------------------------------------
 // level structur

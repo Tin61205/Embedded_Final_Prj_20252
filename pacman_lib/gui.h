@@ -19,7 +19,6 @@
 #include "stm32_ub_uart.h"
 #include "stm32_ub_button.h"
 #include "stm32_ub_joystick.h"
-#include "stm32_ub_usb_hid_host.h"
 #include "pacman.h"
 #include "maze.h"
 #include "skin.h"
@@ -134,7 +133,6 @@ void gui_draw_gui(uint32_t joy);
 uint32_t gui_check_touch(void);
 uint32_t gui_check_button(void);
 uint32_t gui_check_joystick(void);
-uint32_t gui_check_keyboard(void);
 void gui_draw_buttons(uint32_t joy);
 void gui_debug_uart(char *ptr);
 void gui_show_countdown_text(const char *text, uint8_t scale);

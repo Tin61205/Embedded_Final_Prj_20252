@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (14.3.rel1)
 ################################################################################
 
 ELF_SRCS := 
@@ -30,5 +30,4 @@ pacman_lib \
 ub_lib/bilder \
 ub_lib/font \
 ub_lib \
-ub_lib/usb_hid_host_lolevel \
 

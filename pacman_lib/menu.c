@@ -222,25 +222,10 @@ static void menu_draw_main(uint32_t sel) {
 
 static uint32_t menu_run_main(void) {
     uint32_t sel = 0;
-    uint16_t tx;
-    uint16_t ty;
 
     menu_draw_main(sel);
 
     while (1) {
-        if (menu_touch_pressed(&tx, &ty) != 0) {
-            // Touch in Campaign button (X: 40, Y: 120, W: 160, H: 30)
-            if (menu_touch_in_rect(tx, ty, 40, 120, 160, 30)) {
-                menu_touch_wait_release();
-                return MENU_RESULT_CAMPAIGN;
-            }
-            // Touch in Custom button (X: 40, Y: 170, W: 160, H: 30)
-            if (menu_touch_in_rect(tx, ty, 40, 170, 160, 30)) {
-                menu_touch_wait_release();
-                return MENU_RESULT_CUSTOM;
-            }
-        }
-
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
             sel = 1 - sel;
             menu_draw_main(sel);
@@ -443,50 +428,12 @@ static uint32_t menu_handle_value_tap(uint32_t unused1, uint32_t unused2, uint16
 
 static uint32_t menu_run_custom_wizard(void) {
     uint32_t sel_line = 0;
-    uint16_t tx;
-    uint16_t ty;
     uint32_t max_lines;
 
     menu_draw_wizard(sel_line, 0);
 
     while (1) {
         max_lines = menu_wizard_max_lines();
-
-        if (menu_touch_pressed(&tx, &ty) != 0) {
-            // Check buttons first
-            // Back Button
-            if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 0; // Go back to map select
-            }
-            // Start Button
-            if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 1; // Start game
-            }
-
-            // Check value tap
-            if (menu_handle_value_tap(0, 0, tx, ty) != 0) {
-                // Update sel_line to match touch Y coordinate
-                if (ty >= 26 && ty <= 44) sel_line = 0;
-                else if (ty >= 48 && ty <= 66 && Game.custom.player_count == CUSTOM_PLAYER_2) sel_line = 1;
-                else if (ty >= 70 && ty <= 88) sel_line = 2;
-                else if (ty >= 92 && ty <= 110) sel_line = 3;
-                else if (ty >= 114 && ty <= 132 && Game.custom.ghost_count >= 1) sel_line = 4;
-                else if (ty >= 136 && ty <= 154 &&
-                         ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 1) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 2))) sel_line = 5;
-                else if (ty >= 158 && ty <= 176 &&
-                         ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 2) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 3))) sel_line = 6;
-                else if (ty >= 180 && ty <= 198 &&
-                         ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 3) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count == 4))) sel_line = 7;
-
-                menu_touch_wait_release();
-                menu_draw_wizard(sel_line, 0);
-            }
-        }
 
         // Hard buttons controls
         if (UB_Button_OnClick(BTN_UP)) {
@@ -570,35 +517,9 @@ static void menu_draw_custom_map_select(void) {
 }
 
 static uint32_t menu_run_custom_map_select(void) {
-    uint16_t tx;
-    uint16_t ty;
-
     menu_draw_custom_map_select();
 
     while (1) {
-        if (menu_touch_pressed(&tx, &ty) != 0) {
-            // Check buttons
-            if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 0; // Go back to main menu
-            }
-            if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 1; // Go to step 2
-            }
-
-            // Map selection area
-            if (ty >= 20 && ty <= 240) {
-                if (tx < 120) {
-                    Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
-                } else {
-                    Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
-                }
-                menu_touch_wait_release();
-                menu_draw_custom_map_select();
-            }
-        }
-
         // Hard buttons controls
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_LEFT)) {
             Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
@@ -675,30 +596,10 @@ static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
 
 static uint32_t menu_run_campaign_wizard(void) {
     uint32_t sel_line = 0;
-    uint16_t tx, ty;
 
     menu_draw_campaign_wizard(sel_line);
 
     while (1) {
-        if (menu_touch_pressed(&tx, &ty) != 0) {
-            // Check buttons
-            if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 0; // Back to main menu
-            }
-            if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
-                menu_touch_wait_release();
-                return 1; // Start game
-            }
-            // Check value tap
-            if (menu_handle_campaign_value_tap(tx, ty) != 0) {
-                if (ty >= 46 && ty <= 64) sel_line = 0;
-                else if (ty >= 76 && ty <= 94) sel_line = 1;
-                menu_touch_wait_release();
-                menu_draw_campaign_wizard(sel_line);
-            }
-        }
-
         // Hard buttons
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
             sel_line = 1 - sel_line;

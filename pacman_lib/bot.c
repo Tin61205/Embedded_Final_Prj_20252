@@ -231,6 +231,46 @@ Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
     return &Player;
 }
 
+static void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn_x, uint32_t *respawn_y) {
+    uint32_t best_x = start_x;
+    uint32_t best_y = start_y;
+    int32_t max_min_dist = -1;
+    uint32_t x, y;
+
+    for (y = 0; y < ROOM_CNT_Y; y++) {
+        for (x = 0; x < ROOM_CNT_X; x++) {
+            if (Maze.Room[x][y].typ == ROOM_TYP_PATH && Maze.Room[x][y].special == ROOM_SPEC_NONE) {
+                int32_t min_dist = 999999;
+                
+                if (Blinky.status == GHOST_STATUS_ALIVE) {
+                    int32_t dist = ABS((int32_t)x - (int32_t)Blinky.xp) + ABS((int32_t)y - (int32_t)Blinky.yp);
+                    if (dist < min_dist) min_dist = dist;
+                }
+                if (Pinky.status == GHOST_STATUS_ALIVE) {
+                    int32_t dist = ABS((int32_t)x - (int32_t)Pinky.xp) + ABS((int32_t)y - (int32_t)Pinky.yp);
+                    if (dist < min_dist) min_dist = dist;
+                }
+                if (Inky.status == GHOST_STATUS_ALIVE) {
+                    int32_t dist = ABS((int32_t)x - (int32_t)Inky.xp) + ABS((int32_t)y - (int32_t)Inky.yp);
+                    if (dist < min_dist) min_dist = dist;
+                }
+                if (Clyde.status == GHOST_STATUS_ALIVE) {
+                    int32_t dist = ABS((int32_t)x - (int32_t)Clyde.xp) + ABS((int32_t)y - (int32_t)Clyde.yp);
+                    if (dist < min_dist) min_dist = dist;
+                }
+                
+                if (min_dist != 999999 && min_dist > max_min_dist) {
+                    max_min_dist = min_dist;
+                    best_x = x;
+                    best_y = y;
+                }
+            }
+        }
+    }
+    *respawn_x = best_x;
+    *respawn_y = best_y;
+}
+
 void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
     if (p->status != PLAYER_STATUS_ALIVE) {
         return;
@@ -242,8 +282,11 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
     if (p->lives == 0) {
         p->status = PLAYER_STATUS_DEAD;
     } else {
-        p->xp = start_x;
-        p->yp = start_y;
+        uint32_t rx = start_x;
+        uint32_t ry = start_y;
+        bot_find_safe_respawn(start_x, start_y, &rx, &ry);
+        p->xp = rx;
+        p->yp = ry;
         p->delta_x = 0;
         p->delta_y = 0;
         p->move = MOVE_STOP;
