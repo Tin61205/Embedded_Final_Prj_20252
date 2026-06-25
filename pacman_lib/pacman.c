@@ -233,6 +233,11 @@ void pacman_start(void) {
             }
 
             if (check == GAME_PLAYER_WIN) {
+                if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                    if (Player.score > Game.campaign_high_scores[Game.campaign_map_id]) {
+                        Game.campaign_high_scores[Game.campaign_map_id] = Player.score;
+                    }
+                }
                 gui_show_win_screen(Player.score);
                 if (Game.campaign_difficulty < 10) {
                     Game.campaign_difficulty++;
@@ -250,6 +255,11 @@ void pacman_start(void) {
                 }
 
                 if (check == GAME_OVER) {
+                    if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                        if (Player.score > Game.campaign_high_scores[Game.campaign_map_id]) {
+                            Game.campaign_high_scores[Game.campaign_map_id] = Player.score;
+                        }
+                    }
                     gui_show_lost_screen(Player.score);
                 } else {
                     UB_Systick_Pause_ms(2000); // Delay for respawn feedback

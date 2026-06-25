@@ -48,6 +48,8 @@ static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, i
 static void menu_draw_campaign_wizard(uint32_t sel_line);
 static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty);
 static uint32_t menu_run_campaign_wizard(void);
+static void menu_draw_highscore_view(void);
+static void menu_run_highscore_view(void);
 
 //--------------------------------------------------------------
 // entry: main menu then optional custom wizard
@@ -55,6 +57,7 @@ static uint32_t menu_run_campaign_wizard(void);
 uint32_t menu_start(void) {
     uint32_t result;
     uint32_t srand_init = 0;
+    uint32_t i;
 
     GUI.refresh_value = GUI_REFRESH_VALUE;
     GUI.refresh_buttons = GUI_REFRESH_VALUE;
@@ -64,6 +67,9 @@ uint32_t menu_start(void) {
     Game.campaign_map_id = MAZE_MAP_CLASSIC;
     Game.campaign_difficulty = 1;
     Game.campaign_coop = 0;
+    for (i = 0; i < MAZE_MAP_COUNT; i++) {
+        Game.campaign_high_scores[i] = 0;
+    }
 
     while (1) {
         srand_init++;
@@ -97,6 +103,8 @@ uint32_t menu_start(void) {
             if (custom_done == 2) {
                 break;
             }
+        } else if (result == MENU_RESULT_HIGHSCORE) {
+            menu_run_highscore_view();
         }
     }
 
@@ -190,7 +198,16 @@ static void menu_draw_main(uint32_t sel) {
         UB_Font_DrawString(99, 180, "Custom", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
     }
     
-    // 5. Draw prompt message container at the bottom
+    // 5. Draw High Score Button (Centered, X: 40, Y: 220, W: 160, H: 30)
+    if (sel == 2) {
+        UB_Graphic2D_DrawFullRectDMA(40, 220, 160, 30, RGB_COL_RED);
+        UB_Graphic2D_DrawRectDMA(40, 220, 160, 30, RGB_COL_WHITE);
+        UB_Font_DrawString(85, 230, "High Score", &Arial_7x10, RGB_COL_WHITE, RGB_COL_RED);
+    } else {
+        UB_Graphic2D_DrawFullRectDMA(40, 220, 160, 30, 0x39E7); // Dark Grey
+        UB_Graphic2D_DrawRectDMA(40, 220, 160, 30, RGB_COL_BLACK);
+        UB_Font_DrawString(85, 230, "High Score", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
+    }
 }
 
 static uint32_t menu_run_main(void) {
@@ -199,16 +216,32 @@ static uint32_t menu_run_main(void) {
     menu_draw_main(sel);
 
     while (1) {
-        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
-            sel = 1 - sel;
+        if (UB_Button_OnClick(BTN_UP)) {
+            if (sel == 0) {
+                sel = 2;
+            } else {
+                sel--;
+            }
+            menu_draw_main(sel);
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN)) {
+            if (sel == 2) {
+                sel = 0;
+            } else {
+                sel++;
+            }
             menu_draw_main(sel);
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
             if (sel == 0) {
                 return MENU_RESULT_CAMPAIGN;
+            } else if (sel == 1) {
+                return MENU_RESULT_CUSTOM;
+            } else if (sel == 2) {
+                return MENU_RESULT_HIGHSCORE;
             }
-            return MENU_RESULT_CUSTOM;
         }
 
         UB_Systick_Pause_ms(30);
@@ -622,6 +655,47 @@ static uint32_t menu_run_campaign_wizard(void) {
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
             return 1; // Start
+        }
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+static void menu_draw_highscore_view(void) {
+    uint32_t idx;
+    char buf[64];
+    
+    gui_clear_screen();
+    
+    // Draw Title
+    UB_Font_DrawString(81, 15, "HIGH SCORES", &Arial_7x10, RGB_COL_YELLOW, BACKGROUND_COL);
+    
+    // Draw divider line
+    UB_Graphic2D_DrawFullRectDMA(10, 35, 220, 2, RGB_COL_BLUE);
+    
+    // Draw scores for each map
+    for (idx = 0; idx < MAZE_MAP_COUNT; idx++) {
+        const char *name = menu_map_name(idx);
+        uint32_t score = Game.campaign_high_scores[idx];
+        sprintf(buf, "%s: %u", name, (unsigned int)score);
+        
+        uint16_t len = strlen(buf) * 7;
+        uint16_t x = (240 - len) / 2;
+        uint16_t y = 55 + idx * 25;
+        UB_Font_DrawString(x, y, buf, &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    }
+    
+    // Draw prompt instruction at the bottom
+    UB_Font_DrawString(29, 275, "[Back] / [Center] to Return", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+}
+
+static void menu_run_highscore_view(void) {
+    menu_draw_highscore_view();
+    UB_Systick_Pause_ms(200); // Debounce hard button click
+    
+    while (1) {
+        if (UB_Button_OnClick(BTN_BACK) || UB_Button_OnClick(BTN_CENTER)) {
+            UB_Systick_Pause_ms(150);
+            return;
         }
         UB_Systick_Pause_ms(30);
     }

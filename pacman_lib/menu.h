@@ -41,6 +41,7 @@
 #define  MENU_RESULT_NONE     0
 #define  MENU_RESULT_CAMPAIGN 1
 #define  MENU_RESULT_CUSTOM   2
+#define  MENU_RESULT_HIGHSCORE 3
 
 
 

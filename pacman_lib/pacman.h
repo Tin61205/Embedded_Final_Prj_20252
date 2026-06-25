@@ -157,6 +157,7 @@ typedef struct {
     uint32_t campaign_difficulty;
     uint32_t campaign_coop;
     CustomConfig_t custom;
+    uint32_t campaign_high_scores[MAZE_MAP_COUNT];
 }
 Game_t;
 extern Game_t Game;
