@@ -280,9 +280,6 @@ static void maze_draw_preview_cell(uint32_t dest_x, uint32_t dest_y, uint32_t ce
     uint32_t sy = Room_Skin[skin_id].yp;
     uint32_t px;
     uint32_t py;
-    uint32_t src_x;
-    uint32_t src_y;
-    uint16_t c;
     uint32_t ws = Skin1.width;
 
     if (cell_px == ROOM_WIDTH) {
@@ -298,12 +295,42 @@ static void maze_draw_preview_cell(uint32_t dest_x, uint32_t dest_y, uint32_t ce
     }
 
     for (py = 0; py < cell_px; py++) {
-        src_y = sy + ((py * ROOM_HEIGHT) / cell_px);
+        uint32_t y_start = (py * ROOM_HEIGHT) / cell_px;
+        uint32_t y_end = ((py + 1) * ROOM_HEIGHT) / cell_px;
+        if (y_end <= y_start) y_end = y_start + 1;
+
         UB_LCD_SetCursor2Draw(dest_x, dest_y + py);
+
         for (px = 0; px < cell_px; px++) {
-            src_x = sx + ((px * ROOM_WIDTH) / cell_px);
-            c = Skin1.table[(src_y * ws) + src_x];
-            UB_LCD_DrawPixel(c);
+            uint32_t x_start = (px * ROOM_WIDTH) / cell_px;
+            uint32_t x_end = ((px + 1) * ROOM_WIDTH) / cell_px;
+            if (x_end <= x_start) x_end = x_start + 1;
+
+            uint16_t final_color = 0;
+            uint32_t found_wall = 0;
+            uint32_t scan_y, scan_x;
+
+            for (scan_y = y_start; scan_y < y_end; scan_y++) {
+                uint32_t src_y = sy + scan_y;
+                for (scan_x = x_start; scan_x < x_end; scan_x++) {
+                    uint32_t src_x = sx + scan_x;
+                    uint16_t c = Skin1.table[(src_y * ws) + src_x];
+                    if (c != 0) { // Khác màu đen nền
+                        final_color = c;
+                        found_wall = 1;
+                        break;
+                    }
+                }
+                if (found_wall) break;
+            }
+
+            if (!found_wall) {
+                uint32_t mid_y = sy + (y_start + y_end) / 2;
+                uint32_t mid_x = sx + (x_start + x_end) / 2;
+                final_color = Skin1.table[(mid_y * ws) + mid_x];
+            }
+
+            UB_LCD_DrawPixel(final_color);
         }
     }
 }

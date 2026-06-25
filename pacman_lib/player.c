@@ -330,6 +330,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
     aligned = (ABS(p->delta_x) <= PLAYER_TURN_ALIGN) && (ABS(p->delta_y) <= PLAYER_TURN_ALIGN);
 
     if ((p->move == MOVE_LEFT || p->move == MOVE_RIGHT) && (p->port == PORT_DONE) && (p->delta_y == 0)) {
+        // Cua ở ô hiện tại
         if (ABS(p->delta_x) <= PLAYER_TURN_ALIGN) {
             if (joy == GUI_JOY_UP && (p->move != MOVE_DOWN)) {
                 if (bot_player_can_turn(p->xp, p->yp, MOVE_UP) != 0) {
@@ -346,9 +347,47 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                 }
             }
         }
+        // Cua sớm ở ô tiếp theo (Pre-turn)
+        if (p->move == MOVE_RIGHT && p->delta_x >= (int32_t)(ROOM_WIDTH - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_UP) {
+                if (bot_player_can_turn(p->xp + 1, p->yp, MOVE_UP) != 0) {
+                    p->xp = p->xp + 1;
+                    p->delta_x = 0;
+                    p->move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN) {
+                if (bot_player_can_turn(p->xp + 1, p->yp, MOVE_DOWN) != 0) {
+                    p->xp = p->xp + 1;
+                    p->delta_x = 0;
+                    p->move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
+        if (p->move == MOVE_LEFT && p->delta_x <= -(int32_t)(ROOM_WIDTH - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_UP) {
+                if (bot_player_can_turn(p->xp - 1, p->yp, MOVE_UP) != 0) {
+                    p->xp = p->xp - 1;
+                    p->delta_x = 0;
+                    p->move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN) {
+                if (bot_player_can_turn(p->xp - 1, p->yp, MOVE_DOWN) != 0) {
+                    p->xp = p->xp - 1;
+                    p->delta_x = 0;
+                    p->move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
     }
 
     if ((p->move == MOVE_UP || p->move == MOVE_DOWN) && (p->port == PORT_DONE) && (p->delta_x == 0)) {
+        // Cua ở ô hiện tại
         if (ABS(p->delta_y) <= PLAYER_TURN_ALIGN) {
             if (joy == GUI_JOY_LEFT && (p->move != MOVE_RIGHT)) {
                 if (bot_player_can_turn(p->xp, p->yp, MOVE_LEFT) != 0) {
@@ -359,6 +398,43 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
             }
             if (joy == GUI_JOY_RIGHT && (p->move != MOVE_LEFT)) {
                 if (bot_player_can_turn(p->xp, p->yp, MOVE_RIGHT) != 0) {
+                    p->delta_y = 0;
+                    p->move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
+        // Cua sớm ở ô tiếp theo (Pre-turn)
+        if (p->move == MOVE_DOWN && p->delta_y >= (int32_t)(ROOM_HEIGHT - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_LEFT) {
+                if (bot_player_can_turn(p->xp, p->yp + 1, MOVE_LEFT) != 0) {
+                    p->yp = p->yp + 1;
+                    p->delta_y = 0;
+                    p->move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT) {
+                if (bot_player_can_turn(p->xp, p->yp + 1, MOVE_RIGHT) != 0) {
+                    p->yp = p->yp + 1;
+                    p->delta_y = 0;
+                    p->move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
+        if (p->move == MOVE_UP && p->delta_y <= -(int32_t)(ROOM_HEIGHT - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_LEFT) {
+                if (bot_player_can_turn(p->xp, p->yp - 1, MOVE_LEFT) != 0) {
+                    p->yp = p->yp - 1;
+                    p->delta_y = 0;
+                    p->move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT) {
+                if (bot_player_can_turn(p->xp, p->yp - 1, MOVE_RIGHT) != 0) {
+                    p->yp = p->yp - 1;
                     p->delta_y = 0;
                     p->move = MOVE_RIGHT;
                     return;
@@ -448,6 +524,11 @@ static void player_check_entity_collision(Player_t *p) {
     for (i = 0; i < 4; i++) {
         Ghost_t *g = ghosts[i];
         if ((Game.ghost_active_mask & active_ghost_mask[i]) != 0 && g->status == GHOST_STATUS_ALIVE) {
+            // Chỉ tính va chạm nếu khoảng cách tọa độ logic tối đa là 1 ô
+            if (ABS((int32_t)p->xp - (int32_t)g->xp) > 1 || ABS((int32_t)p->yp - (int32_t)g->yp) > 1) {
+                continue;
+            }
+
             int32_t px = ((int32_t)p->xp * ROOM_WIDTH) + p->delta_x;
             int32_t py = ((int32_t)p->yp * ROOM_HEIGHT) + p->delta_y;
             int32_t gx = ((int32_t)g->xp * ROOM_WIDTH) + g->delta_x;
