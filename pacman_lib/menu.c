@@ -45,6 +45,8 @@ static uint32_t menu_run_main(void);
 static void menu_custom_defaults(void);
 static void menu_draw_wizard(uint32_t step, uint32_t ghost_idx);
 static uint32_t menu_run_custom_wizard(void);
+static void menu_draw_custom_map_select(void);
+static uint32_t menu_run_custom_map_select(void);
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir);
 static void menu_draw_campaign_wizard(uint32_t sel_line);
 static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty);
@@ -75,8 +77,26 @@ uint32_t menu_start(void) {
                 break;
             }
         } else if (result == MENU_RESULT_CUSTOM) {
-            if (menu_run_custom_wizard() != 0) {
-                Game.play_type = GAME_PLAY_CUSTOM;
+            uint32_t custom_step = 1;
+            uint32_t custom_done = 0;
+            while (!custom_done) {
+                if (custom_step == 1) {
+                    if (menu_run_custom_map_select() != 0) {
+                        custom_step = 2;
+                    } else {
+                        custom_done = 1; // Back to main menu
+                    }
+                } else if (custom_step == 2) {
+                    uint32_t wizard_res = menu_run_custom_wizard();
+                    if (wizard_res == 1) {
+                        Game.play_type = GAME_PLAY_CUSTOM;
+                        custom_done = 2; // Start game
+                    } else {
+                        custom_step = 1; // Go back to map select
+                    }
+                }
+            }
+            if (custom_done == 2) {
                 break;
             }
         }
@@ -99,7 +119,7 @@ static uint32_t menu_ai_ghost_count(void) {
 }
 
 static uint32_t menu_wizard_max_lines(void) {
-    return 5 + Game.custom.ghost_count;
+    return 4 + Game.custom.ghost_count;
 }
 
 static void menu_custom_defaults(void) {
@@ -276,83 +296,77 @@ static void menu_draw_wizard(uint32_t sel_line, uint32_t unused) {
     if (Game.custom.player_count == CUSTOM_PLAYER_2) {
         color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
         UB_Font_DrawString(10, 52, "2P Mode:", &Arial_7x10, color, BACKGROUND_COL);
-        sprintf(buf, "%s", (Game.custom.two_player_mode == CUSTOM_2P_COOP) ? "Co-op" : "VS");
+        sprintf(buf, "%s", (Game.custom.two_player_mode == CUSTOM_2P_COOP) ? "Co-op" : "Vs Ghost");
         UB_Font_DrawString(75, 52, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
     } else {
         UB_Font_DrawString(10, 52, "2P Mode: N/A", &Arial_7x10, FONT_COL3, BACKGROUND_COL);
     }
 
-    // 3. Map
+    // 3. Ghost Speed
     color = (sel_line == 2) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 74, "Map:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%s", menu_map_name(Game.custom.map_id));
+    UB_Font_DrawString(10, 74, "Speed:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", menu_speed_name(Game.custom.ghost_speed_idx));
     UB_Font_DrawString(75, 74, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
-    // 4. Ghost Speed
+    // 4. Ghost Count
     color = (sel_line == 3) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 96, "Speed:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%s", menu_speed_name(Game.custom.ghost_speed_idx));
+    UB_Font_DrawString(10, 96, "Ghosts:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%u", (unsigned int)Game.custom.ghost_count);
     UB_Font_DrawString(75, 96, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
-    // 5. Ghost Count
-    color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 118, "Ghosts:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%u", (unsigned int)Game.custom.ghost_count);
-    UB_Font_DrawString(75, 118, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-
     if (menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 1) {
-        color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 140, "G1 Ctrl:", &Arial_7x10, color, BACKGROUND_COL);
-        UB_Font_DrawString(75, 140, "Player 2", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+        color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
+        UB_Font_DrawString(10, 118, "G1 Ctrl:", &Arial_7x10, color, BACKGROUND_COL);
+        UB_Font_DrawString(75, 118, "Player 2", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
     } else if (Game.custom.ghost_count >= 1) {
-        color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 140, "G1 Str:", &Arial_7x10, color, BACKGROUND_COL);
+        color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
+        UB_Font_DrawString(10, 118, "G1 Str:", &Arial_7x10, color, BACKGROUND_COL);
         sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[0]));
-        UB_Font_DrawString(75, 140, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+        UB_Font_DrawString(75, 118, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
     }
 
     if (menu_is_vs_ghost_2p()) {
         if (menu_ai_ghost_count() >= 1) {
-            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 162, "AI1 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 140, "AI1 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[0]));
-            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 140, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
         if (menu_ai_ghost_count() >= 2) {
-            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 184, "AI2 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 162, "AI2 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[1]));
-            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
         if (menu_ai_ghost_count() >= 3) {
-            color = (sel_line == 8) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 206, "AI3 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 184, "AI3 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[2]));
-            UB_Font_DrawString(75, 206, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
     } else {
         if (Game.custom.ghost_count >= 2) {
-            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 162, "G2 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 140, "G2 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[1]));
-            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 140, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
         if (Game.custom.ghost_count >= 3) {
-            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 184, "G3 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 162, "G3 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[2]));
-            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
         if (Game.custom.ghost_count == 4) {
-            color = (sel_line == 8) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 206, "G4 Str:", &Arial_7x10, color, BACKGROUND_COL);
+            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
+            UB_Font_DrawString(10, 184, "G4 Str:", &Arial_7x10, color, BACKGROUND_COL);
             sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[3]));
-            UB_Font_DrawString(75, 206, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
         }
     }
 
-    UB_Font_DrawString(10, 200, "Map Preview:", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
-    maze_draw_preview(Game.custom.map_id, MENU_CUSTOM_PREVIEW_X, MENU_CUSTOM_PREVIEW_Y, MENU_CUSTOM_PREVIEW_CELL);
+    sprintf(buf, "Map: %s", menu_map_name(Game.custom.map_id));
+    UB_Font_DrawString(10, 215, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
 
     // Draw Buttons
     // Back Button (Blue border, white text)
@@ -382,48 +396,43 @@ static uint32_t menu_handle_value_tap(uint32_t unused1, uint32_t unused2, uint16
         }
         return 0;
     }
-    // Map
-    if (ty >= 70 && ty <= 88) {
-        Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
-        return 1;
-    }
     // Speed
-    if (ty >= 92 && ty <= 110) {
+    if (ty >= 70 && ty <= 88) {
         Game.custom.ghost_speed_idx = menu_cycle_value(Game.custom.ghost_speed_idx, CUSTOM_SPEED_SLOW, CUSTOM_SPEED_FAST, 1);
         return 1;
     }
     // Ghosts count
-    if (ty >= 114 && ty <= 132) {
+    if (ty >= 92 && ty <= 110) {
         Game.custom.ghost_count = menu_cycle_value(Game.custom.ghost_count, 1, CUSTOM_MAX_GHOSTS, 1);
         return 1;
     }
     if (menu_is_vs_ghost_2p()) {
-        if (ty >= 158 && ty <= 176 && menu_ai_ghost_count() >= 1) {
+        if (ty >= 114 && ty <= 132 && menu_ai_ghost_count() >= 1) {
             Game.custom.ghost_strategies[0] = menu_cycle_value(Game.custom.ghost_strategies[0], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
-        if (ty >= 180 && ty <= 198 && menu_ai_ghost_count() >= 2) {
+        if (ty >= 136 && ty <= 154 && menu_ai_ghost_count() >= 2) {
             Game.custom.ghost_strategies[1] = menu_cycle_value(Game.custom.ghost_strategies[1], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
-        if (ty >= 202 && ty <= 220 && menu_ai_ghost_count() >= 3) {
+        if (ty >= 158 && ty <= 176 && menu_ai_ghost_count() >= 3) {
             Game.custom.ghost_strategies[2] = menu_cycle_value(Game.custom.ghost_strategies[2], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
     } else {
-        if (ty >= 136 && ty <= 154 && Game.custom.ghost_count >= 1) {
+        if (ty >= 114 && ty <= 132 && Game.custom.ghost_count >= 1) {
             Game.custom.ghost_strategies[0] = menu_cycle_value(Game.custom.ghost_strategies[0], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
-        if (ty >= 158 && ty <= 176 && Game.custom.ghost_count >= 2) {
+        if (ty >= 136 && ty <= 154 && Game.custom.ghost_count >= 2) {
             Game.custom.ghost_strategies[1] = menu_cycle_value(Game.custom.ghost_strategies[1], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
-        if (ty >= 180 && ty <= 198 && Game.custom.ghost_count >= 3) {
+        if (ty >= 158 && ty <= 176 && Game.custom.ghost_count >= 3) {
             Game.custom.ghost_strategies[2] = menu_cycle_value(Game.custom.ghost_strategies[2], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
-        if (ty >= 202 && ty <= 220 && Game.custom.ghost_count == 4) {
+        if (ty >= 180 && ty <= 198 && Game.custom.ghost_count == 4) {
             Game.custom.ghost_strategies[3] = menu_cycle_value(Game.custom.ghost_strategies[3], 0, GHOST_STRATEGY_COUNT - 1, 1);
             return 1;
         }
@@ -448,7 +457,7 @@ static uint32_t menu_run_custom_wizard(void) {
             // Back Button
             if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
                 menu_touch_wait_release();
-                return 0; // Go back to main menu
+                return 0; // Go back to map select
             }
             // Start Button
             if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
@@ -463,17 +472,16 @@ static uint32_t menu_run_custom_wizard(void) {
                 else if (ty >= 48 && ty <= 66 && Game.custom.player_count == CUSTOM_PLAYER_2) sel_line = 1;
                 else if (ty >= 70 && ty <= 88) sel_line = 2;
                 else if (ty >= 92 && ty <= 110) sel_line = 3;
-                else if (ty >= 114 && ty <= 132) sel_line = 4;
-                else if (ty >= 136 && ty <= 154 && Game.custom.ghost_count >= 1) sel_line = 5;
-                else if (ty >= 158 && ty <= 176 &&
+                else if (ty >= 114 && ty <= 132 && Game.custom.ghost_count >= 1) sel_line = 4;
+                else if (ty >= 136 && ty <= 154 &&
                          ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 1) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 2))) sel_line = 6;
-                else if (ty >= 180 && ty <= 198 &&
+                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 2))) sel_line = 5;
+                else if (ty >= 158 && ty <= 176 &&
                          ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 2) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 3))) sel_line = 7;
-                else if (ty >= 202 && ty <= 220 &&
+                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 3))) sel_line = 6;
+                else if (ty >= 180 && ty <= 198 &&
                          ((menu_is_vs_ghost_2p() && menu_ai_ghost_count() >= 3) ||
-                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count == 4))) sel_line = 8;
+                          (!menu_is_vs_ghost_2p() && Game.custom.ghost_count == 4))) sel_line = 7;
 
                 menu_touch_wait_release();
                 menu_draw_wizard(sel_line, 0);
@@ -515,7 +523,6 @@ static uint32_t menu_run_custom_wizard(void) {
             else if (sel_line == 5) simulated_y = 145;
             else if (sel_line == 6) simulated_y = 165;
             else if (sel_line == 7) simulated_y = 185;
-            else if (sel_line == 8) simulated_y = 205;
 
             if (menu_handle_value_tap(0, 0, 10, simulated_y)) {
                 menu_draw_wizard(sel_line, 0);
@@ -523,10 +530,91 @@ static uint32_t menu_run_custom_wizard(void) {
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
-            return 0; // Go back to main menu
+            return 0; // Go back to map select
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
             return 1; // Start game
+        }
+
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+static void menu_draw_custom_map_select(void) {
+    char buf[64];
+    gui_clear_screen();
+
+    // Title
+    UB_Font_DrawString(75, 5, "SELECT MAP", &Arial_7x10, FONT_COL, BACKGROUND_COL);
+
+    // Map Name centered under header
+    sprintf(buf, "Map: %s", menu_map_name(Game.custom.map_id));
+    UB_Font_DrawString(60, 25, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    // Direction indicators
+    UB_Font_DrawString(40, 25, "<", &Arial_7x10, MENUE_COL_OFF, BACKGROUND_COL);
+    UB_Font_DrawString(190, 25, ">", &Arial_7x10, MENUE_COL_OFF, BACKGROUND_COL);
+
+    // Draw large preview (cell size = 6)
+    // 28 * 6 = 168 px, 31 * 6 = 186 px. Centered: (240 - 168) / 2 = 36.
+    maze_draw_preview(Game.custom.map_id, 36, 45, 6);
+
+    // Draw buttons
+    // Back Button (Blue border, white text)
+    UB_Graphic2D_DrawRectDMA(10, 275, 70, 25, RGB_COL_BLUE);
+    UB_Font_DrawString(25, 282, "Back", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+
+    // Next Button (Red border, white text)
+    UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
+    UB_Font_DrawString(180, 282, "Next", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+}
+
+static uint32_t menu_run_custom_map_select(void) {
+    uint16_t tx;
+    uint16_t ty;
+
+    menu_draw_custom_map_select();
+
+    while (1) {
+        if (menu_touch_pressed(&tx, &ty) != 0) {
+            // Check buttons
+            if (menu_touch_in_rect(tx, ty, 10, 275, 70, 25)) {
+                menu_touch_wait_release();
+                return 0; // Go back to main menu
+            }
+            if (menu_touch_in_rect(tx, ty, 160, 275, 70, 25)) {
+                menu_touch_wait_release();
+                return 1; // Go to step 2
+            }
+
+            // Map selection area
+            if (ty >= 20 && ty <= 240) {
+                if (tx < 120) {
+                    Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
+                } else {
+                    Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
+                }
+                menu_touch_wait_release();
+                menu_draw_custom_map_select();
+            }
+        }
+
+        // Hard buttons controls
+        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_LEFT)) {
+            Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
+            menu_draw_custom_map_select();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN) || UB_Button_OnClick(BTN_RIGHT)) {
+            Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
+            menu_draw_custom_map_select();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_BACK)) {
+            return 0; // Go back to main menu
+        }
+        if (UB_Button_OnClick(BTN_CENTER)) {
+            return 1; // Go to step 2
         }
 
         UB_Systick_Pause_ms(30);
