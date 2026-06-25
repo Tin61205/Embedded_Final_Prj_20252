@@ -860,6 +860,24 @@ static uint32_t gui_pause_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, ui
     return 0;
 }
 
+static void gui_pause_prepare_frame(void) {
+    if (LCD_CurrentLayer == 0) {
+        UB_LCD_Copy_Layer2_to_Layer1();
+    } else {
+        UB_LCD_Copy_Layer1_to_Layer2();
+    }
+}
+
+void gui_resume_from_pause(uint32_t joy) {
+    gui_draw_maze();
+    gui_draw_bots();
+    GUI.refresh_value = GUI_REFRESH_VALUE;
+    GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    gui_draw_gui(joy);
+    UB_LCD_Copy_Layer2_to_Layer1();
+    UB_LCD_Refresh();
+}
+
 static void gui_draw_pause_overlay(uint32_t sel) {
     uint16_t title_w = strlen("PAUSED") * 7 * 2;
 
@@ -888,6 +906,7 @@ uint32_t gui_run_pause_menu(void) {
     uint16_t ty;
 
     UB_Game_Timers_Paused = 1;
+    gui_pause_prepare_frame();
     gui_draw_pause_overlay(sel);
     UB_LCD_Refresh();
 
@@ -896,6 +915,7 @@ uint32_t gui_run_pause_menu(void) {
             if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_CONTINUE_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
                 gui_wait_touch_release();
                 UB_Game_Timers_Paused = 0;
+                gui_resume_from_pause(GUI_JOY_NONE);
                 return GUI_PAUSE_CONTINUE;
             }
             if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_EXIT_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
@@ -904,19 +924,25 @@ uint32_t gui_run_pause_menu(void) {
                 return GUI_PAUSE_EXIT;
             }
             gui_wait_touch_release();
+            gui_pause_prepare_frame();
             gui_draw_pause_overlay(sel);
             UB_LCD_Refresh();
         }
 
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
             sel = 1 - sel;
+            gui_pause_prepare_frame();
             gui_draw_pause_overlay(sel);
             UB_LCD_Refresh();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
             UB_Game_Timers_Paused = 0;
-            return (sel == 0) ? GUI_PAUSE_CONTINUE : GUI_PAUSE_EXIT;
+            if (sel == 0) {
+                gui_resume_from_pause(GUI_JOY_NONE);
+                return GUI_PAUSE_CONTINUE;
+            }
+            return GUI_PAUSE_EXIT;
         }
 
         UB_Systick_Pause_ms(30);

@@ -423,13 +423,6 @@ uint32_t pacman_play(void) {
         if (UB_Button_OnClick(BTN_BACK)) {
             if (gui_run_pause_menu() == GUI_PAUSE_EXIT) {
                 ret_wert = GAME_EXIT;
-            } else {
-                UB_LCD_Copy_Layer2_to_Layer1();
-                gui_draw_bots();
-                GUI.refresh_value = GUI_REFRESH_VALUE;
-                GUI.refresh_buttons = GUI_REFRESH_VALUE;
-                gui_draw_gui(joy);
-                UB_LCD_Refresh();
             }
         }
 
