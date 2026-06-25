@@ -71,33 +71,68 @@ void UB_Joystick_Init(void) {
 uint32_t UB_Joystick_ReadDirection(void) {
     uint16_t raw_x;
     uint16_t raw_y;
-    int32_t dx;
-    int32_t dy;
+    uint32_t dir_x = JOY_DIR_NONE;
+    uint32_t dir_y = JOY_DIR_NONE;
+    int32_t dev_x = 0;
+    int32_t dev_y = 0;
 
     raw_x = joystick_adc_read_avg(JOY_ADC_X_CHANNEL, JOY_ADC_READ_SAMPLES);
     raw_y = joystick_adc_read_avg(JOY_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
 
-    dx = (int32_t)raw_x - joy_center_x;
-    dy = (int32_t)raw_y - joy_center_y;
+    int32_t val_x = raw_x;
+    int32_t val_y = raw_y;
+    int32_t cx = joy_center_x;
+    int32_t cy = joy_center_y;
 
-    if (joystick_abs(dx) < JOY_ADC_DEADZONE && joystick_abs(dy) < JOY_ADC_DEADZONE) {
-        return JOY_DIR_NONE;
+    // Auto-scale 12-bit ADC values to 8-bit if calibration center is in 12-bit range (> 255)
+    if (cx > 255 || cy > 255) {
+        val_x >>= 4;
+        val_y >>= 4;
+        cx >>= 4;
+        cy >>= 4;
     }
 
-    if (joystick_abs(dx) >= joystick_abs(dy)) {
-        if (dx > JOY_ADC_THRESHOLD) {
-            return JOY_DIR_RIGHT;
+    // Left: X = 0-2
+    if (val_x <= 2) {
+        dir_x = JOY_DIR_LEFT;
+        int32_t denom = cx;
+        if (denom < 1) denom = 1;
+        dev_x = ((cx - val_x) * 1000) / denom;
+    }
+    // Right: X > 250
+    else if (val_x > 100) {
+        dir_x = JOY_DIR_RIGHT;
+        int32_t denom = 255 - cx;
+        if (denom < 1) denom = 1;
+        dev_x = ((val_x - cx) * 1000) / denom;
+    }
+
+    // Up: Y = 0-2
+    if (val_y <= 2) {
+        dir_y = JOY_DIR_UP;
+        int32_t denom = cy;
+        if (denom < 1) denom = 1;
+        dev_y = ((cy - val_y) * 1000) / denom;
+    }
+    // Down: Y > 250
+    else if (val_y > 250) {
+        dir_y = JOY_DIR_DOWN;
+        int32_t denom = 255 - cy;
+        if (denom < 1) denom = 1;
+        dev_y = ((val_y - cy) * 1000) / denom;
+    }
+
+    // Choose axis with the larger normalized deviation if both are active (diagonal movement)
+    if (dir_x != JOY_DIR_NONE && dir_y != JOY_DIR_NONE) {
+        if (dev_x >= dev_y) {
+            return dir_x;
+        } else {
+            return dir_y;
         }
-        if (dx < -JOY_ADC_THRESHOLD) {
-            return JOY_DIR_LEFT;
-        }
-    } else {
-        if (dy > JOY_ADC_THRESHOLD) {
-            return JOY_DIR_DOWN;
-        }
-        if (dy < -JOY_ADC_THRESHOLD) {
-            return JOY_DIR_UP;
-        }
+    } else if (dir_x != JOY_DIR_NONE) {
+        return dir_x;
+    } else if (dir_y != JOY_DIR_NONE) {
+        return dir_y;
     }
 
     return JOY_DIR_NONE;

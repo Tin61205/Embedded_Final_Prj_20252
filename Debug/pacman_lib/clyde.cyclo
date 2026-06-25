@@ -1,5 +1,5 @@
-../pacman_lib/clyde.c:20:6:clyde_init	3
-../pacman_lib/clyde.c:48:6:clyde_move	22
-../pacman_lib/clyde.c:196:6:clyde_change_skin	14
-../pacman_lib/clyde.c:247:6:clyde_check_event	4
-../pacman_lib/clyde.c:274:6:clyde_calc_next_move	31
+../pacman_lib/clyde.c:20:6:clyde_init	4
+../pacman_lib/clyde.c:48:6:clyde_move	25
+../pacman_lib/clyde.c:202:6:clyde_change_skin	14
+../pacman_lib/clyde.c:253:6:clyde_check_event	4
+../pacman_lib/clyde.c:280:6:clyde_calc_next_move	31

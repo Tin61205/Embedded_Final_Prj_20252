@@ -33,6 +33,7 @@
 "./ub_lib/stm32_ub_font.o"
 "./ub_lib/stm32_ub_graphic2d.o"
 "./ub_lib/stm32_ub_i2c3.o"
+"./ub_lib/stm32_ub_joystick.o"
 "./ub_lib/stm32_ub_lcd_ili9341.o"
 "./ub_lib/stm32_ub_sdram.o"
 "./ub_lib/stm32_ub_spi5.o"
