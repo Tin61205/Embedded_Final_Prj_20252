@@ -1,5 +1,5 @@
 ../pacman_lib/blinky.c:17:6:blinky_init	3
 ../pacman_lib/blinky.c:45:6:blinky_move	27
-../pacman_lib/blinky.c:205:6:blinky_change_skin	14
-../pacman_lib/blinky.c:256:6:blinky_check_event	4
-../pacman_lib/blinky.c:280:6:blinky_calc_next_move	33
+../pacman_lib/blinky.c:204:6:blinky_change_skin	14
+../pacman_lib/blinky.c:255:6:blinky_check_event	4
+../pacman_lib/blinky.c:279:6:blinky_calc_next_move	33

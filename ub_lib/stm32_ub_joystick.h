@@ -44,7 +44,6 @@
 
 void UB_Joystick_Init(void);
 uint32_t UB_Joystick_ReadDirection(void);
-void UB_Joystick_GetDebugValues(uint16_t *raw_x, uint16_t *raw_y, int32_t *center_x, int32_t *center_y);
 
 #endif
 

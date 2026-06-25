@@ -7,6 +7,7 @@
 
 #include "maze_generate.h"
 #include "maze_txtmap.h"
+#include "skin.h"
 
 // Global variable definition (declared extern in header)
 Maze_t Maze;
@@ -274,24 +275,55 @@ void maze_place_energy_dots(void) {
     }
 }
 
+static void maze_draw_preview_cell(uint32_t dest_x, uint32_t dest_y, uint32_t cell_px, uint32_t skin_id) {
+    uint32_t sx = Room_Skin[skin_id].xp;
+    uint32_t sy = Room_Skin[skin_id].yp;
+    uint32_t px;
+    uint32_t py;
+    uint32_t src_x;
+    uint32_t src_y;
+    uint16_t c;
+    uint32_t ws = Skin1.width;
+
+    if (cell_px == ROOM_WIDTH) {
+        Image2LCD_t koord;
+        koord.dest_xp = dest_x;
+        koord.dest_yp = dest_y;
+        koord.w = ROOM_WIDTH;
+        koord.h = ROOM_HEIGHT;
+        koord.source_xp = sx;
+        koord.source_yp = sy;
+        UB_Graphic2D_DrawImageRect(koord);
+        return;
+    }
+
+    for (py = 0; py < cell_px; py++) {
+        src_y = sy + ((py * ROOM_HEIGHT) / cell_px);
+        UB_LCD_SetCursor2Draw(dest_x, dest_y + py);
+        for (px = 0; px < cell_px; px++) {
+            src_x = sx + ((px * ROOM_WIDTH) / cell_px);
+            c = Skin1.table[(src_y * ws) + src_x];
+            UB_LCD_DrawPixel(c);
+        }
+    }
+}
+
 void maze_draw_preview(uint32_t map_id, uint32_t dest_x, uint32_t dest_y, uint32_t cell_px) {
     uint32_t x;
     uint32_t y;
-    uint32_t color;
     uint32_t pw = ROOM_CNT_X * cell_px;
     uint32_t ph = ROOM_CNT_Y * cell_px;
 
     maze_build_map(map_id);
     UB_Graphic2D_DrawFullRectDMA(dest_x, dest_y, pw, ph, RGB_COL_BLACK);
 
-    for (x = 0; x < ROOM_CNT_X; x++) {
-        for (y = 0; y < ROOM_CNT_Y; y++) {
-            if (Maze.Room[x][y].typ == ROOM_TYP_WALL) {
-                color = RGB_COL_BLUE;
-            } else {
-                color = RGB_COL_GREY;
-            }
-            UB_Graphic2D_DrawFullRectDMA(dest_x + (x * cell_px), dest_y + (y * cell_px), cell_px, cell_px, color);
+    for (y = 0; y < ROOM_CNT_Y; y++) {
+        for (x = 0; x < ROOM_CNT_X; x++) {
+            maze_draw_preview_cell(
+                dest_x + (x * cell_px),
+                dest_y + (y * cell_px),
+                cell_px,
+                Maze.Room[x][y].skin);
         }
     }
 }

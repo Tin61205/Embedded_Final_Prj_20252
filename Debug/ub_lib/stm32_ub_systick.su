@@ -1,5 +1,5 @@
-F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1550:22:NVIC_SetPriority	16	static
-F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1677:26:SysTick_Config	16	static
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1550:22:NVIC_SetPriority	16	static
+D:/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1677:26:SysTick_Config	16	static
 ../ub_lib/stm32_ub_systick.c:39:6:UB_Systick_Init	24	static
 ../ub_lib/stm32_ub_systick.c:84:6:UB_Systick_Pause_ms	16	static
 ../ub_lib/stm32_ub_systick.c:104:6:UB_Systick_Pause_s	24	static

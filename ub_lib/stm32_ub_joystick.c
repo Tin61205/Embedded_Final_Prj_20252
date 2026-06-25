@@ -169,11 +169,4 @@ static int32_t joystick_abs(int32_t value) {
     return value;
 }
 
-void UB_Joystick_GetDebugValues(uint16_t *raw_x, uint16_t *raw_y, int32_t *center_x, int32_t *center_y) {
-    *raw_x = joystick_adc_read_avg(JOY_ADC_X_CHANNEL, 1);
-    *raw_y = joystick_adc_read_avg(JOY_ADC_Y_CHANNEL, 1);
-    *center_x = joy_center_x;
-    *center_y = joy_center_y;
-}
-
 #endif

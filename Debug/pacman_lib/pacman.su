@@ -4,5 +4,5 @@
 ../pacman_lib/pacman.c:307:6:pacman_init	16	static
 ../pacman_lib/pacman.c:322:6:pacman_set_level	4	static
 ../pacman_lib/pacman.c:338:6:pacman_apply_custom_config	24	static
-../pacman_lib/pacman.c:377:10:pacman_play	24	static
-../pacman_lib/pacman.c:576:6:pacman_dec_mode_timer	4	static
+../pacman_lib/pacman.c:377:10:pacman_play	32	static
+../pacman_lib/pacman.c:583:6:pacman_dec_mode_timer	4	static

@@ -9,6 +9,7 @@
 #include "bot.h"
 #include "maze.h"
 #include "maze_txtmap.h"
+#include "skin.h"
 
 //--------------------------------------------------------------
 // wizard step ids
@@ -21,6 +22,14 @@
 #define WIZ_GHOST_SETUP 5
 
 #define WIZ_STEP_COUNT 6
+
+#define MENU_CAMPAIGN_PREVIEW_CELL  5
+#define MENU_CAMPAIGN_PREVIEW_X     ((240U - (ROOM_CNT_X * MENU_CAMPAIGN_PREVIEW_CELL)) / 2U)
+#define MENU_CAMPAIGN_PREVIEW_Y     118
+
+#define MENU_CUSTOM_PREVIEW_CELL    2
+#define MENU_CUSTOM_PREVIEW_X       ((240U - (ROOM_CNT_X * MENU_CUSTOM_PREVIEW_CELL)) / 2U)
+#define MENU_CUSTOM_PREVIEW_Y       212
 
 //--------------------------------------------------------------
 // intern helpers
@@ -49,6 +58,7 @@ uint32_t menu_start(void) {
     GUI.refresh_value = GUI_REFRESH_VALUE;
     GUI.refresh_buttons = GUI_REFRESH_VALUE;
 
+    skin_init();
     menu_custom_defaults();
     Game.campaign_map_id = MAZE_MAP_CLASSIC;
     Game.campaign_difficulty = 1;
@@ -164,7 +174,6 @@ static uint32_t menu_run_main(void) {
     uint32_t sel = 0;
     uint16_t tx;
     uint16_t ty;
-    uint32_t debug_tick = 0;
 
     menu_draw_main(sel);
 
@@ -191,31 +200,6 @@ static uint32_t menu_run_main(void) {
             }
             return MENU_RESULT_CUSTOM;
         }
-
-#if JOYSTICK_USE_ADC == 1
-        debug_tick++;
-        if (debug_tick >= 5) {
-            debug_tick = 0;
-            uint16_t rx = 0, ry = 0;
-            int32_t cx = 0, cy = 0;
-            UB_Joystick_GetDebugValues(&rx, &ry, &cx, &cy);
-            uint32_t dir = UB_Joystick_ReadDirection();
-            const char* dir_str = "NONE";
-            if (dir == JOY_DIR_UP) dir_str = "UP";
-            else if (dir == JOY_DIR_RIGHT) dir_str = "RIGHT";
-            else if (dir == JOY_DIR_DOWN) dir_str = "DOWN";
-            else if (dir == JOY_DIR_LEFT) dir_str = "LEFT";
-            
-            char buf[40];
-            UB_Font_DrawString(10, 150, "--- Joystick Diagnostic ---", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
-            sprintf(buf, "Raw X/Y : %d / %d      ", rx, ry);
-            UB_Font_DrawString(10, 170, buf, &Arial_7x10, FONT_COL3, BACKGROUND_COL);
-            sprintf(buf, "Center  : %d / %d      ", (int)cx, (int)cy);
-            UB_Font_DrawString(10, 190, buf, &Arial_7x10, FONT_COL3, BACKGROUND_COL);
-            sprintf(buf, "Dir     : %s            ", dir_str);
-            UB_Font_DrawString(10, 210, buf, &Arial_7x10, FONT_COL, BACKGROUND_COL);
-        }
-#endif
 
         UB_Systick_Pause_ms(30);
     }
@@ -335,9 +319,8 @@ static void menu_draw_wizard(uint32_t sel_line, uint32_t unused) {
         }
     }
 
-    // Draw Preview Map
-    UB_Font_DrawString(120, 15, "Map Preview", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
-    maze_draw_preview(Game.custom.map_id, 120, 30, 4);
+    UB_Font_DrawString(10, 200, "Map Preview:", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    maze_draw_preview(Game.custom.map_id, MENU_CUSTOM_PREVIEW_X, MENU_CUSTOM_PREVIEW_Y, MENU_CUSTOM_PREVIEW_CELL);
 
     // Draw Buttons
     // Back Button (Blue border, white text)
@@ -540,9 +523,8 @@ static void menu_draw_campaign_wizard(uint32_t sel_line) {
     sprintf(buf, "%u", (unsigned int)Game.campaign_difficulty);
     UB_Font_DrawString(90, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
-    // Draw Preview Map
-    UB_Font_DrawString(120, 25, "Map Preview", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
-    maze_draw_preview(Game.campaign_map_id, 120, 40, 4);
+    UB_Font_DrawString(10, 105, "Map Preview:", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    maze_draw_preview(Game.campaign_map_id, MENU_CAMPAIGN_PREVIEW_X, MENU_CAMPAIGN_PREVIEW_Y, MENU_CAMPAIGN_PREVIEW_CELL);
 
     // Draw Buttons
     // Back Button (Blue border, white text)
