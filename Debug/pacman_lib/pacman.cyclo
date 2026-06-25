@@ -5,4 +5,4 @@
 ../pacman_lib/pacman.c:337:6:pacman_set_level	2
 ../pacman_lib/pacman.c:353:6:pacman_apply_custom_config	11
 ../pacman_lib/pacman.c:392:10:pacman_play	62
-../pacman_lib/pacman.c:611:6:pacman_dec_mode_timer	9
+../pacman_lib/pacman.c:604:6:pacman_dec_mode_timer	9

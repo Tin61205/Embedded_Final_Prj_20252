@@ -24,7 +24,7 @@ BUTTON_t BUTTON[] = {
   // Name    ,PORT , PIN       , CLOCK              ,Widerstand      , Status
   {BTN_UP    ,GPIOC,GPIO_Pin_2  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC2=Button-UP
   {BTN_RIGHT ,GPIOC,GPIO_Pin_3  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC3=Button-RIGHT
-  {BTN_DOWN  ,GPIOC,GPIO_Pin_4  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC4=Button-DOWN
+  {BTN_DOWN  ,GPIOC,GPIO_Pin_11 ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC11=Button-DOWN
   {BTN_LEFT  ,GPIOC,GPIO_Pin_5  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC5=Button-LEFT
   {BTN_CENTER, GPIOA, GPIO_Pin_0, RCC_AHB1Periph_GPIOA, GPIO_PuPd_NOPULL, Bit_RESET},  // PA0=Button-CENTER
   {BTN_BACK  ,GPIOC,GPIO_Pin_1  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET}   // PC1=Button-BACK
