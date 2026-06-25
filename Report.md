@@ -78,12 +78,12 @@ Dự án tận dụng các tài nguyên phần cứng mạnh mẽ có sẵn trê
    - *Tác dụng:* Là bộ xử lý trung tâm (CPU) điều khiển toàn bộ hệ thống nhúng. Chip sở hữu lõi ARM Cortex-M4 hoạt động ở tần số lên đến 180 MHz, tích hợp bộ tăng tốc đồ họa LTDC và FMC điều khiển SDRAM giúp xử lý thuật toán AI và render đồ họa thời gian thực cực kỳ mượt mà.
 2. **Màn hình TFT LCD QVGA (ILI9341 - 2.4 inch, độ phân giải 240x320 pixels):**
    - *Tác dụng:* Thiết bị hiển thị giao diện đồ họa chính của trò chơi (Mê cung, các nhân vật, Menu cấu hình, Bảng điểm số Score, số mạng Lives và các thông báo Win/Lose).
-3. **Màn hình cảm ứng (Touchscreen Controller STMPE811):**
-   - *Tác dụng:* Cho phép người chơi tương tác, chạm vuốt trên màn hình để chọn các mục Menu hoặc điều khiển hướng đi của Pacman thay thế cho nút bấm vật lý. Giao tiếp với STM32 qua chuẩn I2C.
+3. **Màn hình cảm ứng (Touchscreen Controller STMPE811) - Không sử dụng:**
+   - *Tác dụng:* Trong phiên bản hiện tại, để tối ưu hóa hiệu năng và giải phóng tài nguyên hệ thống, màn hình cảm ứng không còn được sử dụng trong dự án này. Mọi thao tác tương tác menu và điều khiển nhân vật đều được thực hiện thông qua nút nhấn vật lý hoặc Joystick.
 4. **Bộ nhớ ngoài SDRAM (64 Mbits):**
    - *Tác dụng:* Được sử dụng làm bộ đệm khung hình hiển thị (Frame Buffer) cho bộ điều khiển đồ họa LTDC. Do RAM nội bộ của chip không đủ chứa các lớp hình ảnh hiển thị độ phân giải QVGA 16-bit màu, SDRAM bên ngoài đóng vai trò quyết định giúp đồ họa hiển thị không bị giật hay xé hình.
 5. **Nút bấm vật lý ngoài (4 nút bấm điều hướng rời):**
-   - *Tác dụng:* Giúp người chơi điều khiển Pacman di chuyển (Lên, Xuống, Trái, Phải). Các nút bấm được kết nối trực tiếp với các chân GPIO của STM32 (`PC2`, `PC3`, `PC4`, `PC5`) hoạt động ở mức logic tích cực thấp (Active LOW) nhờ điện trở kéo lên nội bộ (Internal Pull-Up).
+   - *Tác dụng:* Giúp người chơi điều khiển Pacman di chuyển (Lên, Xuống, Trái, Phải). Các nút bấm được kết nối trực tiếp với các chân GPIO của STM32 (`PC2`, `PC3`, `PC5` hoặc `PC11`) hoạt động ở mức logic tích cực thấp (Active LOW) nhờ điện trở kéo lên nội bộ (Internal Pull-Up).
 6. **Nút nhấn User Button mặc định trên kit (PA0):**
    - *Tác dụng:* Hoạt động ở mức tích cực cao (Active HIGH), dùng làm nút Xác nhận (Start/Center/Select) để bắt đầu game từ Menu.
 
@@ -91,14 +91,14 @@ Dự án tận dụng các tài nguyên phần cứng mạnh mẽ có sẵn trê
 
 ## Mô tả sơ đồ mạch hệ thống
 
-Dưới đây là sơ đồ kết nối các nút bấm vật lý ngoài và cấu trúc giao tiếp giữa vi điều khiển STM32F429 với màn hình TFT LCD và IC cảm ứng:
+Dưới đây là sơ đồ kết nối các nút bấm vật lý ngoài và cấu trúc giao tiếp giữa vi điều khiển STM32F429 với màn hình TFT LCD:
 
 ```mermaid
 graph TD
     subgraph "Các Nút Bấm Điều Khiển Ngoài (Active LOW)"
         BTN_UP["BTN_UP (Lên)"] -->|Nối chân PC2| STM32
         BTN_RIGHT["BTN_RIGHT (Phải)"] -->|Nối chân PC3| STM32
-        BTN_DOWN["BTN_DOWN (Xuống)"] -->|Nối chân PC4| STM32
+        BTN_DOWN["BTN_DOWN (Xuống)"] -->|Nối chân PC11| STM32
         BTN_LEFT["BTN_LEFT (Trái)"] -->|Nối chân PC5| STM32
         GND_BTN["GND chung"] --- BTN_UP
         GND_BTN --- BTN_RIGHT
@@ -112,7 +112,6 @@ graph TD
         
         STM32 <-->|Giao tiếp FMC - 16bit Data| SDRAM["SDRAM ngoài (Frame Buffer)"]
         STM32 --->|Bộ điều khiển LTDC| LCD["Màn hình TFT LCD ILI9341"]
-        STM32 <--->|Giao tiếp I2C3| Touch["IC Cảm ứng STMPE811"]
     end
     
     style STM32 fill:#1a5f7a,stroke:#333,stroke-width:2px,color:#fff
@@ -127,7 +126,7 @@ graph TD
 | :--- | :--- | :--- | :--- | :--- |
 | **`BTN_UP` (Lên)** | **`PC2`** | Một đầu nối `PC2`, đầu kia nối **`GND`** | Active LOW (Mặc định `1`, nhấn nút = `0`) | Kéo lên nội bộ (Internal Pull-Up) |
 | **`BTN_RIGHT` (Phải)** | **`PC3`** | Một đầu nối `PC3`, đầu kia nối **`GND`** | Active LOW (Mặc định `1`, nhấn nút = `0`) | Kéo lên nội bộ (Internal Pull-Up) |
-| **`BTN_DOWN` (Xuống)** | **`PC4`** | Một đầu nối `PC4`, đầu kia nối **`GND`** | Active LOW (Mặc định `1`, nhấn nút = `0`) | Kéo lên nội bộ (Internal Pull-Up) |
+| **`BTN_DOWN` (Xuống)** | **`PC11`** | Một đầu nối `PC11`, đầu kia nối **`GND`** | Active LOW (Mặc định `1`, nhấn nút = `0`) | Kéo lên nội bộ (Internal Pull-Up) |
 | **`BTN_LEFT` (Trái)** | **`PC5`** | Một đầu nối `PC5`, đầu kia nối **`GND`** | Active LOW (Mặc định `1`, nhấn nút = `0`) | Kéo lên nội bộ (Internal Pull-Up) |
 | **`BTN_CENTER` (Start)** | **`PA0`**| Sử dụng nút User màu xanh trên Kit | Active HIGH (Mặc định `0`, nhấn nút = `1`)| Kéo xuống nội bộ (No Pull-up/down) |
 
@@ -157,14 +156,13 @@ graph TD
 
     subgraph "TẦNG THƯ VIỆN BẢNG MẠCH (Utility Board Library - ub_lib)"
         UB_LCD["stm32_ub_lcd_ili9341.c / .h"]
-        UB_Touch["stm32_ub_touch_stmpe811.c / .h"]
         UB_Button["stm32_ub_button.c / .h"]
         UB_Systick["stm32_ub_systick.c / .h"]
     end
 
     subgraph "TẦNG PHẦN CỨNG & DRIVER (SPL / Hardware)"
-        SPL["STM32F4 Standard Peripheral Library (GPIO, LTDC, SDRAM, I2C, TIM)"]
-        Hardware["STM32F429ZIT6 MCU (LCD, Buttons, Touch, SDRAM)"]
+        SPL["STM32F4 Standard Peripheral Library (GPIO, LTDC, SDRAM, TIM)"]
+        Hardware["STM32F429ZIT6 MCU (LCD, Buttons, SDRAM)"]
     end
 
     %% Mối liên kết giữa các tầng
@@ -172,10 +170,10 @@ graph TD
     PacmanCore --> MazeManager & GUIRender
     PlayerControl & GhostAI --> MazeManager
     GUIRender --> SkinSprites & UB_LCD
-    GameMenu --> UB_Touch & UB_Button
+    GameMenu --> UB_Button
     PlayerControl --> UB_Button
     
-    UB_LCD & UB_Touch & UB_Button & UB_Systick --> SPL
+    UB_LCD & UB_Button & UB_Systick --> SPL
     SPL --> Hardware
     
     style PacmanCore fill:#f9f,stroke:#333,stroke-width:2px,color:#000
@@ -192,7 +190,7 @@ graph TD
 
 2. **Module Điều khiển Người chơi (`player.c`/`.h`):**
    - Xử lý tọa độ, hướng di chuyển hiện tại và hướng đi dự kiến tiếp theo của Pacman.
-   - Nhận tín hiệu điều khiển từ nút bấm vật lý (thông qua hàm quét phím) hoặc cảm ứng màn hình để thay đổi hướng đi.
+   - Nhận tín hiệu điều khiển từ nút bấm vật lý (thông qua hàm quét phím) để thay đổi hướng đi.
    - Kiểm tra va chạm với tường mê cung (ngăn cản Pacman đi xuyên tường) và xử lý sự kiện ăn các chấm điểm nhỏ (cộng điểm), ăn chấm to (kích hoạt chế độ Frightened của các Ghost).
    - Xử lý hoạt ảnh xoay miệng của Pacman theo hướng di chuyển.
 

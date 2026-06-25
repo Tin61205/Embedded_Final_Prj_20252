@@ -152,13 +152,7 @@ void pacman_start(void) {
     Game.player2_active = 0;
 
     pacman_init(GAME_OVER);
-    check = pacman_hw_init();
-
-    if (check != 0) {
-        UB_LCD_FillLayer(BACKGROUND_COL);
-        UB_Font_DrawString(10, 280, "Touch ERR", & Arial_7x10, FONT_COL, BACKGROUND_COL);
-        while (1);
-    }
+    pacman_hw_init();
 
     // Khởi tạo Player và ghost
     player_init(GAME_OVER);
