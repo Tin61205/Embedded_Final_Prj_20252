@@ -152,6 +152,7 @@ uint32_t bot_is_2p_vs_ghost(void);
 uint32_t bot_custom_ai_ghost_count(void);
 uint32_t bot_is_player_controlled_ghost(uint32_t ghost_id);
 uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, uint32_t joy);
+void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy);
 void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ);
 Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp);
 void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y);

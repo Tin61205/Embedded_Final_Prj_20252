@@ -397,15 +397,12 @@ uint32_t pacman_play(void) {
             if (joy == GUI_JOY_NONE) {
                 joy = gui_check_touch();
             }
+        }
+
+        if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
+            Game.player2_joy = gui_check_keyboard();
+        } else {
             Game.player2_joy = GUI_JOY_NONE;
-            if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
-                uint32_t kb_joy = gui_check_keyboard();
-                if (Game.custom.two_player_mode == CUSTOM_2P_COOP) {
-                    Game.player2_joy = kb_joy;
-                } else if (Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) {
-                    Game.player2_joy = kb_joy;
-                }
-            }
         }
 
         movement = MOVE_NOBODY;

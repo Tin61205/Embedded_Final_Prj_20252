@@ -86,6 +86,120 @@ uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, 
     return MOVE_STOP;
 }
 
+void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
+    uint32_t xp;
+    uint32_t yp;
+
+    if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE || joy == GUI_JOY_NONE) {
+        return;
+    }
+
+    xp = ghost->xp;
+    yp = ghost->yp;
+
+    if ((ghost->move == MOVE_LEFT || ghost->move == MOVE_RIGHT) &&
+        (ghost->port == PORT_DONE) && (ghost->delta_y == 0)) {
+        if (ABS(ghost->delta_x) <= PLAYER_TURN_ALIGN) {
+            if (joy == GUI_JOY_UP && (ghost->move != MOVE_DOWN)) {
+                if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) {
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_UP;
+                    ghost->next_move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN && (ghost->move != MOVE_UP)) {
+                if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) {
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_DOWN;
+                    ghost->next_move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
+    }
+
+    if ((ghost->move == MOVE_UP || ghost->move == MOVE_DOWN) &&
+        (ghost->port == PORT_DONE) && (ghost->delta_x == 0)) {
+        if (ABS(ghost->delta_y) <= PLAYER_TURN_ALIGN) {
+            if (joy == GUI_JOY_LEFT && (ghost->move != MOVE_RIGHT)) {
+                if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) {
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_LEFT;
+                    ghost->next_move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT && (ghost->move != MOVE_LEFT)) {
+                if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) {
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_RIGHT;
+                    ghost->next_move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
+    }
+
+    if (joy == GUI_JOY_UP) {
+        if (ghost->move == MOVE_UP) return;
+        if (ghost->port != PORT_DONE) return;
+        if (ghost->move == MOVE_DOWN) {
+            ghost->move = MOVE_UP;
+            ghost->next_move = MOVE_UP;
+            return;
+        }
+        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) {
+                ghost->move = MOVE_UP;
+                ghost->next_move = MOVE_UP;
+            }
+        }
+    } else if (joy == GUI_JOY_RIGHT) {
+        if (ghost->move == MOVE_RIGHT) return;
+        if (ghost->port != PORT_DONE) return;
+        if (ghost->move == MOVE_LEFT) {
+            ghost->move = MOVE_RIGHT;
+            ghost->next_move = MOVE_RIGHT;
+            return;
+        }
+        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) {
+                ghost->move = MOVE_RIGHT;
+                ghost->next_move = MOVE_RIGHT;
+            }
+        }
+    } else if (joy == GUI_JOY_DOWN) {
+        if (ghost->move == MOVE_DOWN) return;
+        if (ghost->port != PORT_DONE) return;
+        if (ghost->move == MOVE_UP) {
+            ghost->move = MOVE_DOWN;
+            ghost->next_move = MOVE_DOWN;
+            return;
+        }
+        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) {
+                ghost->move = MOVE_DOWN;
+                ghost->next_move = MOVE_DOWN;
+            }
+        }
+    } else if (joy == GUI_JOY_LEFT) {
+        if (ghost->move == MOVE_LEFT) return;
+        if (ghost->port != PORT_DONE) return;
+        if (ghost->move == MOVE_RIGHT) {
+            ghost->move = MOVE_LEFT;
+            ghost->next_move = MOVE_LEFT;
+            return;
+        }
+        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+            if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) {
+                ghost->move = MOVE_LEFT;
+                ghost->next_move = MOVE_LEFT;
+            }
+        }
+    }
+}
+
 void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ) {
     Player_t *target = bot_get_nearest_player_ptr(xp, yp);
     *txp = target->xp;

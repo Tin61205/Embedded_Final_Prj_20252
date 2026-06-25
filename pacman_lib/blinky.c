@@ -45,6 +45,12 @@ void blinky_init(uint32_t mode) {
 void blinky_move(void) {
     if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
 
+    if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 &&
+        Blinky.status == GHOST_STATUS_ALIVE &&
+        Game.frightened == BOOL_FALSE) {
+        bot_apply_player_ghost_input(&Blinky, Game.player2_joy);
+    }
+
     if (Blinky.move == MOVE_UP) {
         // move one pixel
         Blinky.delta_y--;

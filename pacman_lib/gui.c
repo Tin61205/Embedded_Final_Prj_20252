@@ -540,6 +540,14 @@ void gui_draw_gui(uint32_t joy) {
             UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         }
 
+        if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
+            if (akt_usb_status == USB_HID_KEYBOARD_CONNECTED) {
+                UB_Font_DrawString(170, 260, "P2: KB OK", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            } else {
+                UB_Font_DrawString(170, 260, "P2: NO KB", & Arial_7x10, FONT_COL, BACKGROUND_COL);
+            }
+        }
+
         if (Player.status == PLAYER_STATUS_WIN) {
             UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
@@ -713,29 +721,49 @@ uint32_t gui_check_joystick(void) {
     return (ret_wert);
 }
 
+static uint32_t gui_map_key_to_joy(uint8_t key_code) {
+    switch (key_code) {
+        case 83: /* arrow up */
+        case 18: /* W */
+        case 75: /* keypad 8 */
+            return GUI_JOY_UP;
+        case 84: /* arrow down */
+        case 32: /* S */
+        case 85: /* keypad 2 */
+            return GUI_JOY_DOWN;
+        case 79: /* arrow left */
+        case 31: /* A */
+        case 76: /* keypad 4 */
+            return GUI_JOY_LEFT;
+        case 89: /* arrow right */
+        case 33: /* D */
+        case 80: /* keypad 6 */
+            return GUI_JOY_RIGHT;
+        default:
+            return GUI_JOY_NONE;
+    }
+}
+
 // Check keyboard
 uint32_t gui_check_keyboard(void) {
     uint32_t ret_wert = GUI_JOY_NONE;
     static uint32_t old_button = 999;
+    uint32_t joy1;
+    uint32_t joy2;
 
     if (akt_usb_status == USB_HID_KEYBOARD_CONNECTED) {
         if (UB_USB_HID_HOST_GetKeyAnz() > 0) {
-            // Nhan dang phim tu keyboard
-            if (USB_KEY_DATA.akt_key1 == 79) {
-                ret_wert = GUI_JOY_LEFT;
-            } // 79=cursor left
-            if (USB_KEY_DATA.akt_key1 == 89) {
-                ret_wert = GUI_JOY_RIGHT;
-            } // 89=cursor right
-            if (USB_KEY_DATA.akt_key1 == 83) {
-                ret_wert = GUI_JOY_UP;
+            joy1 = gui_map_key_to_joy(USB_KEY_DATA.akt_key1);
+            if (joy1 != GUI_JOY_NONE) {
+                ret_wert = joy1;
             }
-        } // 83=cursor up
-        if (USB_KEY_DATA.akt_key1 == 84) {
-            ret_wert = GUI_JOY_DOWN;
-        } // 84=cursor down
-    } else {
-        ret_wert = GUI_JOY_NONE;
+            if (UB_USB_HID_HOST_GetKeyAnz() > 1) {
+                joy2 = gui_map_key_to_joy(USB_KEY_DATA.akt_key2);
+                if (joy2 != GUI_JOY_NONE) {
+                    ret_wert = joy2;
+                }
+            }
+        }
     }
 
     if (old_button != ret_wert) {

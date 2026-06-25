@@ -28,8 +28,10 @@
 #define JOY_ADC_Y_CHANNEL      2
 
 #define JOY_ADC_CENTER         2048
-#define JOY_ADC_DEADZONE       350
-#define JOY_ADC_THRESHOLD      700
+#define JOY_ADC_DEADZONE       500
+#define JOY_ADC_THRESHOLD      900
+#define JOY_ADC_CALIB_SAMPLES  16
+#define JOY_ADC_READ_SAMPLES   4
 
 //--------------------------------------------------------------
 // Direction values (match gui.h GUI_JOY_*)

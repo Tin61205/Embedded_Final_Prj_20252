@@ -12,7 +12,11 @@
 // intern helpers
 //--------------------------------------------------------------
 static uint16_t joystick_adc_read(uint8_t channel);
+static uint16_t joystick_adc_read_avg(uint8_t channel, uint8_t samples);
 static int32_t joystick_abs(int32_t value);
+
+static int32_t joy_center_x = JOY_ADC_CENTER;
+static int32_t joy_center_y = JOY_ADC_CENTER;
 
 //--------------------------------------------------------------
 // init ADC1 + analog pins PA1 (X) and PA2 (Y)
@@ -38,6 +42,20 @@ void UB_Joystick_Init(void) {
 
     joystick_adc_read(JOY_ADC_X_CHANNEL);
     joystick_adc_read(JOY_ADC_Y_CHANNEL);
+
+    {
+        int32_t sum_x = 0;
+        int32_t sum_y = 0;
+        uint8_t i;
+
+        for (i = 0; i < JOY_ADC_CALIB_SAMPLES; i++) {
+            sum_x += joystick_adc_read(JOY_ADC_X_CHANNEL);
+            sum_y += joystick_adc_read(JOY_ADC_Y_CHANNEL);
+        }
+
+        joy_center_x = sum_x / JOY_ADC_CALIB_SAMPLES;
+        joy_center_y = sum_y / JOY_ADC_CALIB_SAMPLES;
+    }
 }
 
 //--------------------------------------------------------------
@@ -49,11 +67,11 @@ uint32_t UB_Joystick_ReadDirection(void) {
     int32_t dx;
     int32_t dy;
 
-    raw_x = joystick_adc_read(JOY_ADC_X_CHANNEL);
-    raw_y = joystick_adc_read(JOY_ADC_Y_CHANNEL);
+    raw_x = joystick_adc_read_avg(JOY_ADC_X_CHANNEL, JOY_ADC_READ_SAMPLES);
+    raw_y = joystick_adc_read_avg(JOY_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
 
-    dx = (int32_t)raw_x - JOY_ADC_CENTER;
-    dy = (int32_t)raw_y - JOY_ADC_CENTER;
+    dx = (int32_t)raw_x - joy_center_x;
+    dy = (int32_t)raw_y - joy_center_y;
 
     if (joystick_abs(dx) < JOY_ADC_DEADZONE && joystick_abs(dy) < JOY_ADC_DEADZONE) {
         return JOY_DIR_NONE;
@@ -84,6 +102,21 @@ static uint16_t joystick_adc_read(uint8_t channel) {
     while ((ADC1->SR & ADC_SR_EOC) == 0) {
     }
     return (uint16_t)ADC1->DR;
+}
+
+static uint16_t joystick_adc_read_avg(uint8_t channel, uint8_t samples) {
+    uint32_t sum = 0;
+    uint8_t i;
+
+    if (samples == 0) {
+        return joystick_adc_read(channel);
+    }
+
+    for (i = 0; i < samples; i++) {
+        sum += joystick_adc_read(channel);
+    }
+
+    return (uint16_t)(sum / samples);
 }
 
 static int32_t joystick_abs(int32_t value) {
