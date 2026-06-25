@@ -1,0 +1,6 @@
+F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1550:22:NVIC_SetPriority	2
+F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:1677:26:SysTick_Config	2
+../ub_lib/stm32_ub_systick.c:40:6:UB_Systick_Init	1
+../ub_lib/stm32_ub_systick.c:86:6:UB_Systick_Pause_ms	2
+../ub_lib/stm32_ub_systick.c:106:6:UB_Systick_Pause_s	2
+../ub_lib/stm32_ub_systick.c:119:6:SysTick_Handler	12
