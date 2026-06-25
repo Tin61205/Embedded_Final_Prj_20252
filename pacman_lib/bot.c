@@ -10,6 +10,10 @@
 #include "gui.h"
 #include "pacman.h"
 #include "player.h"
+#include "blinky.h"
+#include "pinky.h"
+#include "inky.h"
+#include "clyde.h"
 
 // Global variable definitions (declared extern in header)
 Player_t Player;
@@ -238,6 +242,18 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
             p->skin_cnt = 0;
             p->port = PORT_DONE;
             p->status = PLAYER_STATUS_ALIVE;
+            if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) {
+                Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
+            }
+            if ((Game.ghost_active_mask & MOVE_PINKY) != 0) {
+                Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
+            }
+            if ((Game.ghost_active_mask & MOVE_INKY) != 0) {
+                Inky.dot_cnt = INKY_DOT_CNT_MAX;
+            }
+            if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) {
+                Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
+            }
         }
     } else {
         p->status = PLAYER_STATUS_DEAD;
@@ -322,6 +338,22 @@ uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint1
         *color = GHOST_COLOR_RANDOM;
     }
     return 1;
+}
+
+uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
+    if (dir == MOVE_UP) {
+        return (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 0)) ? 1 : 0;
+    }
+    if (dir == MOVE_RIGHT) {
+        return (((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) && bot_is_walkable(xp + 1, yp, 0)) ? 1 : 0;
+    }
+    if (dir == MOVE_DOWN) {
+        return (((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) && bot_is_walkable(xp, yp + 1, 0)) ? 1 : 0;
+    }
+    if (dir == MOVE_LEFT) {
+        return (((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) && bot_is_walkable(xp - 1, yp, 0)) ? 1 : 0;
+    }
+    return 0;
 }
 
 void bot_ghost_validate_position(Ghost_t *ghost) {
@@ -895,5 +927,14 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         ghosts[i]->skin = GHOST_SKIN_LEFT1;
         ghosts[i]->move = MOVE_LEFT;
         ghosts[i]->next_move = MOVE_LEFT;
+        if (i == 0) {
+            ghosts[i]->dot_cnt = BLINKY_DOT_CNT_MAX;
+        } else if (i == 1) {
+            ghosts[i]->dot_cnt = PINKY_DOT_CNT_MAX;
+        } else if (i == 2) {
+            ghosts[i]->dot_cnt = INKY_DOT_CNT_MAX;
+        } else {
+            ghosts[i]->dot_cnt = CLYDE_DOT_CNT_MAX;
+        }
     }
 }

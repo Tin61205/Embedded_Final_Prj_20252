@@ -33,7 +33,7 @@ void blinky_init(uint32_t mode) {
     Blinky.move = MOVE_LEFT;
     Blinky.next_move = MOVE_LEFT;
     Blinky.port = PORT_DONE;
-    Blinky.dot_cnt = 0;
+    Blinky.dot_cnt = (mode == GAME_OVER) ? 0 : BLINKY_DOT_CNT_MAX;
     Blinky.frightened_buf = BLINKY_FRIGHTENED_BUF;
     Blinky.new_mode = 0;
 }
@@ -44,6 +44,12 @@ void blinky_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void blinky_move(void) {
     if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
+
+    if (Blinky.move == MOVE_STOP && Blinky.status == GHOST_STATUS_ALIVE) {
+        blinky_calc_next_move();
+        Blinky.move = Blinky.next_move;
+    }
+    if (Blinky.move == MOVE_STOP) return;
 
     if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 &&
         Blinky.status == GHOST_STATUS_ALIVE &&
@@ -263,7 +269,7 @@ void blinky_check_event(void) {
             Blinky.skin = GHOST_SKIN_UP1;
             Blinky.move = MOVE_UP;
             Blinky.next_move = MOVE_UP;
-            Blinky.dot_cnt = 0;
+            Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
         }
     }
 }

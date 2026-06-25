@@ -161,6 +161,7 @@ uint32_t bot_coop_is_game_over(void);
 void bot_team_win_pacman(void);
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost);
 uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost);
+uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir);
 void bot_ghost_validate_position(Ghost_t *ghost);
 uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint16_t *color);
 

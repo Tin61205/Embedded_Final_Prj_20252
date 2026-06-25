@@ -36,7 +36,7 @@ void clyde_init(uint32_t mode) {
     Clyde.move = MOVE_LEFT;
     Clyde.next_move = MOVE_LEFT;
     Clyde.port = PORT_DONE;
-    Clyde.dot_cnt = 0;
+    Clyde.dot_cnt = (mode == GAME_OVER) ? 0 : CLYDE_DOT_CNT_MAX;
     Clyde.frightened_buf = CLYDE_FRIGHTENED_BUF;
     Clyde.new_mode = 0;
 }
@@ -47,6 +47,12 @@ void clyde_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void clyde_move(void) {
     if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
+
+    if (Clyde.move == MOVE_STOP && Clyde.status == GHOST_STATUS_ALIVE) {
+        clyde_calc_next_move();
+        Clyde.move = Clyde.next_move;
+    }
+    if (Clyde.move == MOVE_STOP) return;
 
     if (Clyde.move == MOVE_UP) {
         // move one pixel
@@ -263,7 +269,7 @@ void clyde_check_event(void) {
             Clyde.delta_y = GHOST_HOME_Y_DIFF;
             Clyde.move = MOVE_LEFT;
             Clyde.next_move = MOVE_LEFT;
-            Clyde.dot_cnt = 0;
+            Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
         }
     }
 }

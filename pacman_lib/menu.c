@@ -163,6 +163,7 @@ static uint32_t menu_run_main(void) {
     uint32_t sel = 0;
     uint16_t tx;
     uint16_t ty;
+    uint32_t debug_tick = 0;
 
     menu_draw_main(sel);
 
@@ -189,6 +190,31 @@ static uint32_t menu_run_main(void) {
             }
             return MENU_RESULT_CUSTOM;
         }
+
+#if JOYSTICK_USE_ADC == 1
+        debug_tick++;
+        if (debug_tick >= 5) {
+            debug_tick = 0;
+            uint16_t rx = 0, ry = 0;
+            int32_t cx = 0, cy = 0;
+            UB_Joystick_GetDebugValues(&rx, &ry, &cx, &cy);
+            uint32_t dir = UB_Joystick_ReadDirection();
+            const char* dir_str = "NONE";
+            if (dir == JOY_DIR_UP) dir_str = "UP";
+            else if (dir == JOY_DIR_RIGHT) dir_str = "RIGHT";
+            else if (dir == JOY_DIR_DOWN) dir_str = "DOWN";
+            else if (dir == JOY_DIR_LEFT) dir_str = "LEFT";
+            
+            char buf[40];
+            UB_Font_DrawString(10, 150, "--- Joystick Diagnostic ---", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            sprintf(buf, "Raw X/Y : %d / %d      ", rx, ry);
+            UB_Font_DrawString(10, 170, buf, &Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            sprintf(buf, "Center  : %d / %d      ", (int)cx, (int)cy);
+            UB_Font_DrawString(10, 190, buf, &Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            sprintf(buf, "Dir     : %s            ", dir_str);
+            UB_Font_DrawString(10, 210, buf, &Arial_7x10, FONT_COL, BACKGROUND_COL);
+        }
+#endif
 
         UB_Systick_Pause_ms(30);
     }

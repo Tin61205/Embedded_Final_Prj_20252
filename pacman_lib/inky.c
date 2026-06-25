@@ -36,7 +36,7 @@ void inky_init(uint32_t mode) {
     Inky.move = MOVE_RIGHT;
     Inky.next_move = MOVE_RIGHT;
     Inky.port = PORT_DONE;
-    Inky.dot_cnt = 0;
+    Inky.dot_cnt = (mode == GAME_OVER) ? 0 : INKY_DOT_CNT_MAX;
     Inky.frightened_buf = INKY_FRIGHTENED_BUF;
     Inky.new_mode = 0;
 }
@@ -47,6 +47,12 @@ void inky_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void inky_move(void) {
     if (Inky.dot_cnt < INKY_DOT_CNT_MAX) return;
+
+    if (Inky.move == MOVE_STOP && Inky.status == GHOST_STATUS_ALIVE) {
+        inky_calc_next_move();
+        Inky.move = Inky.next_move;
+    }
+    if (Inky.move == MOVE_STOP) return;
 
     if (Inky.move == MOVE_UP) {
         // move one pixel
@@ -263,7 +269,7 @@ void inky_check_event(void) {
             Inky.delta_y = GHOST_HOME_Y_DIFF;
             Inky.move = MOVE_RIGHT;
             Inky.next_move = MOVE_RIGHT;
-            Inky.dot_cnt = 0;
+            Inky.dot_cnt = INKY_DOT_CNT_MAX;
         }
     }
 }

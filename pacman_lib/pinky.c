@@ -30,7 +30,7 @@ void pinky_init(uint32_t mode) {
     Pinky.move = MOVE_UP;
     Pinky.next_move = MOVE_UP;
     Pinky.port = PORT_DONE;
-    Pinky.dot_cnt = 0;
+    Pinky.dot_cnt = (mode == GAME_OVER) ? 0 : PINKY_DOT_CNT_MAX;
     Pinky.frightened_buf = PINKY_FRIGHTENED_BUF;
     Pinky.new_mode = 0;
 }
@@ -41,6 +41,12 @@ void pinky_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void pinky_move(void) {
     if (Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
+
+    if (Pinky.move == MOVE_STOP && Pinky.status == GHOST_STATUS_ALIVE) {
+        pinky_calc_next_move();
+        Pinky.move = Pinky.next_move;
+    }
+    if (Pinky.move == MOVE_STOP) return;
 
     if (Pinky.move == MOVE_UP) {
         // move one pixel
@@ -257,7 +263,7 @@ void pinky_check_event(void) {
             Pinky.delta_y = GHOST_HOME_Y_DIFF;
             Pinky.move = MOVE_UP;
             Pinky.next_move = MOVE_UP;
-            Pinky.dot_cnt = 0;
+            Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
         }
     }
 }

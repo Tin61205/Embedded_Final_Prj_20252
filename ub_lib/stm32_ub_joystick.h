@@ -28,8 +28,8 @@
 #define JOY_ADC_Y_CHANNEL      2
 
 #define JOY_ADC_CENTER         2048
-#define JOY_ADC_DEADZONE       500
-#define JOY_ADC_THRESHOLD      900
+#define JOY_ADC_DEADZONE       150
+#define JOY_ADC_THRESHOLD      300
 #define JOY_ADC_CALIB_SAMPLES  16
 #define JOY_ADC_READ_SAMPLES   4
 
@@ -44,6 +44,7 @@
 
 void UB_Joystick_Init(void);
 uint32_t UB_Joystick_ReadDirection(void);
+void UB_Joystick_GetDebugValues(uint16_t *raw_x, uint16_t *raw_y, int32_t *center_x, int32_t *center_y);
 
 #endif
 

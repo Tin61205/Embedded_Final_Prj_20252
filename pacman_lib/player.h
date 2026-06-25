@@ -16,7 +16,7 @@
 #include "stm32_ub_uart.h"
 
 //--------------------------------------------------------------
-#define  PLAYER_TURN_ALIGN  3
+#define  PLAYER_TURN_ALIGN  4
 
 #define  PLAYER_START_X     14
 #define  PLAYER_START_Y     23

@@ -321,21 +321,25 @@ void player2_change_direction(uint32_t joy) {
 }
 
 static void player_entity_change_direction(Player_t *p, uint32_t joy) {
+    uint32_t aligned;
+
     if (p->status != PLAYER_STATUS_ALIVE) {
         return;
     }
 
+    aligned = (ABS(p->delta_x) <= PLAYER_TURN_ALIGN) && (ABS(p->delta_y) <= PLAYER_TURN_ALIGN);
+
     if ((p->move == MOVE_LEFT || p->move == MOVE_RIGHT) && (p->port == PORT_DONE) && (p->delta_y == 0)) {
         if (ABS(p->delta_x) <= PLAYER_TURN_ALIGN) {
             if (joy == GUI_JOY_UP && (p->move != MOVE_DOWN)) {
-                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_U) != 0) {
+                if (bot_player_can_turn(p->xp, p->yp, MOVE_UP) != 0) {
                     p->delta_x = 0;
                     p->move = MOVE_UP;
                     return;
                 }
             }
             if (joy == GUI_JOY_DOWN && (p->move != MOVE_UP)) {
-                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_D) != 0) {
+                if (bot_player_can_turn(p->xp, p->yp, MOVE_DOWN) != 0) {
                     p->delta_x = 0;
                     p->move = MOVE_DOWN;
                     return;
@@ -347,14 +351,14 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
     if ((p->move == MOVE_UP || p->move == MOVE_DOWN) && (p->port == PORT_DONE) && (p->delta_x == 0)) {
         if (ABS(p->delta_y) <= PLAYER_TURN_ALIGN) {
             if (joy == GUI_JOY_LEFT && (p->move != MOVE_RIGHT)) {
-                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) != 0) {
+                if (bot_player_can_turn(p->xp, p->yp, MOVE_LEFT) != 0) {
                     p->delta_y = 0;
                     p->move = MOVE_LEFT;
                     return;
                 }
             }
             if (joy == GUI_JOY_RIGHT && (p->move != MOVE_LEFT)) {
-                if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_R) != 0) {
+                if (bot_player_can_turn(p->xp, p->yp, MOVE_RIGHT) != 0) {
                     p->delta_y = 0;
                     p->move = MOVE_RIGHT;
                     return;
@@ -370,8 +374,10 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
             p->move = MOVE_UP;
             return;
         }
-        if ((p->delta_x == 0) && (p->delta_y == 0)) {
-            if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_U) != 0) {
+        if (aligned != 0) {
+            if (bot_player_can_turn(p->xp, p->yp, MOVE_UP) != 0) {
+                p->delta_x = 0;
+                p->delta_y = 0;
                 p->move = MOVE_UP;
             }
         }
@@ -382,8 +388,10 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
             p->move = MOVE_RIGHT;
             return;
         }
-        if ((p->delta_x == 0) && (p->delta_y == 0)) {
-            if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_R) != 0) {
+        if (aligned != 0) {
+            if (bot_player_can_turn(p->xp, p->yp, MOVE_RIGHT) != 0) {
+                p->delta_x = 0;
+                p->delta_y = 0;
                 p->move = MOVE_RIGHT;
             }
         }
@@ -394,8 +402,10 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
             p->move = MOVE_DOWN;
             return;
         }
-        if ((p->delta_x == 0) && (p->delta_y == 0)) {
-            if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_D) != 0) {
+        if (aligned != 0) {
+            if (bot_player_can_turn(p->xp, p->yp, MOVE_DOWN) != 0) {
+                p->delta_x = 0;
+                p->delta_y = 0;
                 p->move = MOVE_DOWN;
             }
         }
@@ -406,8 +416,10 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
             p->move = MOVE_LEFT;
             return;
         }
-        if ((p->delta_x == 0) && (p->delta_y == 0)) {
-            if ((Maze.Room[p->xp][p->yp].door & ROOM_DOOR_L) != 0) {
+        if (aligned != 0) {
+            if (bot_player_can_turn(p->xp, p->yp, MOVE_LEFT) != 0) {
+                p->delta_x = 0;
+                p->delta_y = 0;
                 p->move = MOVE_LEFT;
             }
         }
