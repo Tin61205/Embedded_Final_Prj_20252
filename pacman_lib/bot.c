@@ -236,25 +236,21 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         return;
     }
 
-    if (Game.player2_active != 0) {
-        if (p->lives > 0) {
-            p->lives--;
-        }
-        if (p->lives == 0) {
-            p->status = PLAYER_STATUS_DEAD;
-        } else {
-            p->xp = start_x;
-            p->yp = start_y;
-            p->delta_x = 0;
-            p->delta_y = 0;
-            p->move = MOVE_STOP;
-            p->skin = PLAYER_SKIN_LEFT1;
-            p->skin_cnt = 0;
-            p->port = PORT_DONE;
-            p->status = PLAYER_STATUS_ALIVE;
-        }
-    } else {
+    if (p->lives > 0) {
+        p->lives--;
+    }
+    if (p->lives == 0) {
         p->status = PLAYER_STATUS_DEAD;
+    } else {
+        p->xp = start_x;
+        p->yp = start_y;
+        p->delta_x = 0;
+        p->delta_y = 0;
+        p->move = MOVE_STOP;
+        p->skin = PLAYER_SKIN_LEFT1;
+        p->skin_cnt = 0;
+        p->port = PORT_DONE;
+        p->status = PLAYER_STATUS_ALIVE;
     }
     bot_release_ghosts_on_pacman_death();
     GUI.refresh_value = GUI_REFRESH_VALUE;

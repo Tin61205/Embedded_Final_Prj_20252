@@ -238,18 +238,11 @@ void pacman_start(void) {
                     Game.campaign_difficulty++;
                 }
             } else {
-                if (Game.player2_active != 0) {
-                    if (bot_is_2p_coop()) {
-                        if (Player.lives == 0 && Player2.lives == 0) {
-                            check = GAME_OVER;
-                        }
-                    } else {
-                        if (Player.lives == 0) {
-                            check = GAME_OVER;
-                        }
+                if (Game.player2_active != 0 && bot_is_2p_coop()) {
+                    if (Player.lives == 0 && Player2.lives == 0) {
+                        check = GAME_OVER;
                     }
                 } else {
-                    Player.lives--;
                     if (Player.lives == 0) {
                         check = GAME_OVER;
                     }
