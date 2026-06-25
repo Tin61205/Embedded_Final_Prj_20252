@@ -108,7 +108,7 @@ CampaignDifficulty_t CampaignDifficultyScenario[10] = {
     { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 24, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } }
 };
 
-void pacman_apply_campaign_difficulty(void) {
+void pacman_apply_campaign_difficulty(uint32_t mode) {
     uint32_t diff = Game.campaign_difficulty;
     if (diff < 1) diff = 1;
     if (diff > 10) diff = 10;
@@ -130,6 +130,12 @@ void pacman_apply_campaign_difficulty(void) {
     
     Player.akt_speed_ms = 30; // Standard speed for player
     Player.level = diff;
+
+    Game.player2_active = 0;
+    if (Game.campaign_coop != 0) {
+        Game.player2_active = 1;
+        player2_init(mode);
+    }
 }
 
 uint32_t pacman_hw_init(void);
@@ -150,6 +156,7 @@ void pacman_start(void) {
     Game.ghost_active_mask = MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE;
     Game.player2_joy = GUI_JOY_NONE;
     Game.player2_active = 0;
+    Game.campaign_coop = 0;
 
     pacman_init(GAME_OVER);
     pacman_hw_init();
@@ -169,7 +176,7 @@ void pacman_start(void) {
     if (Game.play_type == GAME_PLAY_CUSTOM) {
         pacman_apply_custom_config(GAME_OVER);
     } else {
-        pacman_apply_campaign_difficulty();
+        pacman_apply_campaign_difficulty(GAME_OVER);
     }
     check = maze_generate_check();
 
@@ -219,7 +226,7 @@ void pacman_start(void) {
                     pinky_init(GAME_OVER);
                     inky_init(GAME_OVER);
                     clyde_init(GAME_OVER);
-                    pacman_apply_campaign_difficulty();
+                    pacman_apply_campaign_difficulty(GAME_OVER);
                 }
                 maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
                 continue;
@@ -254,12 +261,11 @@ void pacman_start(void) {
             if (Game.play_type == GAME_PLAY_CUSTOM) {
                 pacman_apply_custom_config(check);
             } else {
-                Game.player2_active = 0;
                 blinky_init(check);
                 pinky_init(check);
                 inky_init(check);
                 clyde_init(check);
-                pacman_apply_campaign_difficulty();
+                pacman_apply_campaign_difficulty(check);
             }
 
             Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
@@ -273,7 +279,7 @@ void pacman_start(void) {
                     pinky_init(GAME_OVER);
                     inky_init(GAME_OVER);
                     clyde_init(GAME_OVER);
-                    pacman_apply_campaign_difficulty();
+                    pacman_apply_campaign_difficulty(GAME_OVER);
                 }
             }
             if ((check == GAME_PLAYER_WIN) || (check == GAME_OVER)) {
@@ -401,7 +407,7 @@ uint32_t pacman_play(void) {
             }
         }
 
-        if (Game.play_type == GAME_PLAY_CUSTOM && Game.custom.player_count == CUSTOM_PLAYER_2) {
+        if (Game.player2_active != 0) {
             Game.player2_joy = gui_check_joystick();
         } else {
             Game.player2_joy = GUI_JOY_NONE;

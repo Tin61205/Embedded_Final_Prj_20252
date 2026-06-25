@@ -155,6 +155,7 @@ typedef struct {
     uint32_t player2_active;
     uint32_t campaign_map_id;
     uint32_t campaign_difficulty;
+    uint32_t campaign_coop;
     CustomConfig_t custom;
 }
 Game_t;
@@ -164,7 +165,7 @@ extern Game_t Game;
 // Global functions
 //--------------------------------------------------------------
 void pacman_start(void);
-void pacman_apply_campaign_difficulty(void);
+void pacman_apply_campaign_difficulty(uint32_t mode);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);

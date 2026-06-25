@@ -63,6 +63,7 @@ uint32_t menu_start(void) {
     menu_custom_defaults();
     Game.campaign_map_id = MAZE_MAP_CLASSIC;
     Game.campaign_difficulty = 1;
+    Game.campaign_coop = 0;
 
     while (1) {
         srand_init++;
@@ -526,15 +527,21 @@ static void menu_draw_campaign_wizard(uint32_t sel_line) {
 
     // 1. Map
     color = (sel_line == 0) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 50, "Map:", &Arial_7x10, color, BACKGROUND_COL);
+    UB_Font_DrawString(10, 30, "Map:", &Arial_7x10, color, BACKGROUND_COL);
     sprintf(buf, "%s", menu_map_name(Game.campaign_map_id));
-    UB_Font_DrawString(75, 50, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    UB_Font_DrawString(75, 30, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
     // 2. Difficulty
     color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 80, "Difficulty:", &Arial_7x10, color, BACKGROUND_COL);
+    UB_Font_DrawString(10, 55, "Difficulty:", &Arial_7x10, color, BACKGROUND_COL);
     sprintf(buf, "%u", (unsigned int)Game.campaign_difficulty);
-    UB_Font_DrawString(90, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    UB_Font_DrawString(90, 55, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    // 3. Play Mode (Solo / Co-op)
+    color = (sel_line == 2) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 80, "Mode:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", Game.campaign_coop ? "Pacman Co-op" : "Solo");
+    UB_Font_DrawString(75, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
     UB_Font_DrawString(10, 105, "Map Preview:", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
     maze_draw_preview(Game.campaign_map_id, MENU_CAMPAIGN_PREVIEW_X, MENU_CAMPAIGN_PREVIEW_Y, MENU_CAMPAIGN_PREVIEW_CELL);
@@ -554,13 +561,18 @@ static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
         return 0;
     }
     // Map
-    if (ty >= 46 && ty <= 64) {
+    if (ty >= 26 && ty <= 44) {
         Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
         return 1;
     }
     // Difficulty
-    if (ty >= 76 && ty <= 94) {
+    if (ty >= 51 && ty <= 69) {
         Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+        return 1;
+    }
+    // Mode
+    if (ty >= 76 && ty <= 94) {
+        Game.campaign_coop = Game.campaign_coop ? 0 : 1;
         return 1;
     }
     return 0;
@@ -573,16 +585,23 @@ static uint32_t menu_run_campaign_wizard(void) {
 
     while (1) {
         // Hard buttons
-        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
-            sel_line = 1 - sel_line;
+        if (UB_Button_OnClick(BTN_UP)) {
+            sel_line = menu_cycle_value(sel_line, 0, 2, -1);
+            menu_draw_campaign_wizard(sel_line);
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN)) {
+            sel_line = menu_cycle_value(sel_line, 0, 2, 1);
             menu_draw_campaign_wizard(sel_line);
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_LEFT)) {
             if (sel_line == 0) {
                 Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
-            } else {
+            } else if (sel_line == 1) {
                 Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
+            } else {
+                Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
             UB_Systick_Pause_ms(150);
@@ -590,8 +609,10 @@ static uint32_t menu_run_campaign_wizard(void) {
         if (UB_Button_OnClick(BTN_RIGHT)) {
             if (sel_line == 0) {
                 Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
-            } else {
+            } else if (sel_line == 1) {
                 Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+            } else {
+                Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
             UB_Systick_Pause_ms(150);
