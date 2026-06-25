@@ -478,7 +478,7 @@ void UB_Graphic2D_DrawImageRectRecolor(Image2LCD_t koord, uint16_t body_color)
 		for(x=0;x<w;x++) {
 			Yaddress = ((ys+y)*ws)+xs+x;
 			c=Skin1.table[Yaddress];
-			if (c != RGB_COL_BLACK) {
+			if ((c != RGB_COL_BLACK) && (c != RGB_COL_WHITE)) {
 				c = body_color;
 			}
 			UB_LCD_DrawPixel(c);

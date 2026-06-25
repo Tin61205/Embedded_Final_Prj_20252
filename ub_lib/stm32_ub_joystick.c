@@ -36,6 +36,13 @@ void UB_Joystick_Init(void) {
 
     ADC1->CR1 = 0;
     ADC1->CR2 = ADC_CR2_ADON;
+
+    // Delay for ADC stabilization (at least 3us)
+    {
+        volatile uint32_t delay = 10000;
+        while (delay--);
+    }
+
     ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x3F << 3)) | ((uint32_t)0x06 << 3) | ((uint32_t)0x06 << 6);
     ADC1->SQR1 = 0;
     ADC1->SQR3 = JOY_ADC_X_CHANNEL;
@@ -98,6 +105,7 @@ uint32_t UB_Joystick_ReadDirection(void) {
 
 static uint16_t joystick_adc_read(uint8_t channel) {
     ADC1->SQR3 = (uint32_t)(channel & 0x1F);
+    ADC1->SR = (uint32_t)~ADC_SR_EOC; // Clear EOC flag
     ADC1->CR2 |= ADC_CR2_SWSTART;
     while ((ADC1->SR & ADC_SR_EOC) == 0) {
     }
