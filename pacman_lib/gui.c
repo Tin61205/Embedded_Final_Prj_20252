@@ -579,7 +579,7 @@ void gui_draw_buttons(uint32_t joy) {
     uint32_t su, sd, sr, sl;
 
     if (Game.player2_active != 0) {
-        // --- PLAYER 1 D-PAD (LEFT SIDE) ---
+        // --- PLAYER 1 D-PAD (LEFT SIDE - COMPACT) ---
         su = BUTTON_SKIN1;
         sd = BUTTON_SKIN1;
         sr = BUTTON_SKIN1;
@@ -609,7 +609,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
         // Button right
-        koord.dest_xp = 70;
+        koord.dest_xp = 62; // Compacted from 70
         koord.dest_yp = 270;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -618,7 +618,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
         // Button left
-        koord.dest_xp = 10;
+        koord.dest_xp = 18; // Compacted from 10
         koord.dest_yp = 270;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -626,7 +626,7 @@ void gui_draw_buttons(uint32_t joy) {
         koord.source_yp = Button_Skin[sl].yp;
         UB_Graphic2D_DrawImageRectRotate(koord, 1);
 
-        // --- PLAYER 2 D-PAD (RIGHT SIDE) ---
+        // --- PLAYER 2 D-PAD (RIGHT SIDE - COMPACT) ---
         su = BUTTON_SKIN1;
         sd = BUTTON_SKIN1;
         sr = BUTTON_SKIN1;
@@ -657,7 +657,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
         // Button right
-        koord.dest_xp = GUI_BTN_RIGHT_X;
+        koord.dest_xp = 192; // Compacted from 200 (GUI_BTN_RIGHT_X)
         koord.dest_yp = GUI_BTN_RIGHT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -666,7 +666,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
         // Button left
-        koord.dest_xp = GUI_BTN_LEFT_X;
+        koord.dest_xp = 148; // Compacted from 140 (GUI_BTN_LEFT_X)
         koord.dest_yp = GUI_BTN_LEFT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -674,7 +674,7 @@ void gui_draw_buttons(uint32_t joy) {
         koord.source_yp = Button_Skin[sl].yp;
         UB_Graphic2D_DrawImageRectRotate(koord, 1);
     } else {
-        // --- SINGLE D-PAD (RIGHT SIDE) ---
+        // --- SINGLE D-PAD (RIGHT SIDE - COMPACT) ---
         su = BUTTON_SKIN1;
         sd = BUTTON_SKIN1;
         sr = BUTTON_SKIN1;
@@ -704,7 +704,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
         // Button right
-        koord.dest_xp = GUI_BTN_RIGHT_X;
+        koord.dest_xp = 192; // Compacted from 200 (GUI_BTN_RIGHT_X)
         koord.dest_yp = GUI_BTN_RIGHT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -713,7 +713,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
         // Button left
-        koord.dest_xp = GUI_BTN_LEFT_X;
+        koord.dest_xp = 148; // Compacted from 140 (GUI_BTN_LEFT_X)
         koord.dest_yp = GUI_BTN_LEFT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
