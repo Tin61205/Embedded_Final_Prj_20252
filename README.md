@@ -30,7 +30,7 @@ Hãy kết nối các nút bấm của bạn với các chân trên hàng rào P
 | :--- | :--- | :--- | :--- |
 | **`BTN_UP` (Lên)** | **`PC2`** | Một đầu nối `PC2`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
 | **`BTN_RIGHT` (Phải)** | **`PC3`** | Một đầu nối `PC3`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
-| **`BTN_DOWN` (Xuống)** | **`PC11`** | Một đầu nối `PC4`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
+| **`BTN_DOWN` (Xuống)** | **`PC11`** | Một đầu nối `PC11`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
 | **`BTN_LEFT` (Trái)** | **`PC5`** | Một đầu nối `PC5`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
 | **`BTN_CENTER` (Chọn/Start)** | **`PA0`** | Nút nhấn màu xanh mặc định trên kit | Active HIGH (Mặc định LOW, ấn nút = `1`) |
 
