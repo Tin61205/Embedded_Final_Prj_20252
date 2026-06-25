@@ -639,7 +639,7 @@ void gui_draw_buttons(uint32_t joy) {
         if (joy2 == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
 
         // Button up
-        koord.dest_xp = GUI_BTN_UP_X;
+        koord.dest_xp = 178; // Shifted from 170
         koord.dest_yp = GUI_BTN_UP_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -648,7 +648,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 3);
 
         // Button down
-        koord.dest_xp = GUI_BTN_DOWN_X;
+        koord.dest_xp = 178; // Shifted from 170
         koord.dest_yp = GUI_BTN_DOWN_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -657,7 +657,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
         // Button right
-        koord.dest_xp = 192; // Compacted from 200 (GUI_BTN_RIGHT_X)
+        koord.dest_xp = 200; // Shifted from 192
         koord.dest_yp = GUI_BTN_RIGHT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -666,7 +666,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
         // Button left
-        koord.dest_xp = 148; // Compacted from 140 (GUI_BTN_LEFT_X)
+        koord.dest_xp = 156; // Shifted from 148
         koord.dest_yp = GUI_BTN_LEFT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -686,7 +686,7 @@ void gui_draw_buttons(uint32_t joy) {
         if (joy == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
 
         // Button up
-        koord.dest_xp = GUI_BTN_UP_X;
+        koord.dest_xp = 178; // Shifted from 170
         koord.dest_yp = GUI_BTN_UP_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -695,7 +695,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 3);
 
         // Button down
-        koord.dest_xp = GUI_BTN_DOWN_X;
+        koord.dest_xp = 178; // Shifted from 170
         koord.dest_yp = GUI_BTN_DOWN_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -704,7 +704,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
         // Button right
-        koord.dest_xp = 192; // Compacted from 200 (GUI_BTN_RIGHT_X)
+        koord.dest_xp = 200; // Shifted from 192
         koord.dest_yp = GUI_BTN_RIGHT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
@@ -713,7 +713,7 @@ void gui_draw_buttons(uint32_t joy) {
         UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
         // Button left
-        koord.dest_xp = 148; // Compacted from 140 (GUI_BTN_LEFT_X)
+        koord.dest_xp = 156; // Shifted from 148
         koord.dest_yp = GUI_BTN_LEFT_Y;
         koord.w = BUTTON_WIDTH;
         koord.h = BUTTON_HEIGHT;
