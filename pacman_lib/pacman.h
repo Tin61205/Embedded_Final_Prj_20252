@@ -82,6 +82,7 @@ Level_t;
 #define GAME_PLAYER_WIN 1
 #define GAME_PLAYER_LOSE 2
 #define GAME_OVER 3
+#define GAME_EXIT 4
 
 //--------------------------------------------------------------
 #define MOVE_NOBODY 0x00

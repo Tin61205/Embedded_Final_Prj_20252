@@ -211,6 +211,21 @@ void pacman_start(void) {
 
             check = pacman_play();
 
+            if (check == GAME_EXIT) {
+                menu_start();
+                if (Game.play_type == GAME_PLAY_CUSTOM) {
+                    pacman_apply_custom_config(GAME_OVER);
+                } else {
+                    blinky_init(GAME_OVER);
+                    pinky_init(GAME_OVER);
+                    inky_init(GAME_OVER);
+                    clyde_init(GAME_OVER);
+                    pacman_apply_campaign_difficulty();
+                }
+                maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
+                continue;
+            }
+
             if (check == GAME_PLAYER_WIN) {
                 gui_show_win_screen(Player.score);
                 if (Game.campaign_difficulty < 10) {
@@ -403,6 +418,19 @@ uint32_t pacman_play(void) {
             Game.player2_joy = gui_check_keyboard();
         } else {
             Game.player2_joy = GUI_JOY_NONE;
+        }
+
+        if (UB_Button_OnClick(BTN_BACK)) {
+            if (gui_run_pause_menu() == GUI_PAUSE_EXIT) {
+                ret_wert = GAME_EXIT;
+            } else {
+                UB_LCD_Copy_Layer2_to_Layer1();
+                gui_draw_bots();
+                GUI.refresh_value = GUI_REFRESH_VALUE;
+                GUI.refresh_buttons = GUI_REFRESH_VALUE;
+                gui_draw_gui(joy);
+                UB_LCD_Refresh();
+            }
         }
 
         movement = MOVE_NOBODY;

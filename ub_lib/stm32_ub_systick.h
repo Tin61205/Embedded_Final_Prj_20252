@@ -28,6 +28,7 @@ extern uint32_t  Blinky_Systic_Timer_ms;
 extern uint32_t  Pinky_Systic_Timer_ms;
 extern uint32_t  Inky_Systic_Timer_ms;
 extern uint32_t  Clyde_Systic_Timer_ms;
+extern uint32_t  UB_Game_Timers_Paused;
 
 //--------------------------------------------------------------
 // Hàm khởi tạo

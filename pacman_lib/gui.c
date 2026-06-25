@@ -853,6 +853,76 @@ void gui_wait_interaction(void) {
     }
 }
 
+static uint32_t gui_pause_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+    if (tx >= x && tx < (x + w) && ty >= y && ty < (y + h)) {
+        return 1;
+    }
+    return 0;
+}
+
+static void gui_draw_pause_overlay(uint32_t sel) {
+    uint16_t title_w = strlen("PAUSED") * 7 * 2;
+
+    UB_Graphic2D_DrawFullRectDMA(GUI_PAUSE_BOX_X, GUI_PAUSE_BOX_Y, GUI_PAUSE_BOX_W, GUI_PAUSE_BOX_H, RGB_COL_BLACK);
+    UB_Graphic2D_DrawRectDMA(GUI_PAUSE_BOX_X, GUI_PAUSE_BOX_Y, GUI_PAUSE_BOX_W, GUI_PAUSE_BOX_H, RGB_COL_YELLOW);
+    UB_Graphic2D_DrawRectDMA(GUI_PAUSE_BOX_X + 3, GUI_PAUSE_BOX_Y + 3, GUI_PAUSE_BOX_W - 6, GUI_PAUSE_BOX_H - 6, RGB_COL_BLUE);
+    gui_draw_string_scale((240 - title_w) / 2, 95, "PAUSED", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK, 2);
+
+    UB_Graphic2D_DrawRectDMA(GUI_PAUSE_CONTINUE_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H,
+                             (sel == 0) ? RGB_COL_GREEN : RGB_COL_BLUE);
+    UB_Font_DrawString(GUI_PAUSE_CONTINUE_X + 8, GUI_PAUSE_BTN_Y + 9, "Continue", &Arial_7x10,
+                       RGB_COL_WHITE, RGB_COL_BLACK);
+
+    UB_Graphic2D_DrawRectDMA(GUI_PAUSE_EXIT_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H,
+                             (sel == 1) ? RGB_COL_RED : RGB_COL_BLUE);
+    UB_Font_DrawString(GUI_PAUSE_EXIT_X + 22, GUI_PAUSE_BTN_Y + 9, "Exit", &Arial_7x10,
+                       RGB_COL_WHITE, RGB_COL_BLACK);
+
+    UB_Font_DrawString(35, 245, "UP/DOWN + CENTER", &Arial_7x10, FONT_COL2, RGB_COL_BLACK);
+    UB_Font_DrawString(55, 260, "or tap buttons", &Arial_7x10, FONT_COL3, RGB_COL_BLACK);
+}
+
+uint32_t gui_run_pause_menu(void) {
+    uint32_t sel = 0;
+    uint16_t tx;
+    uint16_t ty;
+
+    UB_Game_Timers_Paused = 1;
+    gui_draw_pause_overlay(sel);
+    UB_LCD_Refresh();
+
+    while (1) {
+        if (gui_wait_touch_pressed(&tx, &ty) != 0) {
+            if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_CONTINUE_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
+                gui_wait_touch_release();
+                UB_Game_Timers_Paused = 0;
+                return GUI_PAUSE_CONTINUE;
+            }
+            if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_EXIT_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
+                gui_wait_touch_release();
+                UB_Game_Timers_Paused = 0;
+                return GUI_PAUSE_EXIT;
+            }
+            gui_wait_touch_release();
+            gui_draw_pause_overlay(sel);
+            UB_LCD_Refresh();
+        }
+
+        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
+            sel = 1 - sel;
+            gui_draw_pause_overlay(sel);
+            UB_LCD_Refresh();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Game_Timers_Paused = 0;
+            return (sel == 0) ? GUI_PAUSE_CONTINUE : GUI_PAUSE_EXIT;
+        }
+
+        UB_Systick_Pause_ms(30);
+    }
+}
+
 void gui_show_win_screen(uint32_t score) {
     char buf[32];
     

@@ -29,5 +29,8 @@
 ../pacman_lib/gui.c:822:17:gui_wait_touch_pressed	1
 ../pacman_lib/gui.c:829:13:gui_wait_touch_release	2
 ../pacman_lib/gui.c:837:6:gui_wait_interaction	3
-../pacman_lib/gui.c:856:6:gui_show_win_screen	1
-../pacman_lib/gui.c:894:6:gui_show_lost_screen	1
+../pacman_lib/gui.c:856:17:gui_pause_touch_in_rect	5
+../pacman_lib/gui.c:863:13:gui_draw_pause_overlay	3
+../pacman_lib/gui.c:885:10:gui_run_pause_menu	7
+../pacman_lib/gui.c:926:6:gui_show_win_screen	1
+../pacman_lib/gui.c:964:6:gui_show_lost_screen	1
