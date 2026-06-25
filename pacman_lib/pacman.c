@@ -236,6 +236,7 @@ void pacman_start(void) {
                 if (Game.campaign_difficulty < 10) {
                     Game.campaign_difficulty++;
                 }
+                Player.score = 0;
             } else {
                 if (Game.player2_active != 0 && bot_is_2p_coop()) {
                     if (Player.lives == 0 && Player2.lives == 0) {
@@ -266,6 +267,8 @@ void pacman_start(void) {
                 clyde_init(check);
                 pacman_apply_campaign_difficulty();
             }
+
+            Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
 
             if (check == GAME_OVER) {
                 menu_start();
@@ -311,6 +314,10 @@ uint32_t pacman_hw_init(void) {
     gui_clear_screen();
 
     return ret_wert;
+    UB_LCD_LayerInit_Fullscreen();
+    gui_clear_screen();
+
+    return ret_wert;
 }
 
 //--------------------------------------------------------------
@@ -325,7 +332,7 @@ void pacman_init(uint32_t mode) {
     Game.mode_timer = GAME_SCATTER_TIME;
     Game.frightened = BOOL_FALSE;
     Game.frightened_timer = GAME_FRIGHTENED_TIME;
-    Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
+    Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
 }
 
 //--------------------------------------------------------------
@@ -616,7 +623,7 @@ void pacman_dec_mode_timer(void) {
         Game.frightened_timer--;
         if (Game.frightened_timer == 0) {
             Game.frightened = BOOL_FALSE;
-            Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
+            Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
         }
     }
 }

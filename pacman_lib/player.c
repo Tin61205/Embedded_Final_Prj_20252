@@ -271,10 +271,10 @@ static void player_entity_check_event(Player_t *p) {
 
     if (Maze.Room[xp][yp].points != ROOM_POINTS_NONE) {
         if (Maze.Room[xp][yp].points == ROOM_POINTS_NORMAL) {
-            Player.score += GAME_POINTS_NORMAL;
+            Player.score += (GAME_POINTS_NORMAL * (Player.level + 1)) / 2;
             Player.point_dots++;
         } else {
-            Player.score += GAME_POINTS_ENERGY;
+            Player.score += (GAME_POINTS_ENERGY * (Player.level + 1)) / 2;
             Player.point_dots++;
             Game.frightened = BOOL_TRUE;
             Game.frightened_timer = GAME_FRIGHTENED_TIME;
