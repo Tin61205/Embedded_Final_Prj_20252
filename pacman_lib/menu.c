@@ -215,9 +215,6 @@ static void menu_draw_main(uint32_t sel) {
     }
     
     // 5. Draw prompt message container at the bottom
-    UB_Graphic2D_DrawFullRectDMA(40, 240, 160, 20, RGB_COL_BLACK);
-    UB_Graphic2D_DrawRectDMA(40, 240, 160, 20, RGB_COL_BLUE);
-    UB_Font_DrawString(65, 245, "Tap to select", &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK);
 }
 
 static uint32_t menu_run_main(void) {
