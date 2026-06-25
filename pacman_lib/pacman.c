@@ -290,6 +290,9 @@ uint32_t pacman_hw_init(void) {
     UB_USB_HID_HOST_Init();
     UB_Uart_Init();
     UB_Button_Init();
+#if JOYSTICK_USE_ADC == 1
+    UB_Joystick_Init();
+#endif
 
     UB_LCD_Init();
     UB_LCD_LayerInit_Fullscreen();
@@ -388,6 +391,9 @@ uint32_t pacman_play(void) {
             Gui_Touch_Timer_ms = GUI_TOUCH_INTERVALL_MS;
 
             joy = gui_check_button();
+            if (joy == GUI_JOY_NONE) {
+                joy = gui_check_joystick();
+            }
             if (joy == GUI_JOY_NONE) {
                 joy = gui_check_touch();
             }

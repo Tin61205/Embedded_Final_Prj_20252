@@ -694,6 +694,25 @@ uint32_t gui_check_button(void) {
     return (ret_wert);
 }
 
+//--------------------------------------------------------------
+// check analog joystick (VRx/VRy via ADC)
+//--------------------------------------------------------------
+uint32_t gui_check_joystick(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    static uint32_t old_button = 999;
+
+#if JOYSTICK_USE_ADC == 1
+    ret_wert = UB_Joystick_ReadDirection();
+#endif
+
+    if (old_button != ret_wert) {
+        old_button = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
+}
+
 // Check keyboard
 uint32_t gui_check_keyboard(void) {
     uint32_t ret_wert = GUI_JOY_NONE;
