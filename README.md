@@ -41,14 +41,21 @@ Hãy kết nối các nút bấm của bạn với các chân trên hàng rào P
 
 ## 2. Hướng dẫn điều khiển menu
 
-* **Di chuyển lên/xuống**: Nhấn nút Lên (`PC2`) hoặc Xuống (`PC4`) để chọn giữa các mục:
-  * **Start level**: Thiết lập độ khó xuất phát.
-  * **Debug**: Chạy chế độ test (không tải skin đồ họa).
-  * **Start**: Bắt đầu trò chơi.
-* **Thay đổi Level (Độ khó)**: Di chuyển vệt sáng tới dòng **Start level**, sau đó:
-  * Nhấn nút Phải (`PC3`) để **Tăng** level (tối đa 10).
-  * Nhấn nút Trái (`PC5`) để **Giảm** level (tối thiểu 1).
-* **Bắt đầu chơi**: Di chuyển vệt sáng xuống dòng **Start**, nhấn nút **PA0** (nút màu xanh trên kit) để khởi động game.
+Hệ thống menu hỗ trợ cả **cảm ứng LCD** (Touch) và **nút bấm vật lý** trên kit:
+
+### A. Menu chính (Main Menu)
+* **Lựa chọn**: Di chuyển vệt sáng giữa **Campaign** (Chế độ chiến dịch) và **Custom** (Chế độ tùy chỉnh) bằng nút Lên (`PC2`) / Xuống (`PC4`), hoặc chạm trực tiếp lên màn hình LCD.
+* **Xác nhận**: Nhấn nút **Center (PA0)** để vào giao diện cấu hình tiếp theo.
+
+### B. Chế độ Campaign (Chiến dịch)
+* **Di chuyển**: Sử dụng nút Lên (`PC2`) / Xuống (`PC4`) để chuyển đổi giữa hai dòng cấu hình: **Map** (Bản đồ) và **Difficulty** (Độ khó).
+* **Thay đổi giá trị**: Nhấn nút Phải (`PC3`) / Trái (`PC5`) để thay đổi bản đồ hoặc tăng/giảm độ khó (từ 1 đến 10). Bạn cũng có thể chạm trực tiếp vào màn hình LCD.
+* **Bắt đầu chơi**: Chọn nút **Start** trên màn hình (hoặc bấm nút **Center (PA0)**). Để quay lại menu chính, chọn nút **Back** trên màn hình.
+
+### C. Chế độ Custom (Tự chọn)
+* **Cấu hình**: Cho phép thiết lập số người chơi (1P/2P), chế độ chơi 2P (Co-op/VS), bản đồ, tốc độ ghost, số lượng ghost và chiến thuật cho từng ghost.
+* **Điều khiển**: Sử dụng các nút Lên/Xuống/Trái/Phải hoặc chạm trực tiếp LCD để di chuyển vệt sáng và thay đổi giá trị cấu hình tương ứng.
+* **Bắt đầu chơi**: Chọn nút **Start** trên màn hình hoặc nhấn **Center (PA0)**.
 
 ---
 

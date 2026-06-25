@@ -23,6 +23,7 @@ Các ngoại vi **gắn sẵn trên board** (không cần nối thêm): LCD, tou
 | Ngoại vi | Bắt buộc? | Nối thêm? | Mục đích |
 |---|---|---|---|
 | **4 nút hướng** (UP/RIGHT/DOWN/LEFT) | Khuyến nghị | Có — hàn lên header | Player 1 điều khiển Pacman |
+| **Nút BACK (PC1)** | Khuyến nghị | Có — hàn lên header | Quay lại menu chính (Campaign / Custom setup) |
 | **Nút CENTER (PA0)** | Có | Không — có sẵn trên kit | Xác nhận / Start |
 | **Màn hình cảm ứng** | Có | Không — có sẵn | Menu Custom, D-pad trên màn hình |
 | **USB Keyboard** | Tùy chọn | Có — cắm cáp USB | Player 2 (mode Custom 2 người) |
@@ -32,7 +33,7 @@ Các ngoại vi **gắn sẵn trên board** (không cần nối thêm): LCD, tou
 
 ---
 
-## 3. Nút bấm hướng (4 nút + Start)
+## 3. Nút bấm (4 hướng + Back + Start)
 
 ### 3.1. Sơ đồ đấu dây
 
@@ -44,12 +45,13 @@ Các ngoại vi **gắn sẵn trên board** (không cần nối thêm): LCD, tou
          PC3 ───────┤ RIGHT               │
          PC4 ───────┤ DOWN   ⚠ xem mục 8 │
          PC5 ───────┤ LEFT                │
+         PC1 ───────┤ BACK                │
          PA0 ───────┤ CENTER (nút xanh)   │
                     │                     │
          GND ───────┤ GND chung           │
                     └─────────────────────┘
 
-Mỗi nút hướng (PC2–PC5):
+Mỗi nút hướng / Back (PC1–PC5):
     [Chân GPIO] ────[ Nút nhấn ]──── GND
 ```
 
@@ -61,12 +63,13 @@ Mỗi nút hướng (PC2–PC5):
 | `BTN_RIGHT` | Phải | **PC3** | 1 đầu → PC3, 1 đầu → GND | **LOW** (0) |
 | `BTN_DOWN` | Xuống | **PC4** | 1 đầu → PC4, 1 đầu → GND | **LOW** (0) |
 | `BTN_LEFT` | Trái | **PC5** | 1 đầu → PC5, 1 đầu → GND | **LOW** (0) |
+| `BTN_BACK` | Quay lại menu | **PC1** | 1 đầu → PC1, 1 đầu → GND | **LOW** (0) |
 | `BTN_CENTER` | Chọn / Start | **PA0** | Nút **User** màu xanh trên kit | **HIGH** (1) |
 
 ### 3.3. Loại nút nhấn khuyến nghị
 
 - Nút nhấn momentary (nhấn giữ), kiểu **thường mở** (NO).
-- Không cần điện trở kéo ngoài — firmware bật **pull-up nội** cho PC2–PC5.
+- Không cần điện trở kéo ngoài — firmware bật **pull-up nội** cho PC1–PC5.
 - Dùng dây Dupont hoặc hàn trực tiếp lên hàng chân **CN5 / CN6** (GPIO header) của Discovery.
 
 ### 3.4. Vị trí file cấu hình
@@ -259,7 +262,7 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 2. UB_Systick_Init()      → SysTick 1 ms
 3. UB_USB_HID_HOST_Init() → USB Host OTG HS
 4. UB_Uart_Init()         → USART1 (nếu dùng debug)
-5. UB_Button_Init()       → PC2–PC5, PA0 + TIM7 debounce
+5. UB_Button_Init()       → PC1–PC5, PA0 + TIM7 debounce
 6. UB_LCD_Init()          → SPI5 + ILI9341 + SDRAM + LTDC
 7. gui_clear_screen()
 ```
@@ -277,7 +280,14 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 | Chọn mục | **Chạm** Campaign / Custom trên màn hình |
 | Điều hướng (dự phòng) | Nút UP / DOWN hoặc PA0 |
 
-### 10.2. Custom wizard (chạm màn hình)
+### 10.2. Campaign / Custom setup
+
+| Thao tác | Cách làm |
+|---|---|
+| Quay menu chính | Nút **BACK (PC1)** hoặc chạm **Back** trên màn hình |
+| Bắt đầu chơi | Nút **CENTER (PA0)** hoặc chạm **Start** trên màn hình |
+
+### 10.3. Custom wizard (chi tiết cấu hình)
 
 | Bước | Nội dung |
 |---|---|
@@ -289,9 +299,9 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 | Ghost Setup | Tính cách từng ghost |
 
 - Chạm **giá trị** để đổi lựa chọn.
-- **Back / Next** ở góc dưới màn hình.
+- **Back / Start** ở góc dưới màn hình (chạm LCD) hoặc nút vật lý **BACK (PC1)** / **CENTER (PA0)**.
 
-### 10.3. Trong ván chơi
+### 10.4. Trong ván chơi
 
 **Player 1 (Pacman vàng):**
 
@@ -311,7 +321,7 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 ### Bước 1 — Chuẩn bị
 
 - [ ] Kit STM32F429I-Discovery
-- [ ] 4 nút nhấn momentary (NO)
+- [ ] 5 nút nhấn momentary (NO) — 4 hướng + Back
 - [ ] Dây Dupont hoặc dây hàn + header GPIO
 - [ ] (Tùy chọn) Bàn phím USB + cáp OTG
 
@@ -321,6 +331,7 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 - [ ] Nút RIGHT → **PC3** + GND
 - [ ] Nút LEFT → **PC5** + GND
 - [ ] Nút DOWN → **PC4** + GND *(bỏ qua nếu dùng USB keyboard — xem mục 8.2)*
+- [ ] Nút BACK → **PC1** + GND
 
 ### Bước 3 — Kiểm tra không short
 
@@ -342,6 +353,7 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 | Chạm D-pad trên màn | Pacman di chuyển (khi không dùng nút) |
 | Cắm USB keyboard | Custom 2P — P2 điều khiển được |
 | Nhấn PA0 | Bắt đầu ván chơi |
+| Nhấn BACK (PC1) trong Campaign/Custom setup | Quay về menu chính |
 
 ---
 
@@ -380,6 +392,7 @@ Nếu touch lỗi → màn hình **"Touch ERR"** và dừng.
 │                    STM32F429 Discovery                       │
 │                                                              │
 │  [4 nút GPIO]──PC2-PC5──► Player 1 (ưu tiên)                │
+│  [Nút BACK PC1]──────────► Quay menu (Campaign/Custom)      │
 │  [Touch STMPE811]──I2C3──► Menu + D-pad dự phòng            │
 │  [Nút User PA0]──────────► Start / Xác nhận                 │
 │  [LCD ILI9341]──SPI+LTDC──► Hiển thị game                   │
@@ -412,4 +425,4 @@ Trò chơi đã được bổ sung thêm 2 màn hình thông báo kết quả ch
 
 ---
 
-*Tài liệu cập nhật theo nhánh `feature/custom-menu-ghosts` — menu Campaign/Custom, Co-op 2 Pacman, USB keyboard Player 2, màn hình Win/Lose hiển thị điểm.*
+*Tài liệu cập nhật theo nhánh `feature/custom-menu-ghosts` — menu Campaign/Custom, nút BACK ngoại vi PC1, Co-op 2 Pacman, USB keyboard Player 2, màn hình Win/Lose hiển thị điểm.*

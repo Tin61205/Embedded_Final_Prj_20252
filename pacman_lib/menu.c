@@ -473,6 +473,9 @@ static uint32_t menu_run_custom_wizard(void) {
             }
             UB_Systick_Pause_ms(150);
         }
+        if (UB_Button_OnClick(BTN_BACK)) {
+            return 0; // Go back to main menu
+        }
         if (UB_Button_OnClick(BTN_CENTER)) {
             return 1; // Start game
         }
@@ -583,6 +586,9 @@ static uint32_t menu_run_campaign_wizard(void) {
             }
             menu_draw_campaign_wizard(sel_line);
             UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_BACK)) {
+            return 0; // Back to main menu
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
             return 1; // Start

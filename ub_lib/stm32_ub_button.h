@@ -34,14 +34,15 @@
 //--------------------------------------------------------------
 typedef enum 
 {
-	BTN_UP = 0,    // PC12
-	BTN_RIGHT,     // PC13
-	BTN_DOWN,      // PC14
-	BTN_LEFT,      // PC15
-  BTN_CENTER     // PA0
+	BTN_UP = 0,    // PC2
+	BTN_RIGHT,     // PC3
+	BTN_DOWN,      // PC4
+	BTN_LEFT,      // PC5
+  BTN_CENTER,    // PA0
+  BTN_BACK       // PC1
 }BUTTON_NAME_t;
 
-#define  BUTTON_ANZ   5 // Số nút
+#define  BUTTON_ANZ   6 // Số nút
 
 
 //--------------------------------------------------------------

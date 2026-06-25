@@ -112,7 +112,6 @@ extern GUI_t GUI;
 // Globale Funktionen
 //--------------------------------------------------------------
 void gui_clear_screen(void);
-void gui_draw_debugmaze(void);
 void gui_draw_maze(void);
 void gui_draw_errmaze(void);
 void gui_clear_bots(void);

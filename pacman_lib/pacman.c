@@ -146,7 +146,6 @@ void pacman_start(void) {
     uint32_t check;
     char buf[32];
 
-    Game.debug_mode = 0;
     Game.numberOfBots = 4;
     Game.play_type = GAME_PLAY_CAMPAIGN;
     Game.ghost_active_mask = MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE;
@@ -171,9 +170,7 @@ void pacman_start(void) {
 
     menu_start();
 
-    if (Game.debug_mode == 0) {
-        skin_init();
-    }
+    skin_init();
 
     maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
     if (Game.play_type == GAME_PLAY_CUSTOM) {

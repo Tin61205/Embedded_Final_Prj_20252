@@ -26,7 +26,8 @@ BUTTON_t BUTTON[] = {
   {BTN_RIGHT ,GPIOC,GPIO_Pin_3  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC3=Button-RIGHT
   {BTN_DOWN  ,GPIOC,GPIO_Pin_4  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC4=Button-DOWN
   {BTN_LEFT  ,GPIOC,GPIO_Pin_5  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET},  // PC5=Button-LEFT
-  {BTN_CENTER, GPIOA, GPIO_Pin_0, RCC_AHB1Periph_GPIOA, GPIO_PuPd_NOPULL, Bit_RESET}   // PA0=Button-CENTER
+  {BTN_CENTER, GPIOA, GPIO_Pin_0, RCC_AHB1Periph_GPIOA, GPIO_PuPd_NOPULL, Bit_RESET},  // PA0=Button-CENTER
+  {BTN_BACK  ,GPIOC,GPIO_Pin_1  ,RCC_AHB1Periph_GPIOC,GPIO_PuPd_UP, Bit_RESET}   // PC1=Button-BACK
 };
 
 
@@ -106,7 +107,7 @@ bool UB_Button_OnPressed(BUTTON_NAME_t btn_name)
 bool UB_Button_OnClick(BUTTON_NAME_t btn_name)
 {
   uint8_t wert;
-  static uint8_t old_wert[5] = {Bit_SET, Bit_SET, Bit_SET, Bit_SET, Bit_RESET};
+  static uint8_t old_wert[BUTTON_ANZ] = {Bit_SET, Bit_SET, Bit_SET, Bit_SET, Bit_RESET, Bit_SET};
 
   wert = GPIO_ReadInputDataBit(BUTTON[btn_name].BUTTON_PORT, BUTTON[btn_name].BUTTON_PIN);
 

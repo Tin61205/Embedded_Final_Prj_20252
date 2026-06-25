@@ -61,44 +61,6 @@ void gui_draw_bots(void) {
 }
 
 //--------------------------------------------------------------
-// draw maze for debug
-// with standard skins for wall and path
-//--------------------------------------------------------------
-void gui_draw_debugmaze(void) {
-    uint32_t x, y;
-    Image2LCD_t koord;
-
-    gui_clear_screen();
-
-    koord.w = ROOM_WIDTH;
-    koord.h = ROOM_HEIGHT;
-
-    for (y = 0; y < ROOM_CNT_Y; y++) {
-        for (x = 0; x < ROOM_CNT_X; x++) {
-            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
-            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
-            // check if wall or path
-            if (Maze.Room[x][y].typ == ROOM_TYP_WALL) {
-                koord.source_xp = Room_Skin[ROOM_SKIN_WALL_STD].xp;
-                koord.source_yp = Room_Skin[ROOM_SKIN_WALL_STD].yp;
-            } else {
-                koord.source_xp = Room_Skin[ROOM_SKIN_PATH_STD].xp;
-                koord.source_yp = Room_Skin[ROOM_SKIN_PATH_STD].yp;
-            }
-            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
-            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
-            // draw room
-            UB_Graphic2D_DrawImageRect(koord);
-        }
-    }
-
-    UB_Font_DrawString(10, 290, "Debug view", & Arial_7x10, FONT_COL, BACKGROUND_COL);
-    // endlessloop
-    while (1);
-
-}
-
-//--------------------------------------------------------------
 // draw maze in gameplay mode
 //--------------------------------------------------------------
 void gui_draw_maze(void) {
