@@ -208,6 +208,12 @@ void pacman_start(void) {
             gui_show_countdown_text("1", 3);
             UB_Systick_Pause_ms(1000);
             gui_show_countdown_text("GO!", 3);
+            UB_Systick_Pause_ms(500);
+
+            // Redraw clean maze/bots/gui to remove countdown text overlay
+            gui_draw_maze();
+            gui_draw_bots();
+            gui_draw_gui(GUI_JOY_NONE);
 
             check = pacman_play();
 
