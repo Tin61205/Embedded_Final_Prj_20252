@@ -14,11 +14,10 @@
 #include "stm32_ub_lcd_ili9341.h"
 #include "stm32_ub_graphic2d.h"
 #include "stm32_ub_font.h"
-#include "stm32_ub_touch_stmpe811.h"
 #include "stm32_ub_systick.h"
 #include "stm32_ub_uart.h"
 #include "stm32_ub_button.h"
-#include "stm32_ub_usb_hid_host.h"
+#include "stm32_ub_joystick.h"
 #include "pacman.h"
 #include "maze.h"
 #include "skin.h"
@@ -60,6 +59,14 @@ extern GUI_t GUI;
 #define  FONT_COL        RGB_COL_BLUE
 #define  FONT_COL2       RGB_COL_YELLOW
 #define  FONT_COL3       RGB_COL_GREY
+#define  GHOST_P2_COLOR    RGB_COL_GREEN
+#define  GHOST_COLOR_CHASE RGB_COL_RED
+#define  GHOST_COLOR_AMBUSH RGB_COL_MAGENTA
+#define  GHOST_COLOR_TRICKY RGB_COL_CYAN
+#define  GHOST_COLOR_SHY   RGB_COL_YELLOW
+#define  GHOST_COLOR_DRUNK RGB_COL_WHITE
+#define  GHOST_COLOR_LAZY  RGB_COL_GREY
+#define  GHOST_COLOR_RANDOM RGB_COL_BLUE
 
 
 
@@ -98,13 +105,25 @@ extern GUI_t GUI;
 //--------------------------------------------------------------
 #define  GUI_REFRESH_VALUE   3  // dont change this value
 
+#define  GUI_PAUSE_CONTINUE  0
+#define  GUI_PAUSE_EXIT      1
+
+#define  GUI_PAUSE_BOX_X     20
+#define  GUI_PAUSE_BOX_Y     70
+#define  GUI_PAUSE_BOX_W     200
+#define  GUI_PAUSE_BOX_H     180
+
+#define  GUI_PAUSE_CONTINUE_X  30
+#define  GUI_PAUSE_EXIT_X      130
+#define  GUI_PAUSE_BTN_Y       200
+#define  GUI_PAUSE_BTN_W       80
+#define  GUI_PAUSE_BTN_H       28
 
 
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
 void gui_clear_screen(void);
-void gui_draw_debugmaze(void);
 void gui_draw_maze(void);
 void gui_draw_errmaze(void);
 void gui_clear_bots(void);
@@ -112,11 +131,14 @@ void gui_draw_bots(void);
 void gui_draw_gui(uint32_t joy);
 uint32_t gui_check_touch(void);
 uint32_t gui_check_button(void);
-uint32_t gui_check_keyboard(void);
+uint32_t gui_check_joystick(void);
 void gui_draw_buttons(uint32_t joy);
 void gui_debug_uart(char *ptr);
-
-
+void gui_show_countdown_text(const char *text, uint8_t scale);
+void gui_show_win_screen(uint32_t score);
+void gui_show_lost_screen(uint32_t score);
+uint32_t gui_run_pause_menu(void);
+void gui_resume_from_pause(uint32_t joy);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_GUI_H

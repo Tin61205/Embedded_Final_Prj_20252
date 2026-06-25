@@ -1,6 +1,0 @@
-../pacman_lib/pacman.c:98:6:pacman_start	11
-../pacman_lib/pacman.c:204:10:pacman_hw_init	2
-../pacman_lib/pacman.c:226:6:pacman_init	2
-../pacman_lib/pacman.c:241:6:pacman_set_level	2
-../pacman_lib/pacman.c:260:10:pacman_play	28
-../pacman_lib/pacman.c:437:6:pacman_dec_mode_timer	9

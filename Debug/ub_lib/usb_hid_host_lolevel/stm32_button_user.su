@@ -1,2 +1,0 @@
-../ub_lib/usb_hid_host_lolevel/stm32_button_user.c:3:13:initButtonUser	16	static
-../ub_lib/usb_hid_host_lolevel/stm32_button_user.c:18:9:Read_User_Button	8	static

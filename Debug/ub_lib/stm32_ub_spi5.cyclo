@@ -1,2 +1,0 @@
-../ub_lib/stm32_ub_spi5.c:44:13:UB_SPI5_Init	13
-../ub_lib/stm32_ub_spi5.c:136:9:UB_SPI5_SendByte	3

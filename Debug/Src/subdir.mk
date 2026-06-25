@@ -22,7 +22,7 @@ C_DEPS += \
 
 # Each subdirectory must supply rules for building sources it contributes
 Src/%.o Src/%.su Src/%.cyclo: ../Src/%.c Src/subdir.mk
-	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_STDPERIPH_DRIVER -DSTM32F429_439xx -DSTM32F4XX -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -I"F:/stm32_workspace/prj_cki/cmsis" -I"F:/stm32_workspace/prj_cki/cmsis_boot" -I"F:/stm32_workspace/prj_cki/cmsis_lib/include" -I"F:/stm32_workspace/prj_cki/pacman_lib" -I"F:/stm32_workspace/prj_cki/ub_lib" -I"F:/stm32_workspace/prj_cki/ub_lib/bilder" -I"F:/stm32_workspace/prj_cki/ub_lib/font" -I"F:/stm32_workspace/prj_cki/ub_lib/usb_hid_host_lolevel" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_STDPERIPH_DRIVER -DSTM32F429_439xx -DSTM32F4XX -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_boot" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_lib/include" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/pacman_lib" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/bilder" -I"F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/font" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
 clean: clean-Src
 

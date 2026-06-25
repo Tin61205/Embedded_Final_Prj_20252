@@ -93,7 +93,27 @@ extern Maze_t Maze;
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
+#define MAZE_MAP_CLASSIC 0
+#define MAZE_MAP_OPEN 1
+#define MAZE_MAP_THREE 2
+#define MAZE_MAP_FOUR 3
+#define MAZE_MAP_FIVE 4
+#define MAZE_MAP_SIX 5
+#define MAZE_MAP_HARDCODED_COUNT 6
+
+// Txt-imported maps start at this offset
+#define MAZE_MAP_TXT_BASE  MAZE_MAP_HARDCODED_COUNT
+#define MAZE_MAP_TXT0      (MAZE_MAP_TXT_BASE + 0)
+// Add more: #define MAZE_MAP_TXT1 (MAZE_MAP_TXT_BASE + 1) ...
+
+// Total map count (hardcoded + txt-imported)
+#define MAZE_MAP_COUNT  (MAZE_MAP_HARDCODED_COUNT + 1)  // increase when adding maps
+
+extern uint32_t Maze_selected_map;
+
 void maze_build(void);
+void maze_build_map(uint32_t map_id);
+void maze_draw_preview(uint32_t map_id, uint32_t dest_x, uint32_t dest_y, uint32_t cell_px);
 
 
 //--------------------------------------------------------------

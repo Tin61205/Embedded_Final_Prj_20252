@@ -1,8 +1,0 @@
-../cmsis_lib/source/stm32f4xx_rng.c:94:6:RNG_DeInit	1
-../cmsis_lib/source/stm32f4xx_rng.c:109:6:RNG_Cmd	2
-../cmsis_lib/source/stm32f4xx_rng.c:171:10:RNG_GetRandomNumber	1
-../cmsis_lib/source/stm32f4xx_rng.c:268:6:RNG_ITConfig	2
-../cmsis_lib/source/stm32f4xx_rng.c:294:12:RNG_GetFlagStatus	2
-../cmsis_lib/source/stm32f4xx_rng.c:327:6:RNG_ClearFlag	1
-../cmsis_lib/source/stm32f4xx_rng.c:343:10:RNG_GetITStatus	2
-../cmsis_lib/source/stm32f4xx_rng.c:373:6:RNG_ClearITPendingBit	1

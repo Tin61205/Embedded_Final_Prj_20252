@@ -468,6 +468,76 @@ uint32_t maze_generate_check(void) {
 //--------------------------------------------------------------
 // count the rooms with points
 //--------------------------------------------------------------
+void maze_generate_sync_path_doors(void) {
+    uint32_t x, y;
+
+    for (y = 1; y < ROOM_CNT_Y - 1; y++) {
+        for (x = 1; x < ROOM_CNT_X - 1; x++) {
+            if (Maze.Room[x][y].typ != ROOM_TYP_PATH) {
+                continue;
+            }
+            if (Maze.Room[x][y - 1].typ == ROOM_TYP_PATH) {
+                Maze.Room[x][y].door |= ROOM_DOOR_U;
+                Maze.Room[x][y - 1].door |= ROOM_DOOR_D;
+            }
+            if (Maze.Room[x][y + 1].typ == ROOM_TYP_PATH) {
+                Maze.Room[x][y].door |= ROOM_DOOR_D;
+                Maze.Room[x][y + 1].door |= ROOM_DOOR_U;
+            }
+            if (Maze.Room[x - 1][y].typ == ROOM_TYP_PATH) {
+                Maze.Room[x][y].door |= ROOM_DOOR_L;
+                Maze.Room[x - 1][y].door |= ROOM_DOOR_R;
+            }
+            if (Maze.Room[x + 1][y].typ == ROOM_TYP_PATH) {
+                Maze.Room[x][y].door |= ROOM_DOOR_R;
+                Maze.Room[x + 1][y].door |= ROOM_DOOR_L;
+            }
+        }
+    }
+}
+
+void maze_generate_strip_orphan_wall_doors(void) {
+    uint32_t x, y;
+    uint32_t keep;
+
+    for (y = 0; y < ROOM_CNT_Y; y++) {
+        for (x = 0; x < ROOM_CNT_X; x++) {
+            if (Maze.Room[x][y].typ != ROOM_TYP_WALL) {
+                continue;
+            }
+            if ((Maze.Room[x][y].special == ROOM_SPEC_PORTAL) ||
+                (Maze.Room[x][y].special == ROOM_SPEC_GATE)) {
+                continue;
+            }
+            if ((Maze.Room[x][y].door & 0x0F) == 0) {
+                continue;
+            }
+
+            keep = 0;
+            if (((Maze.Room[x][y].door & ROOM_DOOR_U) != 0) && (y > 0) &&
+                (Maze.Room[x][y - 1].special == ROOM_SPEC_GATE)) {
+                keep = 1;
+            }
+            if (((Maze.Room[x][y].door & ROOM_DOOR_D) != 0) && (y < ROOM_CNT_Y - 1) &&
+                (Maze.Room[x][y + 1].special == ROOM_SPEC_GATE)) {
+                keep = 1;
+            }
+            if (((Maze.Room[x][y].door & ROOM_DOOR_L) != 0) && (x > 0) &&
+                (Maze.Room[x - 1][y].special == ROOM_SPEC_GATE)) {
+                keep = 1;
+            }
+            if (((Maze.Room[x][y].door & ROOM_DOOR_R) != 0) && (x < ROOM_CNT_X - 1) &&
+                (Maze.Room[x + 1][y].special == ROOM_SPEC_GATE)) {
+                keep = 1;
+            }
+
+            if (keep == 0) {
+                Maze.Room[x][y].door &= ~0x0F;
+            }
+        }
+    }
+}
+
 uint32_t maze_generate_count_dots(void) {
     uint32_t ret_wert = 0;
     uint32_t x, y;

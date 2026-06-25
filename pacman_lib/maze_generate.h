@@ -27,6 +27,8 @@ uint32_t maze_generate_setskin_h(uint32_t x,uint32_t y,uint32_t l,uint32_t s);
 uint32_t maze_generate_setskin_v(uint32_t x,uint32_t y,uint32_t l,uint32_t s);
 uint32_t maze_generate_check(void);
 uint32_t maze_generate_count_dots(void);
+void maze_generate_sync_path_doors(void);
+void maze_generate_strip_orphan_wall_doors(void);
 
 
 //--------------------------------------------------------------

@@ -455,6 +455,37 @@ void UB_Graphic2D_DrawImageRect(Image2LCD_t koord)
 
 }
 
+void UB_Graphic2D_DrawImageRectRecolor(Image2LCD_t koord, uint16_t body_color)
+{
+	uint32_t x,y;
+	uint16_t c;
+	uint32_t Yaddress = 0;
+	uint32_t xp,yp;
+	uint32_t h,w;
+	uint32_t xs,ys,ws;
+
+	xp=koord.dest_xp;
+	yp=koord.dest_yp;
+	h=koord.h;
+	w=koord.w;
+
+	xs=koord.source_xp;
+	ys=koord.source_yp;
+	ws=Skin1.width;
+
+	for(y=0;y<h;y++) {
+		UB_LCD_SetCursor2Draw(xp,yp+y);
+		for(x=0;x<w;x++) {
+			Yaddress = ((ys+y)*ws)+xs+x;
+			c=Skin1.table[Yaddress];
+			if ((c != RGB_COL_BLACK) && (c != RGB_COL_WHITE)) {
+				c = body_color;
+			}
+			UB_LCD_DrawPixel(c);
+		}
+	}
+}
+
 
 //--------------------------------------------------------------
 // zeichnet einen Teilbereich
@@ -527,6 +558,28 @@ int16_t P_Graphic2D_sgn(int16_t x)
 {
   return (x > 0) ? 1 : (x < 0) ? -1 : 0;
 }
+
+//--------------------------------------------------------------
+// Draws a full image (RGB565) to the LCD screen
+//--------------------------------------------------------------
+void UB_Graphic2D_DrawImageFull(const UB_Image *img, uint16_t dest_xp, uint16_t dest_yp)
+{
+  uint32_t x, y;
+  uint16_t c;
+  uint32_t Yaddress = 0;
+  uint32_t w = img->width;
+  uint32_t h = img->height;
+
+  for (y = 0; y < h; y++) {
+    UB_LCD_SetCursor2Draw(dest_xp, dest_yp + y);
+    for (x = 0; x < w; x++) {
+      Yaddress = (y * w) + x;
+      c = img->table[Yaddress];
+      UB_LCD_DrawPixel(c);
+    }
+  }
+}
+
 
 
 

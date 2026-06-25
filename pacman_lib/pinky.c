@@ -30,7 +30,7 @@ void pinky_init(uint32_t mode) {
     Pinky.move = MOVE_UP;
     Pinky.next_move = MOVE_UP;
     Pinky.port = PORT_DONE;
-    Pinky.dot_cnt = 0;
+    Pinky.dot_cnt = (mode == GAME_OVER) ? 0 : PINKY_DOT_CNT_MAX;
     Pinky.frightened_buf = PINKY_FRIGHTENED_BUF;
     Pinky.new_mode = 0;
 }
@@ -41,6 +41,11 @@ void pinky_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void pinky_move(void) {
     if (Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
+
+    if (Pinky.move == MOVE_STOP && Pinky.status == GHOST_STATUS_ALIVE) {
+        bot_ghost_unstick(&Pinky);
+    }
+    if (Pinky.move == MOVE_STOP) return;
 
     if (Pinky.move == MOVE_UP) {
         // move one pixel
@@ -240,24 +245,13 @@ void pinky_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void pinky_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
+    bot_ghost_validate_position(&Pinky);
     xp = Pinky.xp;
     yp = Pinky.yp;
 
     // check if contact
-    if ((Game.collision == BOOL_TRUE) && (Pinky.status == GHOST_STATUS_ALIVE)) {
-        pxp = Player.xp;
-        pyp = Player.yp;
-        if ((xp == pxp) && (yp == pyp)) {
-            if (Game.frightened == BOOL_FALSE) {
-                Player.status = PLAYER_STATUS_DEAD;
-            } else {
-                Pinky.status = GHOST_STATUS_DEAD;
-            }
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-        }
-    }
+    bot_ghost_hit_pacman(xp, yp, &Pinky);
 
     // check if home position after dead
     if (Pinky.status == GHOST_STATUS_DEAD) {
@@ -268,7 +262,7 @@ void pinky_check_event(void) {
             Pinky.delta_y = GHOST_HOME_Y_DIFF;
             Pinky.move = MOVE_UP;
             Pinky.next_move = MOVE_UP;
-            Pinky.dot_cnt = 0;
+            Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
         }
     }
 }
@@ -308,7 +302,6 @@ void pinky_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // (if this happens...error in maze design)
         Pinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         // take the only possible way
@@ -350,18 +343,7 @@ void pinky_calc_next_move(void) {
         }
 
         if (Game.mode == GAME_MODE_CHASE) {
-            // chase
-            if (Pinky.strategy == GHOST_STRATEGY_RANDOM) {
-                Pinky.next_move = bot_calc_move_random(xp, yp, Pinky.move);
-            } else if (Pinky.strategy == GHOST_STRATEGY_BLINKY) {
-                Pinky.next_move = bot_calc_move_blinky(xp, yp, Pinky.move);
-            } else if (Pinky.strategy == GHOST_STRATEGY_PINKY) {
-                Pinky.next_move = bot_calc_move_pinky(xp, yp, Pinky.move);
-            } else if (Pinky.strategy == GHOST_STRATEGY_INKY) {
-                Pinky.next_move = bot_calc_move_inky(xp, yp, Pinky.move);
-            } else {
-                Pinky.next_move = bot_calc_move_clyde(GHOST_PINKY, xp, yp, Pinky.move);
-            }
+            Pinky.next_move = bot_calc_move_by_strategy(GHOST_PINKY, Pinky.strategy, xp, yp, Pinky.move);
         } else {
             // scatter
             Pinky.next_move = bot_calc_move_scatter(GHOST_PINKY, xp, yp, Pinky.move);

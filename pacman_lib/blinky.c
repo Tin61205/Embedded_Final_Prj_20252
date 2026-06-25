@@ -33,7 +33,7 @@ void blinky_init(uint32_t mode) {
     Blinky.move = MOVE_LEFT;
     Blinky.next_move = MOVE_LEFT;
     Blinky.port = PORT_DONE;
-    Blinky.dot_cnt = 0;
+    Blinky.dot_cnt = (mode == GAME_OVER) ? 0 : BLINKY_DOT_CNT_MAX;
     Blinky.frightened_buf = BLINKY_FRIGHTENED_BUF;
     Blinky.new_mode = 0;
 }
@@ -44,6 +44,17 @@ void blinky_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void blinky_move(void) {
     if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
+
+    if (Blinky.move == MOVE_STOP && Blinky.status == GHOST_STATUS_ALIVE) {
+        bot_ghost_unstick(&Blinky);
+    }
+    if (Blinky.move == MOVE_STOP) return;
+
+    if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 &&
+        Blinky.status == GHOST_STATUS_ALIVE &&
+        Game.frightened == BOOL_FALSE) {
+        bot_apply_player_ghost_input(&Blinky, Game.player2_joy);
+    }
 
     if (Blinky.move == MOVE_UP) {
         // move one pixel
@@ -243,24 +254,12 @@ void blinky_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void blinky_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
+    bot_ghost_validate_position(&Blinky);
     xp = Blinky.xp;
     yp = Blinky.yp;
 
-    // check if contact
-    if ((Game.collision == BOOL_TRUE) && (Blinky.status == GHOST_STATUS_ALIVE)) {
-        pxp = Player.xp;
-        pyp = Player.yp;
-        if ((xp == pxp) && (yp == pyp)) {
-            if (Game.frightened == BOOL_FALSE) {
-                Player.status = PLAYER_STATUS_DEAD;
-            } else {
-                Blinky.status = GHOST_STATUS_DEAD;
-            }
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-        }
-    }
+    bot_ghost_hit_pacman(xp, yp, &Blinky);
 
     // check if home position after dead
     if (Blinky.status == GHOST_STATUS_DEAD) {
@@ -269,7 +268,7 @@ void blinky_check_event(void) {
             Blinky.skin = GHOST_SKIN_UP1;
             Blinky.move = MOVE_UP;
             Blinky.next_move = MOVE_UP;
-            Blinky.dot_cnt = 0;
+            Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
         }
     }
 }
@@ -309,7 +308,6 @@ void blinky_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // (if this happens...error in maze design)
         Blinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         // take the only possible way
@@ -344,25 +342,18 @@ void blinky_calc_next_move(void) {
             return;
         }
 
+        if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
+            Blinky.next_move = bot_calc_move_player_ghost(xp, yp, Blinky.move, Game.player2_joy);
+            return;
+        }
+
         if (Game.frightened == BOOL_TRUE) {
-            // frightened (make a random move)
             Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
             return;
         }
 
         if (Game.mode == GAME_MODE_CHASE) {
-            // chase
-            if (Blinky.strategy == GHOST_STRATEGY_RANDOM) {
-                Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_BLINKY) {
-                Blinky.next_move = bot_calc_move_blinky(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_PINKY) {
-                Blinky.next_move = bot_calc_move_pinky(xp, yp, Blinky.move);
-            } else if (Blinky.strategy == GHOST_STRATEGY_INKY) {
-                Blinky.next_move = bot_calc_move_inky(xp, yp, Blinky.move);
-            } else {
-                Blinky.next_move = bot_calc_move_clyde(GHOST_BLINKY, xp, yp, Blinky.move);
-            }
+            Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
         } else {
             // scatter
             Blinky.next_move = bot_calc_move_scatter(GHOST_BLINKY, xp, yp, Blinky.move);

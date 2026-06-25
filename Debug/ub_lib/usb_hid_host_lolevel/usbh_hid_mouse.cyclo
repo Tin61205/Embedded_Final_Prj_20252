@@ -1,2 +1,0 @@
-../ub_lib/usb_hid_host_lolevel/usbh_hid_mouse.c:34:14:MOUSE_Init	1
-../ub_lib/usb_hid_host_lolevel/usbh_hid_mouse.c:41:14:MOUSE_Decode	1

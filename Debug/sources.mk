@@ -30,5 +30,4 @@ pacman_lib \
 ub_lib/bilder \
 ub_lib/font \
 ub_lib \
-ub_lib/usb_hid_host_lolevel \
 

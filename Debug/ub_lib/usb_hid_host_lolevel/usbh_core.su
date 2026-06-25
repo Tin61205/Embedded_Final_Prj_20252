@@ -1,9 +1,0 @@
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:35:9:USBH_Connected	16	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:43:9:USBH_Disconnected	16	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:50:9:USBH_SOF	16	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:57:6:USBH_Init	24	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:89:13:USBH_DeInit	16	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:110:6:USBH_Process	32	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:257:6:USBH_ErrorHandle	16	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:277:20:USBH_HandleEnum	96	static
-../ub_lib/usb_hid_host_lolevel/usbh_core.c:463:13:USBH_HandleControl	24	static

@@ -12,8 +12,6 @@
 //--------------------------------------------------------------
 #include "stm32f4xx.h"
 #include "gui.h"
-#include "stm32_ub_usb_hid_host.h"
-#include "stm32f4xx.h"
 #include "stm32f4xx_tim.h"
 #include "misc.h"
 #include "stm32_ub_systick.h"
@@ -30,20 +28,26 @@
 #define  MENUE_COL_OFF   RGB_COL_BLUE
 #define  MENUE_COL_VALUE RGB_COL_WHITE
 
-#define  MENUE_MAX_POS   2
+#define  MENUE_STARTX1   10
+#define  MENUE_STARTY    40
+#define  MENUE_DELTA1    22
 
-#define  MENUE_STARTX1   20
-#define  MENUE_STARTX2   150
-#define  MENUE_STARTY    70
+#define  MENU_BTN_BACK_X  10
+#define  MENU_BTN_NEXT_X  170
+#define  MENU_BTN_Y       290
+#define  MENU_BTN_W       60
+#define  MENU_BTN_H       22
 
-#define  MENUE_DELTA1    20
+#define  MENU_RESULT_NONE     0
+#define  MENU_RESULT_CAMPAIGN 1
+#define  MENU_RESULT_CUSTOM   2
 
 
 
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
-void menu_start(void);
+uint32_t menu_start(void);
 
 
 

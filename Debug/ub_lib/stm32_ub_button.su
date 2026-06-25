@@ -1,8 +1,0 @@
-../ub_lib/stm32_ub_button.c:36:6:UB_Button_Init	24	static
-../ub_lib/stm32_ub_button.c:66:17:UB_Button_Read	24	static
-../ub_lib/stm32_ub_button.c:85:6:UB_Button_OnPressed	24	static
-../ub_lib/stm32_ub_button.c:106:6:UB_Button_OnClick	24	static
-../ub_lib/stm32_ub_button.c:135:6:UB_Button_OnRelease	24	static
-../ub_lib/stm32_ub_button.c:162:6:P_Button_InitTIM	24	static
-../ub_lib/stm32_ub_button.c:188:6:P_Button_InitNVIC	16	static
-../ub_lib/stm32_ub_button.c:211:6:TIM7_IRQHandler	16	static

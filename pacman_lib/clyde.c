@@ -36,7 +36,7 @@ void clyde_init(uint32_t mode) {
     Clyde.move = MOVE_LEFT;
     Clyde.next_move = MOVE_LEFT;
     Clyde.port = PORT_DONE;
-    Clyde.dot_cnt = 0;
+    Clyde.dot_cnt = (mode == GAME_OVER) ? 0 : CLYDE_DOT_CNT_MAX;
     Clyde.frightened_buf = CLYDE_FRIGHTENED_BUF;
     Clyde.new_mode = 0;
 }
@@ -47,6 +47,11 @@ void clyde_init(uint32_t mode) {
 //-------------------------------------------------------------- 
 void clyde_move(void) {
     if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
+
+    if (Clyde.move == MOVE_STOP && Clyde.status == GHOST_STATUS_ALIVE) {
+        bot_ghost_unstick(&Clyde);
+    }
+    if (Clyde.move == MOVE_STOP) return;
 
     if (Clyde.move == MOVE_UP) {
         // move one pixel
@@ -246,24 +251,13 @@ void clyde_change_skin(uint32_t direction) {
 //--------------------------------------------------------------
 void clyde_check_event(void) {
     uint32_t xp, yp;
-    uint32_t pxp, pyp;
 
+    bot_ghost_validate_position(&Clyde);
     xp = Clyde.xp;
     yp = Clyde.yp;
 
     // check if contact
-    if ((Game.collision == BOOL_TRUE) && (Clyde.status == GHOST_STATUS_ALIVE)) {
-        pxp = Player.xp;
-        pyp = Player.yp;
-        if ((xp == pxp) && (yp == pyp)) {
-            if (Game.frightened == BOOL_FALSE) {
-                Player.status = PLAYER_STATUS_DEAD;
-            } else {
-                Clyde.status = GHOST_STATUS_DEAD;
-            }
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-        }
-    }
+    bot_ghost_hit_pacman(xp, yp, &Clyde);
 
     // check if home position after dead
     if (Clyde.status == GHOST_STATUS_DEAD) {
@@ -274,7 +268,7 @@ void clyde_check_event(void) {
             Clyde.delta_y = GHOST_HOME_Y_DIFF;
             Clyde.move = MOVE_LEFT;
             Clyde.next_move = MOVE_LEFT;
-            Clyde.dot_cnt = 0;
+            Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
         }
     }
 }
@@ -314,7 +308,6 @@ void clyde_calc_next_move(void) {
 
     // choose a way
     if (door_cnt == 0) {
-        // (if this happens...error in maze design)
         Clyde.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         // take the only possible way
@@ -356,18 +349,7 @@ void clyde_calc_next_move(void) {
         }
 
         if (Game.mode == GAME_MODE_CHASE) {
-            // chase
-            if (Clyde.strategy == GHOST_STRATEGY_RANDOM) {
-                Clyde.next_move = bot_calc_move_random(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_BLINKY) {
-                Clyde.next_move = bot_calc_move_blinky(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_PINKY) {
-                Clyde.next_move = bot_calc_move_pinky(xp, yp, Clyde.move);
-            } else if (Clyde.strategy == GHOST_STRATEGY_INKY) {
-                Clyde.next_move = bot_calc_move_inky(xp, yp, Clyde.move);
-            } else {
-                Clyde.next_move = bot_calc_move_clyde(GHOST_CLYDE, xp, yp, Clyde.move);
-            }
+            Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
         } else {
             // scatter
             Clyde.next_move = bot_calc_move_scatter(GHOST_CLYDE, xp, yp, Clyde.move);

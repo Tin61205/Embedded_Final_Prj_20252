@@ -16,8 +16,15 @@
 #include "stm32_ub_uart.h"
 
 //--------------------------------------------------------------
+#define  PLAYER_TURN_ALIGN  4
+
 #define  PLAYER_START_X     14
-#define  PLAYER_START_Y     23   
+#define  PLAYER_START_Y     23
+
+#define  PLAYER2_START_X    13
+#define  PLAYER2_START_Y    23
+
+#define  PLAYER2_BODY_COLOR RGB_COL_CYAN
 
 //--------------------------------------------------------------
 #define  PLAYER_START_LIVES   3 // The number of live
@@ -35,8 +42,12 @@
 // Global Function
 //--------------------------------------------------------------
 void player_init(uint32_t mode);
+void player2_init(uint32_t mode);
 void player_move(void);
+void player2_move(void);
 void player_change_direction(uint32_t joy);
+void player2_change_direction(uint32_t joy);
+void player_check_collisions(void);
 
 
 

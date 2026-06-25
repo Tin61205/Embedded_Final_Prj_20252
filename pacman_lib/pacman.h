@@ -19,8 +19,6 @@
 
 #include "stm32_ub_graphic2d.h"
 
-#include "stm32_ub_touch_stmpe811.h"
-
 #include "maze.h"
 
 #include "maze_generate.h"
@@ -32,8 +30,6 @@
 #include "stm32_ub_systick.h"
 
 #include "menu.h"
-
-#include "stm32_ub_usb_hid_host.h"
 
 
 //--------------------------------------------------------------
@@ -72,16 +68,17 @@ Level_t;
 
 //--------------------------------------------------------------
 #define GAME_POINTS_NORMAL 10
-#define GAME_POINTS_ENERGY 50
+#define GAME_POINTS_ENERGY 100
 
 //--------------------------------------------------------------
-#define GAME_FRIGHTENED_START_POINTS 200
+#define GAME_FRIGHTENED_START_POINTS 300
 
 //--------------------------------------------------------------
 #define GAME_RUN 0
 #define GAME_PLAYER_WIN 1
 #define GAME_PLAYER_LOSE 2
 #define GAME_OVER 3
+#define GAME_EXIT 4
 
 //--------------------------------------------------------------
 #define MOVE_NOBODY 0x00
@@ -90,6 +87,7 @@ Level_t;
 #define MOVE_PINKY 0x04 // Bit2
 #define MOVE_INKY 0x08 // Bit3
 #define MOVE_CLYDE 0x10 // Bit4
+#define MOVE_PLAYER2 0x20 // Bit5
 
 //--------------------------------------------------------------
 #define BOOL_FALSE 0
@@ -103,6 +101,42 @@ Level_t;
 #define GAME_MODE_SCATTER 0
 #define GAME_MODE_CHASE 1
 
+#define GAME_PLAY_CAMPAIGN 0
+#define GAME_PLAY_CUSTOM 1
+
+#define CUSTOM_PLAYER_1 1
+#define CUSTOM_PLAYER_2 2
+
+#define CUSTOM_2P_COOP 0
+#define CUSTOM_2P_VS_GHOST 1
+
+#define CUSTOM_SPEED_SLOW 0
+#define CUSTOM_SPEED_NORMAL 1
+#define CUSTOM_SPEED_FAST 2
+
+#define CUSTOM_MAX_GHOSTS 4
+
+//--------------------------------------------------------------
+// Custom game configuration
+//--------------------------------------------------------------
+typedef struct {
+    uint32_t player_count;
+    uint32_t map_id;
+    uint32_t ghost_speed_idx;
+    uint32_t two_player_mode;
+    uint32_t ghost_count;
+    uint32_t ghost_strategies[CUSTOM_MAX_GHOSTS];
+}
+CustomConfig_t;
+
+typedef struct {
+    uint32_t ghost_count;
+    uint32_t active_mask;
+    uint32_t ghost_speed;
+    uint32_t strategies[4];
+}
+CampaignDifficulty_t;
+
 //--------------------------------------------------------------
 // Main Game Structure
 //--------------------------------------------------------------
@@ -114,8 +148,14 @@ typedef struct {
     uint32_t frightened;
     uint32_t frightened_timer;
     uint32_t frightened_points;
-    uint32_t debug_mode;
     uint32_t numberOfBots;
+    uint32_t play_type;
+    uint32_t ghost_active_mask;
+    uint32_t player2_joy;
+    uint32_t player2_active;
+    uint32_t campaign_map_id;
+    uint32_t campaign_difficulty;
+    CustomConfig_t custom;
 }
 Game_t;
 extern Game_t Game;
@@ -124,9 +164,11 @@ extern Game_t Game;
 // Global functions
 //--------------------------------------------------------------
 void pacman_start(void);
+void pacman_apply_campaign_difficulty(void);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);
+void pacman_apply_custom_config(uint32_t mode);
 uint32_t pacman_play(void);
 void pacman_dec_mode_timer(void);
 
