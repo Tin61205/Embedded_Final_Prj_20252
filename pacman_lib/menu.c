@@ -10,6 +10,8 @@
 #include "maze.h"
 #include "maze_txtmap.h"
 #include "skin.h"
+#include "stm32_ub_graphic2d.h"
+
 
 //--------------------------------------------------------------
 // wizard step ids
@@ -162,12 +164,40 @@ static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, i
 }
 
 static void menu_draw_main(uint32_t sel) {
-    gui_clear_screen();
-    UB_Font_DrawString(50, 5, "   GAME PACMAN", &Arial_7x10, FONT_COL, BACKGROUND_COL);
-    UB_Font_DrawString(20, 18, " Project CKI VN K68 Embedded", &Arial_7x10, FONT_COL, BACKGROUND_COL);
-    UB_Font_DrawString(MENUE_STARTX1, MENUE_STARTY, "Campaign", &Arial_7x10, (sel == 0) ? MENUE_COL_ON : MENUE_COL_OFF, BACKGROUND_COL);
-    UB_Font_DrawString(MENUE_STARTX1, MENUE_STARTY + MENUE_DELTA1, "Custom", &Arial_7x10, (sel == 1) ? MENUE_COL_ON : MENUE_COL_OFF, BACKGROUND_COL);
-    UB_Font_DrawString(MENUE_STARTX1, 120, "Tap to select", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    // 1. Draw the background image
+    UB_Graphic2D_DrawImageFull(&background_menu, 0, 0);
+    
+    // 2. Draw game title header with transparent/black background container
+    UB_Graphic2D_DrawFullRectDMA(10, 10, 220, 32, RGB_COL_BLACK);
+    UB_Graphic2D_DrawRectDMA(10, 10, 220, 32, RGB_COL_YELLOW);
+    UB_Font_DrawString(40, 21, "   PACMAN GAME K68", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK);
+    
+    // 3. Draw Campaign Button (Centered, X: 40, Y: 120, W: 160, H: 30)
+    if (sel == 0) {
+        UB_Graphic2D_DrawFullRectDMA(40, 120, 160, 30, RGB_COL_RED);
+        UB_Graphic2D_DrawRectDMA(40, 120, 160, 30, RGB_COL_WHITE);
+        UB_Font_DrawString(92, 130, "Campaign", &Arial_7x10, RGB_COL_WHITE, RGB_COL_RED);
+    } else {
+        UB_Graphic2D_DrawFullRectDMA(40, 120, 160, 30, 0x39E7); // Dark Grey
+        UB_Graphic2D_DrawRectDMA(40, 120, 160, 30, RGB_COL_BLACK);
+        UB_Font_DrawString(92, 130, "Campaign", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
+    }
+    
+    // 4. Draw Custom Button (Centered, X: 40, Y: 170, W: 160, H: 30)
+    if (sel == 1) {
+        UB_Graphic2D_DrawFullRectDMA(40, 170, 160, 30, RGB_COL_RED);
+        UB_Graphic2D_DrawRectDMA(40, 170, 160, 30, RGB_COL_WHITE);
+        UB_Font_DrawString(99, 180, "Custom", &Arial_7x10, RGB_COL_WHITE, RGB_COL_RED);
+    } else {
+        UB_Graphic2D_DrawFullRectDMA(40, 170, 160, 30, 0x39E7); // Dark Grey
+        UB_Graphic2D_DrawRectDMA(40, 170, 160, 30, RGB_COL_BLACK);
+        UB_Font_DrawString(99, 180, "Custom", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
+    }
+    
+    // 5. Draw prompt message container at the bottom
+    UB_Graphic2D_DrawFullRectDMA(40, 240, 160, 20, RGB_COL_BLACK);
+    UB_Graphic2D_DrawRectDMA(40, 240, 160, 20, RGB_COL_BLUE);
+    UB_Font_DrawString(65, 245, "Tap to select", &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK);
 }
 
 static uint32_t menu_run_main(void) {
@@ -179,11 +209,13 @@ static uint32_t menu_run_main(void) {
 
     while (1) {
         if (menu_touch_pressed(&tx, &ty) != 0) {
-            if (menu_touch_in_rect(tx, ty, MENUE_STARTX1, MENUE_STARTY, 200, 18)) {
+            // Touch in Campaign button (X: 40, Y: 120, W: 160, H: 30)
+            if (menu_touch_in_rect(tx, ty, 40, 120, 160, 30)) {
                 menu_touch_wait_release();
                 return MENU_RESULT_CAMPAIGN;
             }
-            if (menu_touch_in_rect(tx, ty, MENUE_STARTX1, MENUE_STARTY + MENUE_DELTA1, 200, 18)) {
+            // Touch in Custom button (X: 40, Y: 170, W: 160, H: 30)
+            if (menu_touch_in_rect(tx, ty, 40, 170, 160, 30)) {
                 menu_touch_wait_release();
                 return MENU_RESULT_CUSTOM;
             }

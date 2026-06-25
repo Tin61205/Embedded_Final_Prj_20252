@@ -1,8 +1,0 @@
-../pacman_lib/pacman.c:111:6:pacman_apply_campaign_difficulty	3
-../pacman_lib/pacman.c:145:6:pacman_start	25
-../pacman_lib/pacman.c:297:10:pacman_hw_init	2
-../pacman_lib/pacman.c:322:6:pacman_init	2
-../pacman_lib/pacman.c:337:6:pacman_set_level	2
-../pacman_lib/pacman.c:353:6:pacman_apply_custom_config	11
-../pacman_lib/pacman.c:392:10:pacman_play	62
-../pacman_lib/pacman.c:611:6:pacman_dec_mode_timer	9

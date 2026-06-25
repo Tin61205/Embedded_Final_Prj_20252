@@ -1,5 +1,0 @@
-../pacman_lib/inky.c:20:6:inky_init	4
-../pacman_lib/inky.c:48:6:inky_move	25
-../pacman_lib/inky.c:201:6:inky_change_skin	14
-../pacman_lib/inky.c:252:6:inky_check_event	4
-../pacman_lib/inky.c:279:6:inky_calc_next_move	31

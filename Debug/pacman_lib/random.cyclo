@@ -1,4 +1,0 @@
-../pacman_lib/random.c:12:6:random_init	1
-../pacman_lib/random.c:26:10:get_random_number32	4
-../pacman_lib/random.c:57:6:get_random_bit	1
-../pacman_lib/random.c:72:10:get_randrange	3

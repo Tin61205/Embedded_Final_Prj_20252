@@ -72,10 +72,10 @@ Level_t;
 
 //--------------------------------------------------------------
 #define GAME_POINTS_NORMAL 10
-#define GAME_POINTS_ENERGY 50
+#define GAME_POINTS_ENERGY 100
 
 //--------------------------------------------------------------
-#define GAME_FRIGHTENED_START_POINTS 200
+#define GAME_FRIGHTENED_START_POINTS 300
 
 //--------------------------------------------------------------
 #define GAME_RUN 0

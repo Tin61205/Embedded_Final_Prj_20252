@@ -1,8 +1,0 @@
-../ub_lib/stm32_ub_button.c:37:6:UB_Button_Init	2
-../ub_lib/stm32_ub_button.c:67:17:UB_Button_Read	2
-../ub_lib/stm32_ub_button.c:86:6:UB_Button_OnPressed	2
-../ub_lib/stm32_ub_button.c:107:6:UB_Button_OnClick	6
-../ub_lib/stm32_ub_button.c:136:6:UB_Button_OnRelease	3
-../ub_lib/stm32_ub_button.c:163:6:P_Button_InitTIM	1
-../ub_lib/stm32_ub_button.c:189:6:P_Button_InitNVIC	1
-../ub_lib/stm32_ub_button.c:212:6:TIM7_IRQHandler	3

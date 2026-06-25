@@ -30,6 +30,7 @@
 "./pacman_lib/random.o"
 "./pacman_lib/skin.o"
 "./ub_lib/bilder/Skin1.o"
+"./ub_lib/bilder/background_menu.o"
 "./ub_lib/font/ub_font_arial_7x10.o"
 "./ub_lib/stm32_ub_button.o"
 "./ub_lib/stm32_ub_font.o"

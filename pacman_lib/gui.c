@@ -819,6 +819,20 @@ void gui_draw_string_scale(uint16_t x, uint16_t y, char *ptr, UB_Font *font, uin
     }
 }
 
+void gui_show_countdown_text(const char *text, uint8_t scale) {
+    uint16_t text_w = (uint16_t)(strlen(text) * 7 * scale);
+    uint16_t text_h = (uint16_t)(10 * scale);
+    uint16_t x = (240 - text_w) / 2;
+    uint16_t y = GUI_MAZE_STARTY + (ROOM_CNT_Y * ROOM_HEIGHT) / 2 - text_h / 2;
+    uint16_t clear_w = 160;
+    uint16_t clear_h = 44;
+    uint16_t clear_x = (240 - clear_w) / 2;
+    uint16_t clear_y = y + text_h / 2 - clear_h / 2;
+
+    UB_Graphic2D_DrawFullRectDMA(clear_x, clear_y, clear_w, clear_h, BACKGROUND_COL);
+    gui_draw_string_scale(x, y, (char *)text, &Arial_7x10, FONT_COL2, BACKGROUND_COL, scale);
+}
+
 static uint32_t gui_wait_touch_pressed(uint16_t *xp, uint16_t *yp) {
     UB_Touch_Read();
     *xp = Touch_Data.xp;

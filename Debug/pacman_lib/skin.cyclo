@@ -1,5 +1,0 @@
-../pacman_lib/skin.c:26:6:skin_init	1
-../pacman_lib/skin.c:36:6:skin_init_maze	2
-../pacman_lib/skin.c:162:6:skin_init_player	2
-../pacman_lib/skin.c:201:6:skin_init_ghosts	2
-../pacman_lib/skin.c:356:6:skin_init_gui	2

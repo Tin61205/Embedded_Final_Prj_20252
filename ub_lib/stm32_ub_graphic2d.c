@@ -559,6 +559,28 @@ int16_t P_Graphic2D_sgn(int16_t x)
   return (x > 0) ? 1 : (x < 0) ? -1 : 0;
 }
 
+//--------------------------------------------------------------
+// Draws a full image (RGB565) to the LCD screen
+//--------------------------------------------------------------
+void UB_Graphic2D_DrawImageFull(const UB_Image *img, uint16_t dest_xp, uint16_t dest_yp)
+{
+  uint32_t x, y;
+  uint16_t c;
+  uint32_t Yaddress = 0;
+  uint32_t w = img->width;
+  uint32_t h = img->height;
+
+  for (y = 0; y < h; y++) {
+    UB_LCD_SetCursor2Draw(dest_xp, dest_yp + y);
+    for (x = 0; x < w; x++) {
+      Yaddress = (y * w) + x;
+      c = img->table[Yaddress];
+      UB_LCD_DrawPixel(c);
+    }
+  }
+}
+
+
 
 
 

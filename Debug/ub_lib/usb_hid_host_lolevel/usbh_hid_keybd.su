@@ -1,2 +1,0 @@
-../ub_lib/usb_hid_host_lolevel/usbh_hid_keybd.c:176:14:KEYBRD_Init	8	static
-../ub_lib/usb_hid_host_lolevel/usbh_hid_keybd.c:182:13:KEYBRD_Decode	40	static

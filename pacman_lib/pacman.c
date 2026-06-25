@@ -199,15 +199,15 @@ void pacman_start(void) {
             GUI.refresh_buttons = GUI_REFRESH_VALUE;
             gui_draw_gui(GUI_JOY_NONE);
 
-            UB_Font_DrawString(10, 305, "GET READY", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            gui_show_countdown_text("GET READY", 2);
             UB_Systick_Pause_ms(1000);
-            UB_Font_DrawString(10, 305, "    1    ", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            gui_show_countdown_text("3", 3);
             UB_Systick_Pause_ms(1000);
-            UB_Font_DrawString(10, 305, "    2    ", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            gui_show_countdown_text("2", 3);
             UB_Systick_Pause_ms(1000);
-            UB_Font_DrawString(10, 305, "    3    ", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            gui_show_countdown_text("1", 3);
             UB_Systick_Pause_ms(1000);
-            UB_Font_DrawString(10, 305, "    GO   ", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            gui_show_countdown_text("GO!", 3);
 
             check = pacman_play();
 

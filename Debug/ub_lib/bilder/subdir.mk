@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../ub_lib/bilder/Skin1.c 
+../ub_lib/bilder/Skin1.c \
+../ub_lib/bilder/background_menu.c 
 
 OBJS += \
-./ub_lib/bilder/Skin1.o 
+./ub_lib/bilder/Skin1.o \
+./ub_lib/bilder/background_menu.o 
 
 C_DEPS += \
-./ub_lib/bilder/Skin1.d 
+./ub_lib/bilder/Skin1.d \
+./ub_lib/bilder/background_menu.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ ub_lib/bilder/%.o ub_lib/bilder/%.su ub_lib/bilder/%.cyclo: ../ub_lib/bilder/%.c
 clean: clean-ub_lib-2f-bilder
 
 clean-ub_lib-2f-bilder:
-	-$(RM) ./ub_lib/bilder/Skin1.cyclo ./ub_lib/bilder/Skin1.d ./ub_lib/bilder/Skin1.o ./ub_lib/bilder/Skin1.su
+	-$(RM) ./ub_lib/bilder/Skin1.cyclo ./ub_lib/bilder/Skin1.d ./ub_lib/bilder/Skin1.o ./ub_lib/bilder/Skin1.su ./ub_lib/bilder/background_menu.cyclo ./ub_lib/bilder/background_menu.d ./ub_lib/bilder/background_menu.o ./ub_lib/bilder/background_menu.su
 
 .PHONY: clean-ub_lib-2f-bilder
 

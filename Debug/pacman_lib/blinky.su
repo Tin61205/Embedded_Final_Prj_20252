@@ -1,5 +1,0 @@
-../pacman_lib/blinky.c:17:6:blinky_init	16	static
-../pacman_lib/blinky.c:45:6:blinky_move	8	static
-../pacman_lib/blinky.c:204:6:blinky_change_skin	16	static
-../pacman_lib/blinky.c:255:6:blinky_check_event	16	static
-../pacman_lib/blinky.c:279:6:blinky_calc_next_move	32	static
