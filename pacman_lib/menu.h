@@ -16,7 +16,6 @@
 #include "misc.h"
 #include "stm32_ub_systick.h"
 #include "stm32_ub_button.h"
-#include "stm32_ub_touch_stmpe811.h"
 
 #include "pacman.h"
 

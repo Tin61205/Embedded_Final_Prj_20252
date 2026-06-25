@@ -6,8 +6,6 @@
 //--------------------------------------------------------------
 // Global variable definitions (declared extern in header)
 //--------------------------------------------------------------
-// USB_HID_HOST_STATUS_t  akt_usb_status;
-uint32_t keyboard_timer;
 uint32_t  Gui_Touch_Timer_ms;
 uint32_t  Mode_Systic_Timer_ms;
 uint32_t  Player_Systick_Timer_ms;
@@ -42,14 +40,12 @@ void UB_Systick_Init(void) {
 
   // alle Variabeln zur�cksetzen
   Systick_Delay=0;
-  keyboard_timer=0;
   Player_Systick_Timer_ms=0;
   Player2_Systick_Timer_ms=0;
   UB_Game_Timers_Paused=0;
   Gui_Touch_Timer_ms=0;
   Blinky_Systic_Timer_ms=0;
   Mode_Systic_Timer_ms=0;
-//  akt_usb_status=USB_HID_DEV_DETACHED;
 
 
   #if SYSTICK_RESOLUTION==1
@@ -122,12 +118,6 @@ void SysTick_Handler(void)
   if(Systick_Delay != 0x00) {
     Systick_Delay--;
   }
-
-  // USB bearbeiten (Disabled)
-  // akt_usb_status=UB_USB_HID_HOST_Do();
-
-  // Keyboard Timer
-  if(keyboard_timer!=0) keyboard_timer--;
 
   if(Gui_Touch_Timer_ms!=0) {
     Gui_Touch_Timer_ms--;

@@ -10,7 +10,6 @@
 //#define  SYSTICK_RESOLUTION   1    // 1us resolution
 #define  SYSTICK_RESOLUTION   1000   // 1ms resolution
 
-extern uint32_t keyboard_timer;
 extern uint32_t  Gui_Touch_Timer_ms;
 extern uint32_t  Mode_Systic_Timer_ms;
 extern uint32_t  Player_Systick_Timer_ms;

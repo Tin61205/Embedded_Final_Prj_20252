@@ -526,16 +526,22 @@ void gui_draw_gui(uint32_t joy) {
     if (GUI.refresh_value > 0) {
         GUI.refresh_value--;
 
-        sprintf(buf, "level : %d", (int)(Player.level));
-        UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
-
-        sprintf(buf, "score : %d", (int)(Player.score));
-        UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
-
         if (Game.player2_active != 0) {
+            sprintf(buf, "L: %d", (int)(Player.level));
+            UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+
+            sprintf(buf, "S: %d", (int)(Player.score));
+            UB_Font_DrawString(92, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+
             sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
-            UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            UB_Font_DrawString(90, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         } else {
+            sprintf(buf, "level : %d", (int)(Player.level));
+            UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+
+            sprintf(buf, "score : %d", (int)(Player.score));
+            UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+
             sprintf(buf, "lives : %d", (int)(Player.lives));
             UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         }
@@ -572,96 +578,156 @@ void gui_draw_buttons(uint32_t joy) {
     Image2LCD_t koord;
     uint32_t su, sd, sr, sl;
 
-    su = BUTTON_SKIN1;
-    sd = BUTTON_SKIN1;
-    sr = BUTTON_SKIN1;
-    sl = BUTTON_SKIN1;
+    if (Game.player2_active != 0) {
+        // --- PLAYER 1 D-PAD (LEFT SIDE) ---
+        su = BUTTON_SKIN1;
+        sd = BUTTON_SKIN1;
+        sr = BUTTON_SKIN1;
+        sl = BUTTON_SKIN1;
 
-    if (joy == GUI_JOY_UP) su = BUTTON_SKIN2;
-    if (joy == GUI_JOY_LEFT) sl = BUTTON_SKIN2;
-    if (joy == GUI_JOY_DOWN) sd = BUTTON_SKIN2;
-    if (joy == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
+        if (joy == GUI_JOY_UP) su = BUTTON_SKIN2;
+        if (joy == GUI_JOY_LEFT) sl = BUTTON_SKIN2;
+        if (joy == GUI_JOY_DOWN) sd = BUTTON_SKIN2;
+        if (joy == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
 
-    // Button up
-    koord.dest_xp = GUI_BTN_UP_X;
-    koord.dest_yp = GUI_BTN_UP_Y;
-    koord.w = BUTTON_WIDTH;
-    koord.h = BUTTON_HEIGHT;
-    koord.source_xp = Button_Skin[su].xp;
-    koord.source_yp = Button_Skin[su].yp;
-    UB_Graphic2D_DrawImageRectRotate(koord, 3);
+        // Button up
+        koord.dest_xp = 40;
+        koord.dest_yp = 255;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[su].xp;
+        koord.source_yp = Button_Skin[su].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 3);
 
-    // Button down
-    koord.dest_xp = GUI_BTN_DOWN_X;
-    koord.dest_yp = GUI_BTN_DOWN_Y;
-    koord.w = BUTTON_WIDTH;
-    koord.h = BUTTON_HEIGHT;
-    koord.source_xp = Button_Skin[sd].xp;
-    koord.source_yp = Button_Skin[sd].yp;
-    UB_Graphic2D_DrawImageRectRotate(koord, 2);
+        // Button down
+        koord.dest_xp = 40;
+        koord.dest_yp = 280;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sd].xp;
+        koord.source_yp = Button_Skin[sd].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 2);
 
-    // Button right
-    koord.dest_xp = GUI_BTN_RIGHT_X;
-    koord.dest_yp = GUI_BTN_RIGHT_Y;
-    koord.w = BUTTON_WIDTH;
-    koord.h = BUTTON_HEIGHT;
-    koord.source_xp = Button_Skin[sr].xp;
-    koord.source_yp = Button_Skin[sr].yp;
-    UB_Graphic2D_DrawImageRectRotate(koord, 0);
+        // Button right
+        koord.dest_xp = 70;
+        koord.dest_yp = 270;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sr].xp;
+        koord.source_yp = Button_Skin[sr].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 0);
 
-    // Button left
-    koord.dest_xp = GUI_BTN_LEFT_X;
-    koord.dest_yp = GUI_BTN_LEFT_Y;
-    koord.w = BUTTON_WIDTH;
-    koord.h = BUTTON_HEIGHT;
-    koord.source_xp = Button_Skin[sl].xp;
-    koord.source_yp = Button_Skin[sl].yp;
-    UB_Graphic2D_DrawImageRectRotate(koord, 1);
+        // Button left
+        koord.dest_xp = 10;
+        koord.dest_yp = 270;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sl].xp;
+        koord.source_yp = Button_Skin[sl].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 1);
+
+        // --- PLAYER 2 D-PAD (RIGHT SIDE) ---
+        su = BUTTON_SKIN1;
+        sd = BUTTON_SKIN1;
+        sr = BUTTON_SKIN1;
+        sl = BUTTON_SKIN1;
+
+        uint32_t joy2 = Game.player2_joy;
+        if (joy2 == GUI_JOY_UP) su = BUTTON_SKIN2;
+        if (joy2 == GUI_JOY_LEFT) sl = BUTTON_SKIN2;
+        if (joy2 == GUI_JOY_DOWN) sd = BUTTON_SKIN2;
+        if (joy2 == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
+
+        // Button up
+        koord.dest_xp = GUI_BTN_UP_X;
+        koord.dest_yp = GUI_BTN_UP_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[su].xp;
+        koord.source_yp = Button_Skin[su].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 3);
+
+        // Button down
+        koord.dest_xp = GUI_BTN_DOWN_X;
+        koord.dest_yp = GUI_BTN_DOWN_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sd].xp;
+        koord.source_yp = Button_Skin[sd].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 2);
+
+        // Button right
+        koord.dest_xp = GUI_BTN_RIGHT_X;
+        koord.dest_yp = GUI_BTN_RIGHT_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sr].xp;
+        koord.source_yp = Button_Skin[sr].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 0);
+
+        // Button left
+        koord.dest_xp = GUI_BTN_LEFT_X;
+        koord.dest_yp = GUI_BTN_LEFT_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sl].xp;
+        koord.source_yp = Button_Skin[sl].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 1);
+    } else {
+        // --- SINGLE D-PAD (RIGHT SIDE) ---
+        su = BUTTON_SKIN1;
+        sd = BUTTON_SKIN1;
+        sr = BUTTON_SKIN1;
+        sl = BUTTON_SKIN1;
+
+        if (joy == GUI_JOY_UP) su = BUTTON_SKIN2;
+        if (joy == GUI_JOY_LEFT) sl = BUTTON_SKIN2;
+        if (joy == GUI_JOY_DOWN) sd = BUTTON_SKIN2;
+        if (joy == GUI_JOY_RIGHT) sr = BUTTON_SKIN2;
+
+        // Button up
+        koord.dest_xp = GUI_BTN_UP_X;
+        koord.dest_yp = GUI_BTN_UP_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[su].xp;
+        koord.source_yp = Button_Skin[su].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 3);
+
+        // Button down
+        koord.dest_xp = GUI_BTN_DOWN_X;
+        koord.dest_yp = GUI_BTN_DOWN_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sd].xp;
+        koord.source_yp = Button_Skin[sd].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 2);
+
+        // Button right
+        koord.dest_xp = GUI_BTN_RIGHT_X;
+        koord.dest_yp = GUI_BTN_RIGHT_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sr].xp;
+        koord.source_yp = Button_Skin[sr].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 0);
+
+        // Button left
+        koord.dest_xp = GUI_BTN_LEFT_X;
+        koord.dest_yp = GUI_BTN_LEFT_Y;
+        koord.w = BUTTON_WIDTH;
+        koord.h = BUTTON_HEIGHT;
+        koord.source_xp = Button_Skin[sl].xp;
+        koord.source_yp = Button_Skin[sl].yp;
+        UB_Graphic2D_DrawImageRectRotate(koord, 1);
+    }
 }
 
 //--------------------------------------------------------------
 // check 4 buttons on the touch
 //--------------------------------------------------------------
 uint32_t gui_check_touch(void) {
-    uint32_t ret_wert = GUI_JOY_NONE;
-    uint32_t xp, yp;
-    static uint32_t old_button = 999;
-
-    UB_Touch_Read();
-    xp = Touch_Data.xp;
-    yp = Touch_Data.yp;
-
-    if (Touch_Data.status == TOUCH_PRESSED) {
-        if ((yp > GUI_BTN_UP_Y) && (yp < GUI_BTN_UP_Y + BUTTON_HEIGHT)) {
-            if ((xp > GUI_BTN_UP_X) && (xp < GUI_BTN_UP_X + BUTTON_WIDTH)) {
-                ret_wert = GUI_JOY_UP;
-            }
-        }
-        if ((yp > GUI_BTN_LEFT_Y) && (yp < GUI_BTN_LEFT_Y + BUTTON_HEIGHT)) {
-            if ((xp > GUI_BTN_LEFT_X) && (xp < GUI_BTN_LEFT_X + BUTTON_WIDTH)) {
-                ret_wert = GUI_JOY_LEFT;
-            }
-        }
-        if ((yp > GUI_BTN_DOWN_Y) && (yp < GUI_BTN_DOWN_Y + BUTTON_HEIGHT)) {
-            if ((xp > GUI_BTN_DOWN_X) && (xp < GUI_BTN_DOWN_X + BUTTON_WIDTH)) {
-                ret_wert = GUI_JOY_DOWN;
-            }
-        }
-        if ((yp > GUI_BTN_RIGHT_Y) && (yp < GUI_BTN_RIGHT_Y + BUTTON_HEIGHT)) {
-            if ((xp > GUI_BTN_RIGHT_X) && (xp < GUI_BTN_RIGHT_X + BUTTON_WIDTH)) {
-                ret_wert = GUI_JOY_RIGHT;
-            }
-        }
-    } else {
-        ret_wert = GUI_JOY_NONE;
-    }
-
-    if (old_button != ret_wert) {
-        old_button = ret_wert;
-        GUI.refresh_buttons = GUI_REFRESH_VALUE;
-    }
-
-    return (ret_wert);
+    return GUI_JOY_NONE;
 }
 
 //--------------------------------------------------------------
@@ -771,33 +837,13 @@ void gui_show_countdown_text(const char *text, uint8_t scale) {
     gui_draw_string_scale(x, y, (char *)text, &Arial_7x10, FONT_COL2, BACKGROUND_COL, scale);
 }
 
-static uint32_t gui_wait_touch_pressed(uint16_t *xp, uint16_t *yp) {
-    UB_Touch_Read();
-    *xp = Touch_Data.xp;
-    *yp = Touch_Data.yp;
-    return (Touch_Data.status == TOUCH_PRESSED) ? 1 : 0;
-}
-
-static void gui_wait_touch_release(void) {
-    uint16_t xp, yp;
-    while (gui_wait_touch_pressed(&xp, &yp) != 0) {
-        UB_Systick_Pause_ms(20);
-    }
-    UB_Systick_Pause_ms(120);
-}
-
 void gui_wait_interaction(void) {
-    uint16_t tx, ty;
-    UB_Systick_Pause_ms(500); // Prevent accidental double taps
+    UB_Systick_Pause_ms(500); // Prevent accidental double clicks
     
     // Clear previous center button click state
     UB_Button_OnClick(BTN_CENTER);
     
     while (1) {
-        if (gui_wait_touch_pressed(&tx, &ty) != 0) {
-            gui_wait_touch_release();
-            break;
-        }
         if (UB_Button_OnClick(BTN_CENTER)) {
             break;
         }
@@ -805,12 +851,7 @@ void gui_wait_interaction(void) {
     }
 }
 
-static uint32_t gui_pause_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    if (tx >= x && tx < (x + w) && ty >= y && ty < (y + h)) {
-        return 1;
-    }
-    return 0;
-}
+
 
 static void gui_pause_prepare_frame(void) {
     if (LCD_CurrentLayer == 0) {
@@ -854,8 +895,6 @@ static void gui_draw_pause_overlay(uint32_t sel) {
 
 uint32_t gui_run_pause_menu(void) {
     uint32_t sel = 0;
-    uint16_t tx;
-    uint16_t ty;
 
     UB_Game_Timers_Paused = 1;
     gui_pause_prepare_frame();
@@ -863,24 +902,6 @@ uint32_t gui_run_pause_menu(void) {
     UB_LCD_Refresh();
 
     while (1) {
-        if (gui_wait_touch_pressed(&tx, &ty) != 0) {
-            if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_CONTINUE_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
-                gui_wait_touch_release();
-                UB_Game_Timers_Paused = 0;
-                gui_resume_from_pause(GUI_JOY_NONE);
-                return GUI_PAUSE_CONTINUE;
-            }
-            if (gui_pause_touch_in_rect(tx, ty, GUI_PAUSE_EXIT_X, GUI_PAUSE_BTN_Y, GUI_PAUSE_BTN_W, GUI_PAUSE_BTN_H)) {
-                gui_wait_touch_release();
-                UB_Game_Timers_Paused = 0;
-                return GUI_PAUSE_EXIT;
-            }
-            gui_wait_touch_release();
-            gui_pause_prepare_frame();
-            gui_draw_pause_overlay(sel);
-            UB_LCD_Refresh();
-        }
-
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
             sel = 1 - sel;
             gui_pause_prepare_frame();

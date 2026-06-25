@@ -19,8 +19,6 @@
 
 #include "stm32_ub_graphic2d.h"
 
-#include "stm32_ub_touch_stmpe811.h"
-
 #include "maze.h"
 
 #include "maze_generate.h"

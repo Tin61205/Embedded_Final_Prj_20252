@@ -298,10 +298,6 @@ void pacman_start(void) {
 uint32_t pacman_hw_init(void) {
     uint32_t ret_wert = 0;
 
-    if (UB_Touch_Init() != SUCCESS) {
-        ret_wert = 1;
-    }
-
     UB_Systick_Init();
     UB_Uart_Init();
     UB_Button_Init();
@@ -310,10 +306,6 @@ uint32_t pacman_hw_init(void) {
 #endif
 
     UB_LCD_Init();
-    UB_LCD_LayerInit_Fullscreen();
-    gui_clear_screen();
-
-    return ret_wert;
     UB_LCD_LayerInit_Fullscreen();
     gui_clear_screen();
 

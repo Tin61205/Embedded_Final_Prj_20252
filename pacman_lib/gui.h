@@ -14,7 +14,6 @@
 #include "stm32_ub_lcd_ili9341.h"
 #include "stm32_ub_graphic2d.h"
 #include "stm32_ub_font.h"
-#include "stm32_ub_touch_stmpe811.h"
 #include "stm32_ub_systick.h"
 #include "stm32_ub_uart.h"
 #include "stm32_ub_button.h"

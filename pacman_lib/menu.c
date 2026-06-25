@@ -36,9 +36,6 @@
 //--------------------------------------------------------------
 // intern helpers
 //--------------------------------------------------------------
-static uint32_t menu_touch_pressed(uint16_t *xp, uint16_t *yp);
-static uint32_t menu_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-static void menu_touch_wait_release(void);
 // static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label);
 static void menu_draw_main(uint32_t sel);
 static uint32_t menu_run_main(void);
@@ -135,29 +132,7 @@ static void menu_custom_defaults(void) {
     }
 }
 
-static uint32_t menu_touch_pressed(uint16_t *xp, uint16_t *yp) {
-    UB_Touch_Read();
-    *xp = Touch_Data.xp;
-    *yp = Touch_Data.yp;
-    return (Touch_Data.status == TOUCH_PRESSED) ? 1 : 0;
-}
 
-static uint32_t menu_touch_in_rect(uint16_t tx, uint16_t ty, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    if (tx >= x && tx < (x + w) && ty >= y && ty < (y + h)) {
-        return 1;
-    }
-    return 0;
-}
-
-static void menu_touch_wait_release(void) {
-    uint16_t xp;
-    uint16_t yp;
-
-    while (menu_touch_pressed(&xp, &yp) != 0) {
-        UB_Systick_Pause_ms(20);
-    }
-    UB_Systick_Pause_ms(120);
-}
 
 /*
 static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label) {
