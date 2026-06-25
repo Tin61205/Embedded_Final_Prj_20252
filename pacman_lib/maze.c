@@ -6,6 +6,7 @@
 #include "stm32_ub_graphic2d.h"
 
 #include "maze_generate.h"
+#include "maze_txtmap.h"
 
 // Global variable definition (declared extern in header)
 Maze_t Maze;
@@ -31,7 +32,9 @@ void maze_build(void) {
 void maze_build_map(uint32_t map_id) {
     memset(&Maze, 0, sizeof(Maze_t));
     Maze_selected_map = map_id;
-    if (map_id == MAZE_MAP_OPEN) {
+    if (map_id >= MAZE_MAP_TXT_BASE) {
+        maze_make_rooms_txtmap(map_id - MAZE_MAP_TXT_BASE);
+    } else if (map_id == MAZE_MAP_OPEN) {
         maze_make_rooms_open();
     } else if (map_id == MAZE_MAP_THREE) {
         maze_make_rooms_map3();

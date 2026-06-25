@@ -99,7 +99,15 @@ extern Maze_t Maze;
 #define MAZE_MAP_FOUR 3
 #define MAZE_MAP_FIVE 4
 #define MAZE_MAP_SIX 5
-#define MAZE_MAP_COUNT 6
+#define MAZE_MAP_HARDCODED_COUNT 6
+
+// Txt-imported maps start at this offset
+#define MAZE_MAP_TXT_BASE  MAZE_MAP_HARDCODED_COUNT
+#define MAZE_MAP_TXT0      (MAZE_MAP_TXT_BASE + 0)
+// Add more: #define MAZE_MAP_TXT1 (MAZE_MAP_TXT_BASE + 1) ...
+
+// Total map count (hardcoded + txt-imported)
+#define MAZE_MAP_COUNT  (MAZE_MAP_HARDCODED_COUNT + 1)  // increase when adding maps
 
 extern uint32_t Maze_selected_map;
 

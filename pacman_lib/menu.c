@@ -8,6 +8,7 @@
 
 #include "bot.h"
 #include "maze.h"
+#include "maze_txtmap.h"
 
 //--------------------------------------------------------------
 // wizard step ids
@@ -221,6 +222,13 @@ static uint32_t menu_run_main(void) {
 }
 
 static const char* menu_map_name(uint32_t map_id) {
+    if (map_id >= MAZE_MAP_TXT_BASE) {
+        uint32_t idx = map_id - MAZE_MAP_TXT_BASE;
+        if (idx < MAZE_TXTMAP_COUNT) {
+            return maze_txtmap_names[idx];
+        }
+        return "Unknown";
+    }
     if (map_id == MAZE_MAP_OPEN) return "Arena";
     if (map_id == MAZE_MAP_THREE) return "Spiral";
     if (map_id == MAZE_MAP_FOUR) return "Blocks";

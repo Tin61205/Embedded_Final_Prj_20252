@@ -19,7 +19,8 @@ pacman_lib/maze.o: ../pacman_lib/maze.c ../pacman_lib/maze.h \
  F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/stm32_ub_graphic2d.h \
  F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/stm32_ub_lcd_ili9341.h \
  F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_dma2d.h \
- ../pacman_lib/maze_generate.h ../pacman_lib/skin.h
+ ../pacman_lib/maze_generate.h ../pacman_lib/skin.h \
+ ../pacman_lib/maze_txtmap.h
 ../pacman_lib/maze.h:
 F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h:
 F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:
@@ -44,3 +45,4 @@ F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/stm32_ub_lcd_ili9341.h:
 F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_lib/include/stm32f4xx_dma2d.h:
 ../pacman_lib/maze_generate.h:
 ../pacman_lib/skin.h:
+../pacman_lib/maze_txtmap.h:

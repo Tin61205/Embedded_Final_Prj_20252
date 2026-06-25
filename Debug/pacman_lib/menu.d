@@ -48,7 +48,7 @@ pacman_lib/menu.o: ../pacman_lib/menu.c ../pacman_lib/menu.h \
  ../pacman_lib/pacman.h ../pacman_lib/maze.h ../pacman_lib/bot.h \
  ../pacman_lib/maze_generate.h ../pacman_lib/skin.h \
  ../pacman_lib/player.h ../pacman_lib/blinky.h ../pacman_lib/pinky.h \
- ../pacman_lib/inky.h ../pacman_lib/clyde.h
+ ../pacman_lib/inky.h ../pacman_lib/clyde.h ../pacman_lib/maze_txtmap.h
 ../pacman_lib/menu.h:
 F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis_boot/stm32f4xx.h:
 F:/git_nhung_prj/Embedded_Final_Prj_20252/cmsis/core_cm4.h:
@@ -106,3 +106,4 @@ F:/git_nhung_prj/Embedded_Final_Prj_20252/ub_lib/stm32_ub_usb_hid_host.h:
 ../pacman_lib/pinky.h:
 ../pacman_lib/inky.h:
 ../pacman_lib/clyde.h:
+../pacman_lib/maze_txtmap.h:
