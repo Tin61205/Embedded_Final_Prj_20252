@@ -211,12 +211,22 @@ void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *t
 }
 
 Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
-    if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE) {
+    uint32_t p1_alive = (Player.status == PLAYER_STATUS_ALIVE) ? 1 : 0;
+    uint32_t p2_alive = (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_ALIVE) ? 1 : 0;
+
+    if (p1_alive != 0 && p2_alive != 0) {
         uint32_t d1 = bot_calc_distance(xp, yp, Player.xp, Player.yp);
         uint32_t d2 = bot_calc_distance(xp, yp, Player2.xp, Player2.yp);
         if (d2 < d1) {
             return &Player2;
         }
+        return &Player;
+    }
+    if (p2_alive != 0) {
+        return &Player2;
+    }
+    if (p1_alive != 0) {
+        return &Player;
     }
     return &Player;
 }
@@ -242,22 +252,11 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
             p->skin_cnt = 0;
             p->port = PORT_DONE;
             p->status = PLAYER_STATUS_ALIVE;
-            if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) {
-                Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
-            }
-            if ((Game.ghost_active_mask & MOVE_PINKY) != 0) {
-                Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
-            }
-            if ((Game.ghost_active_mask & MOVE_INKY) != 0) {
-                Inky.dot_cnt = INKY_DOT_CNT_MAX;
-            }
-            if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) {
-                Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
-            }
         }
     } else {
         p->status = PLAYER_STATUS_DEAD;
     }
+    bot_release_ghosts_on_pacman_death();
     GUI.refresh_value = GUI_REFRESH_VALUE;
 }
 
@@ -362,6 +361,37 @@ void bot_ghost_validate_position(Ghost_t *ghost) {
         ghost->next_move = MOVE_STOP;
         ghost->delta_x = 0;
         ghost->delta_y = 0;
+    }
+}
+
+void bot_ghost_unstick(Ghost_t *ghost) {
+    if (ghost->status != GHOST_STATUS_ALIVE || ghost->move != MOVE_STOP) {
+        return;
+    }
+    ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+    ghost->move = ghost->next_move;
+}
+
+void bot_release_ghosts_on_pacman_death(void) {
+    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
+        Blinky.new_mode = 0;
+        Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
+        bot_ghost_unstick(&Blinky);
+    }
+    if ((Game.ghost_active_mask & MOVE_PINKY) != 0 && Pinky.status == GHOST_STATUS_ALIVE) {
+        Pinky.new_mode = 0;
+        Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
+        bot_ghost_unstick(&Pinky);
+    }
+    if ((Game.ghost_active_mask & MOVE_INKY) != 0 && Inky.status == GHOST_STATUS_ALIVE) {
+        Inky.new_mode = 0;
+        Inky.dot_cnt = INKY_DOT_CNT_MAX;
+        bot_ghost_unstick(&Inky);
+    }
+    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0 && Clyde.status == GHOST_STATUS_ALIVE) {
+        Clyde.new_mode = 0;
+        Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
+        bot_ghost_unstick(&Clyde);
     }
 }
 

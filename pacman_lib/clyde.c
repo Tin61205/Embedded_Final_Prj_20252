@@ -49,8 +49,7 @@ void clyde_move(void) {
     if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
 
     if (Clyde.move == MOVE_STOP && Clyde.status == GHOST_STATUS_ALIVE) {
-        clyde_calc_next_move();
-        Clyde.move = Clyde.next_move;
+        bot_ghost_unstick(&Clyde);
     }
     if (Clyde.move == MOVE_STOP) return;
 

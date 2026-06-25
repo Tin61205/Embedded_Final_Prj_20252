@@ -46,8 +46,7 @@ void blinky_move(void) {
     if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
 
     if (Blinky.move == MOVE_STOP && Blinky.status == GHOST_STATUS_ALIVE) {
-        blinky_calc_next_move();
-        Blinky.move = Blinky.next_move;
+        bot_ghost_unstick(&Blinky);
     }
     if (Blinky.move == MOVE_STOP) return;
 

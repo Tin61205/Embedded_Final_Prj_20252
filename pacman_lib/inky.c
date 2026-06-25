@@ -49,8 +49,7 @@ void inky_move(void) {
     if (Inky.dot_cnt < INKY_DOT_CNT_MAX) return;
 
     if (Inky.move == MOVE_STOP && Inky.status == GHOST_STATUS_ALIVE) {
-        inky_calc_next_move();
-        Inky.move = Inky.next_move;
+        bot_ghost_unstick(&Inky);
     }
     if (Inky.move == MOVE_STOP) return;
 

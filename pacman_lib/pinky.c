@@ -43,8 +43,7 @@ void pinky_move(void) {
     if (Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
 
     if (Pinky.move == MOVE_STOP && Pinky.status == GHOST_STATUS_ALIVE) {
-        pinky_calc_next_move();
-        Pinky.move = Pinky.next_move;
+        bot_ghost_unstick(&Pinky);
     }
     if (Pinky.move == MOVE_STOP) return;
 

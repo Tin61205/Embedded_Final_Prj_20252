@@ -407,6 +407,12 @@ uint32_t pacman_play(void) {
 
         movement = MOVE_NOBODY;
 
+        {
+            uint32_t allow_ghost_move = 1;
+            if (Game.player2_active == 0 && Player.status != PLAYER_STATUS_ALIVE) {
+                allow_ghost_move = 0;
+            }
+
         //----------------------------------------
         // Player Timer
         //----------------------------------------
@@ -435,7 +441,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Blinky Timer
         //----------------------------------------
-        if (Blinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
+        if (allow_ghost_move != 0 && Blinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
             if (Blinky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Blinky_Systic_Timer_ms = Blinky.akt_speed_ms;
@@ -451,7 +457,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Pinky Timer
         //----------------------------------------
-        if (Pinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
+        if (allow_ghost_move != 0 && Pinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
             if (Pinky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Pinky_Systic_Timer_ms = Pinky.akt_speed_ms;
@@ -467,7 +473,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Inky Timer
         //----------------------------------------
-        if (Inky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
+        if (allow_ghost_move != 0 && Inky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
             if (Inky.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Inky_Systic_Timer_ms = Inky.akt_speed_ms;
@@ -483,7 +489,7 @@ uint32_t pacman_play(void) {
         //----------------------------------------
         // Clyde Timer
         //----------------------------------------
-        if (Clyde_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
+        if (allow_ghost_move != 0 && Clyde_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
             if (Clyde.status == GHOST_STATUS_ALIVE) {
                 if (Game.frightened == BOOL_FALSE) {
                     Clyde_Systic_Timer_ms = Clyde.akt_speed_ms;
@@ -524,20 +530,21 @@ uint32_t pacman_play(void) {
             player2_change_direction(Game.player2_joy);
         }
 
-        if ((movement & MOVE_BLINKY) != 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
+        if (allow_ghost_move != 0 && (movement & MOVE_BLINKY) != 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
             blinky_move();
         }
 
-        if ((movement & MOVE_PINKY) != 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
+        if (allow_ghost_move != 0 && (movement & MOVE_PINKY) != 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
             pinky_move();
         }
 
-        if ((movement & MOVE_INKY) != 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
+        if (allow_ghost_move != 0 && (movement & MOVE_INKY) != 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
             inky_move();
         }
 
-        if ((movement & MOVE_CLYDE) != 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
+        if (allow_ghost_move != 0 && (movement & MOVE_CLYDE) != 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
             clyde_move();
+        }
         }
 
         //----------------------------------------
