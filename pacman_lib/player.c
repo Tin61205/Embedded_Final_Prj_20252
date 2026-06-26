@@ -356,6 +356,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->xp = p->xp + 1;
                     p->delta_x = 0;
                     p->move = MOVE_UP;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -364,6 +365,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->xp = p->xp + 1;
                     p->delta_x = 0;
                     p->move = MOVE_DOWN;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -374,6 +376,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->xp = p->xp - 1;
                     p->delta_x = 0;
                     p->move = MOVE_UP;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -382,6 +385,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->xp = p->xp - 1;
                     p->delta_x = 0;
                     p->move = MOVE_DOWN;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -413,6 +417,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->yp = p->yp + 1;
                     p->delta_y = 0;
                     p->move = MOVE_LEFT;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -421,6 +426,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->yp = p->yp + 1;
                     p->delta_y = 0;
                     p->move = MOVE_RIGHT;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -431,6 +437,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->yp = p->yp - 1;
                     p->delta_y = 0;
                     p->move = MOVE_LEFT;
+                    player_entity_check_event(p);
                     return;
                 }
             }
@@ -439,6 +446,7 @@ static void player_entity_change_direction(Player_t *p, uint32_t joy) {
                     p->yp = p->yp - 1;
                     p->delta_y = 0;
                     p->move = MOVE_RIGHT;
+                    player_entity_check_event(p);
                     return;
                 }
             }
