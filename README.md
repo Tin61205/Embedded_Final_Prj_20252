@@ -1,120 +1,58 @@
-# STM32F429 Discovery Pacman Project Configuration Guide
+# STM32F429 Pacman Game
 
-Tài liệu này hướng dẫn cách kết nối phần cứng (sơ đồ nối dây), cấu hình chân GPIO trong mã nguồn, cơ chế xử lý nút bấm và hệ thống điều chỉnh độ khó trong dự án game Pacman trên kit **STM32F429 Discovery**.
+Dự án game **Pacman cổ điển** được phát triển trên kit phát triển **STM32F429I-Discovery** (sử dụng vi điều khiển Cortex-M4 STM32F429ZIT6). Game hiển thị trực tiếp trên màn hình LCD ILI9341 tích hợp, tận dụng bộ nhớ SDRAM làm Framebuffer để có đồ họa mượt mà và không giật lag.
 
----
-
-## 1. Sơ đồ kết nối phần cứng (Wiring Diagram)
-
-Do thiết kế phần cứng của kit **STM32F429 Discovery** mặc định sử dụng chân **PC14** và **PC15** làm bộ dao động thạch anh 32.768 kHz (LSE) và chân **PC12** cho hệ thống LCD/SDRAM, các nút bấm điều khiển hướng đã được chuyển sang các chân GPIO trống hoàn toàn.
-
-Hãy kết nối các nút bấm của bạn với các chân trên hàng rào Pin Header theo sơ đồ dưới đây:
-
-```text
-               +---------------------------------------+
-               |        STM32F429 Discovery            |
-               +---------------------------------------+
-                   |       |       |       |       |
-                  PC2     PC3     PC11     PC5     PA0
-                   |       |       |       |       |
-                 [Nút]   [Nút]   [Nút]   [Nút]   [Nút]
-                 Lên     Phải    Xuống   Trái    Center/Start
-                   |       |       |       |       |
-               +---------------------------------------+
-               |                  GND                  | 
-               +---------------------------------------+
-```
-
-### Chi tiết chân kết nối:
-| Tên nút bấm | Chân GPIO | Cách đấu dây vật lý | Mức logic tích cực |
-| :--- | :--- | :--- | :--- |
-| **`BTN_UP` (Lên)** | **`PC2`** | Một đầu nối `PC2`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
-| **`BTN_RIGHT` (Phải)** | **`PC3`** | Một đầu nối `PC3`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
-| **`BTN_DOWN` (Xuống)** | **`PC11`** | Một đầu nối `PC11`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
-| **`BTN_LEFT` (Trái)** | **`PC5`** | Một đầu nối `PC5`, đầu kia nối **`GND`** | Active LOW (Mặc định HIGH, ấn nút = `0`) |
-| **`BTN_CENTER` (Chọn/Start)** | **`PA0`** | Nút nhấn màu xanh mặc định trên kit | Active HIGH (Mặc định LOW, ấn nút = `1`) |
+Dự án hỗ trợ cả chế độ chơi đơn và chơi hai người bằng cách kết nối thêm các module điều khiển ngoài.
 
 ---
 
+## Tính năng nổi bật
 
-
-
-## 2. Hướng dẫn điều khiển menu
-
-Hệ thống menu được điều khiển hoàn toàn bằng **nút bấm vật lý** hoặc **Joystick**:
-
-### A. Menu chính (Main Menu)
-* **Lựa chọn**: Di chuyển vệt sáng giữa **Campaign** (Chế độ chiến dịch) và **Custom** (Chế độ tùy chỉnh) bằng nút Lên (`PC2`) / Xuống (`PC11`) hoặc gạt Joystick.
-* **Xác nhận**: Nhấn nút **Center (PA0)** để vào giao diện cấu hình tiếp theo.
-
-### B. Chế độ Campaign (Chiến dịch)
-* **Di chuyển**: Sử dụng nút Lên (`PC2`) / Xuống (`PC11`) hoặc Joystick để chuyển đổi giữa hai dòng cấu hình: **Map** (Bản đồ) và **Difficulty** (Độ khó).
-* **Thay đổi giá trị**: Nhấn nút Phải (`PC3`) / Trái (`PC5`) hoặc gạt Joystick sang Phải/Trái để thay đổi bản đồ hoặc tăng/giảm độ khó (từ 1 đến 10).
-* **Bắt đầu chơi**: Nhấn nút **Center (PA0)** để bắt đầu. Để quay lại menu chính, bấm nút **BACK (PC1)**.
-
-### C. Chế độ Custom (Tự chọn)
-* **Cấu hình**: Cho phép thiết lập số người chơi (1P/2P), chế độ chơi 2P (Co-op/VS), bản đồ, tốc độ ghost, số lượng ghost và chiến thuật cho từng ghost.
-* **Điều khiển**: Sử dụng các nút Lên/Xuống/Trái/Phải hoặc Joystick để di chuyển vệt sáng và thay đổi giá trị cấu hình tương ứng.
-* **Bắt đầu chơi**: Nhấn nút **Center (PA0)** để bắt đầu chơi. Bấm nút **BACK (PC1)** để quay lại.
+- **Hiệu năng đồ họa cao**: Sử dụng bộ điều khiển LTDC kết hợp DMA2D để render bản đồ và nhân vật mượt mà với độ phân giải 240x320.
+- **Nhiều chế độ chơi hấp dẫn**:
+  - **Campaign (Chiến dịch)**: Chinh phục 10 cấp độ thử thách với tốc độ và độ thông minh của ghost tăng dần.
+  - **Custom (Tự chọn)**: Tự do thiết lập bản đồ, tốc độ ghost, số lượng ghost và chiến thuật di chuyển cho từng ghost.
+- **Hỗ trợ 2 người chơi độc lập**:
+  - **Co-op Mode**: Hai Pacman (Pacman vàng và Pacman xanh lam) cùng tham gia ăn chấm và hỗ trợ nhau.
+  - **Vs Ghost Mode**: Một người chơi điều khiển Pacman, người chơi thứ hai điều khiển Ghost Blinky màu đỏ để săn Pacman.
+- **Điều khiển linh hoạt**: Hỗ trợ 2 Joystick Analog (KY-023) để điều khiển nhân vật mượt mà và các phím bấm vật lý để điều hướng menu.
 
 ---
 
-## 3. Cấu hình độ khó (Speed level)
+## Cấu trúc thư mục dự án
 
-Hệ thống độ khó được lập trình bằng cách giảm thời gian trễ dịch chuyển (tính bằng mili-giây - ms) của Pacman và các Ghost. Càng lên level cao, các nhân vật di chuyển càng nhanh:
-
-| Level | Pacman Speed (ms) | Blinky Speed (ms) | Pinky Speed (ms) | Inky Speed (ms) | Clyde Speed (ms) |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | 30 | 40 | 50 | 60 | 70 |
-| **2** | 26 | 35 | 44 | 52 | 60 |
-| **3** | 22 | 30 | 38 | 44 | 50 |
-| **4** | 18 | 25 | 32 | 36 | 40 |
-| **5** | 14 | 20 | 26 | 28 | 30 |
-| **6** | 10 | 18 | 24 | 26 | 28 |
-| **7** | 10 | 16 | 22 | 24 | 26 |
-| **8** | 10 | 14 | 20 | 22 | 24 |
-| **9** | 10 | 12 | 18 | 20 | 22 |
-| **10**| 10 | 10 | 16 | 18 | 20 |
-
-> [!TIP]
-> Để điều chỉnh tốc độ hoặc thêm các mốc độ khó mới, bạn hãy mở file **`pacman_lib/pacman.c`** và sửa các giá trị số trong mảng cấu trúc `Level_t Level[]`.
+- **`pacman_lib/`**: Chứa logic cốt lõi của trò chơi bao gồm quản lý người chơi (`player.c`), hành vi AI của ghost (`bot.c`), bản đồ (`maze.c`), menu cấu hình (`menu.c`) và hiển thị đồ họa game (`gui.c`).
+- **`ub_lib/`**: Hệ thống driver giao tiếp phần cứng cấp thấp (LCD ILI9341, SDRAM, phím bấm vật lý, joystick analog qua ADC, UART debug).
+- **`Src/` & `Inc/`**: Mã nguồn khởi chạy chính của hệ thống (`main.c`).
 
 ---
 
-## 4. Cấu hình Project và Biên dịch (STM32CubeIDE Settings)
+## 🔌 Yêu cầu phần cứng & Đấu dây
 
-Để biên dịch thành công dự án sử dụng Standard Peripheral Library (SPL) này trên STM32CubeIDE, cần cấu hình các thông số sau trong phần **Properties** của Project:
+Dự án yêu cầu kit **STM32F429I-Discovery** cùng các ngoại vi kết nối qua hàng rào GPIO:
+- 2 Module Joystick Analog (KY-023) cho người chơi.
+- 5 nút nhấn vật lý momentary (NO) để điều hướng menu và dừng game.
 
-### A. Định nghĩa ký hiệu tiền xử lý (Preprocessor Symbols)
-Vào **Properties** -> **C/C++ Build** -> **Settings** -> **Tool Settings** -> **MCU GCC Compiler** -> **Preprocessor**:
-Thêm các symbols sau vào mục **Defined symbols (-D)**:
-* `DEBUG`
-* `USE_STDPERIPH_DRIVER`
-* `STM32F429_439xx`
-* `STM32F4XX`
-* `STM32`
-* `STM32F429ZITx`
-* `STM32F4`
+👉 Chi tiết sơ đồ kết nối và bảng chân GPIO xem tại: **[GUIDE.md](GUIDE.md)**.
 
-### B. Cấu hình đường dẫn thư mục Include (Include Paths)
-Vào **Properties** -> **C/C++ Build** -> **Settings** -> **Tool Settings** -> **MCU GCC Compiler** -> **Include paths**:
-Thêm các đường dẫn tương đối (hoặc tuyệt đối) sau vào mục **Include paths (-I)**:
-* `"${workspace_loc:/${ProjName}/Inc}"`
-* `"${workspace_loc:/${ProjName}/cmsis}"`
-* `"${workspace_loc:/${ProjName}/cmsis_boot}"`
-* `"${workspace_loc:/${ProjName}/cmsis_lib/include}"`
-* `"${workspace_loc:/${ProjName}/pacman_lib}"`
-* `"${workspace_loc:/${ProjName}/ub_lib}"`
-* `"${workspace_loc:/${ProjName}/ub_lib/bilder}"`
-* `"${workspace_loc:/${ProjName}/ub_lib/font}"`
-* `"${workspace_loc:/${ProjName}/ub_lib/usb_hid_host_lolevel}"`
+---
 
-### C. Cấu hình phần cứng biên dịch (MCU Settings)
-Vào **Properties** -> **C/C++ Build** -> **Settings** -> **Tool Settings** -> **MCU Settings**:
-* **Floating point unit**: `FPv4-SP-D16`
-* **Floating point ABI**: `Hard input (float-abi=hard)`
-* **Instruction set**: `Thumb (-mthumb)`
+## 💻 Hướng dẫn biên dịch & Cài đặt
 
-### D. Loại trừ file khỏi Build (Exclude from Build)
-Do STM32CubeIDE tự động tạo file startup assembly tương thích GCC (`Startup/startup_stm32f429zitx.s`), thư mục startup cũ của CoIDE (`cmsis_boot/startup/`) đã được **loại bỏ khỏi quá trình build (Exclude from build)** nhằm tránh lỗi định nghĩa trùng lặp hàm khởi động (`Duplicate Symbol`).
+1. Import thư mục dự án vào công cụ **STM32CubeIDE**.
+2. Dự án được cấu hình sẵn sử dụng **Standard Peripheral Library (SPL)** cùng các thiết lập compiler tương ứng.
+3. Kết nối kit Discovery với máy tính qua cổng USB ST-Link tích hợp.
+4. Nhấp chuột phải vào Project chọn **Build Project**, sau đó chọn **Run** hoặc **Debug** để nạp chương trình xuống kit.
 
+---
+
+## 🎮 Cách điều khiển trong game
+
+- **Trong Menu chính & Menu thiết lập**:
+  - Sử dụng các phím bấm hướng vật lý (`PC2`/`PC11`/`PC5`/`PC3`) để di chuyển vệt sáng và thay đổi giá trị.
+  - Nhấn nút **CENTER (PA0)** (User Button màu xanh trên board) để xác nhận/bắt đầu.
+  - Nhấn nút **BACK (PC1)** để quay lại trang trước.
+- **Trong trận đấu (Gameplay)**:
+  - **Player 1** (Pacman vàng) di chuyển bằng **Joystick 1** (nối chân `PA5`/`PA7`).
+  - **Player 2** (Pacman xanh hoặc Ghost Blinky) di chuyển bằng **Joystick 2** (nối chân `PA1`/`PA2`).
+  - Nhấn nút **BACK (PC1)** để mở menu tạm dừng (Pause Menu).

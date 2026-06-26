@@ -578,7 +578,7 @@ void gui_draw_buttons(uint32_t joy) {
     Image2LCD_t koord;
     uint32_t su, sd, sr, sl;
 
-    if (Game.player2_active != 0) {
+    if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
         // --- PLAYER 1 D-PAD (LEFT SIDE - COMPACT) ---
         su = BUTTON_SKIN1;
         sd = BUTTON_SKIN1;
@@ -761,18 +761,37 @@ uint32_t gui_check_button(void) {
 }
 
 //--------------------------------------------------------------
-// check analog joystick (VRx/VRy via ADC)
+// check analog joystick 1 (VRx/VRy via ADC)
 //--------------------------------------------------------------
-uint32_t gui_check_joystick(void) {
+uint32_t gui_check_joystick1(void) {
     uint32_t ret_wert = GUI_JOY_NONE;
-    static uint32_t old_button = 999;
+    static uint32_t old_button1 = 999;
 
 #if JOYSTICK_USE_ADC == 1
-    ret_wert = UB_Joystick_ReadDirection();
+    ret_wert = UB_Joystick1_ReadDirection();
 #endif
 
-    if (old_button != ret_wert) {
-        old_button = ret_wert;
+    if (old_button1 != ret_wert) {
+        old_button1 = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
+}
+
+//--------------------------------------------------------------
+// check analog joystick 2 (VRx/VRy via ADC)
+//--------------------------------------------------------------
+uint32_t gui_check_joystick2(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    static uint32_t old_button2 = 999;
+
+#if JOYSTICK_USE_ADC == 1
+    ret_wert = UB_Joystick2_ReadDirection();
+#endif
+
+    if (old_button2 != ret_wert) {
+        old_button2 = ret_wert;
         GUI.refresh_buttons = GUI_REFRESH_VALUE;
     }
 

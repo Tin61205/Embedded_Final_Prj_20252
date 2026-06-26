@@ -411,14 +411,15 @@ uint32_t pacman_play(void) {
         if (Gui_Touch_Timer_ms == 0) {
             Gui_Touch_Timer_ms = GUI_TOUCH_INTERVALL_MS;
 
-            joy = gui_check_button();
+            // Player 1 controls via Joystick 1 in gameplay
+            joy = gui_check_joystick1();
             if (joy == GUI_JOY_NONE) {
                 joy = gui_check_touch();
             }
         }
 
-        if (Game.player2_active != 0) {
-            Game.player2_joy = gui_check_joystick();
+        if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
+            Game.player2_joy = gui_check_joystick2();
         } else {
             Game.player2_joy = GUI_JOY_NONE;
         }

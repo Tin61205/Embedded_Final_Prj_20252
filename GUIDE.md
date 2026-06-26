@@ -22,14 +22,14 @@ Các ngoại vi **gắn sẵn trên board** (không cần nối thêm): LCD, SDR
 
 | Ngoại vi | Bắt buộc? | Nối thêm? | Mục đích |
 |---|---|---|---|
-| **4 nút hướng** (UP/RIGHT/DOWN/LEFT) | Khuyến nghị | Có — hàn lên header | Player 1 điều khiển Pacman (thay thế bằng joystick) |
-| **Joystick analog** (KY-023) | Khuyến nghị | Có — hàn lên header | Player 1 điều khiển Pacman qua ADC |
-| **Nút BACK (PC1)** | Khuyến nghị | Có — hàn lên header | Quay lại menu chính (Campaign / Custom setup) |
+| **4 nút hướng** (UP/RIGHT/DOWN/LEFT) | Khuyến nghị | Có — hàn lên header | Điều hướng và chọn lựa trong các Menu |
+| **Joystick analog 1** (KY-023) | Khuyến nghị | Có — hàn lên header | Player 1 điều khiển Pacman qua ADC (PA5/PA7) |
+| **Nút BACK (PC1)** | Khuyến nghị | Có — hàn lên header | Quay lại menu chính / tạm dừng game |
 | **Nút CENTER (PA0)** | Có | Không — có sẵn trên kit | Xác nhận / Start |
-| **Joystick analog (Player 2)** | Tùy chọn | Có — hàn lên header | Player 2 (chế độ Custom / Campaign Co-op) |
+| **Joystick analog 2** (KY-023) | Tùy chọn | Có — hàn lên header | Player 2 điều khiển Pacman ở chế độ Co-op (PA1/PA2) |
 | **UART (PA9/PA10)** | Tùy chọn | Có — USB-TTL | Debug serial 115200 baud |
 
-> **Lưu ý:** Game hỗ trợ **4 nút GPIO** riêng lẻ cho Player 1 và **joystick analog** (module KY-023) cho Player 2 ở chế độ 2 người chơi.
+> **Lưu ý:** Game hỗ trợ **2 joystick analog** độc lập cho cả Player 1 và Player 2. Các **nút hướng GPIO** giờ chỉ được dùng độc quyền để di chuyển trong menu.
 
 ---
 
@@ -86,20 +86,27 @@ Nếu đổi chân, sửa mảng `BUTTON[]` trong `stm32_ub_button.c`.
 - TIM7, chu kỳ ~**50 ms** — tránh nút bị nhảy / nhấn đúp.
 - Hàm đọc trong game: `UB_Button_Read()`, `UB_Button_OnClick()`.
 
-### 3.6. Joystick analog (module KY-023)
+### 3.6. Joystick analog (module KY-023) - Player 1 & Player 2
 
-Dùng **một module joystick 2 trục** thay cho 4 nút hướng riêng lẻ. Firmware đọc trục X/Y qua **ADC1** và chuyển thành hướng UP/RIGHT/DOWN/LEFT.
+Game sử dụng **hai module joystick analog** KY-023 độc lập để điều khiển Pacman vàng (Player 1) và Pacman xanh (Player 2). Bộ driver đọc điện áp các trục VRx/VRy qua bộ chuyển đổi **ADC1** của vi điều khiển.
 
 #### 3.6.1. Sơ đồ đấu dây
 
 ```text
-              Joystick KY-023                STM32F429 Discovery
+              Joystick KY-023 (P1)           STM32F429 Discovery
+              ┌─────────────┐                ┌─────────────────────┐
+              │ VCC ────────┼────────────────┤ 3.3V                │
+              │ GND ────────┼────────────────┤ GND                 │
+              │ VRx ────────┼────────────────┤ PA5 (ADC1_IN5)      │
+              │ VRy ────────┼────────────────┤ PA7 (ADC1_IN7)      │
+              └─────────────┘                └─────────────────────┘
+
+              Joystick KY-023 (P2)           STM32F429 Discovery
               ┌─────────────┐                ┌─────────────────────┐
               │ VCC ────────┼────────────────┤ 3.3V                │
               │ GND ────────┼────────────────┤ GND                 │
               │ VRx ────────┼────────────────┤ PA1 (ADC1_IN1)      │
               │ VRy ────────┼────────────────┤ PA2 (ADC1_IN2)      │
-              │ SW  ────────┼─ (tùy chọn)    │ không dùng trong FW │
               └─────────────┘                └─────────────────────┘
 ```
 
@@ -107,29 +114,31 @@ Dùng **một module joystick 2 trục** thay cho 4 nút hướng riêng lẻ. F
 
 | Tín hiệu module | Chân GPIO | Mô tả |
 |---|---|---|
-| **VRx** (trục X) | **PA1** | ADC1 kênh 1 — Trái/Phải |
-| **VRy** (trục Y) | **PA2** | ADC1 kênh 2 — Lên/Xuống |
-| **VCC** | **3.3V** | Không dùng 5V |
+| **Joystick 1 VRx** | **PA5** | ADC1 kênh 5 — Trái/Phải của Player 1 |
+| **Joystick 1 VRy** | **PA7** | ADC1 kênh 7 — Lên/Xuống của Player 1 |
+| **Joystick 2 VRx** | **PA1** | ADC1 kênh 1 — Trái/Phải của Player 2 |
+| **Joystick 2 VRy** | **PA2** | ADC1 kênh 2 — Lên/Xuống của Player 2 |
+| **VCC** | **3.3V** | Nguồn 3.3V (không đấu 5V) |
 | **GND** | **GND** | Mass chung |
-| **SW** | — | Không map trong firmware (dùng **PA0** để Start) |
 
 #### 3.6.3. Cấu hình phần mềm
 
 ```text
-ub_lib/stm32_ub_joystick.c   ← khởi tạo ADC + đọc trục
-ub_lib/stm32_ub_joystick.h   ← ngưỡng deadzone / threshold
-pacman_lib/gui.c             ← gui_check_joystick()
+ub_lib/stm32_ub_joystick.c   ← khởi tạo các chân GPIOA + ADC1 + hiệu chuẩn
+ub_lib/stm32_ub_joystick.h   ← định nghĩa kênh và các hàm đọc hướng
+pacman_lib/gui.c             ← gui_check_joystick1() và gui_check_joystick2()
 ```
 
 - Bật/tắt joystick: `JOYSTICK_USE_ADC` trong `stm32_ub_joystick.h` (`1` = bật).
-- Điều chỉnh độ nhạy: `JOY_ADC_DEADZONE`, `JOY_ADC_THRESHOLD`.
-- Nếu hướng bị ngược (Lên/Xuống đổi chỗ), đổi dây VRx ↔ VRy hoặc chỉnh logic trong `stm32_ub_joystick.c`.
+- Hiệu chuẩn tự động: Khi bật nguồn, driver sẽ đọc 16 mẫu ở vị trí nghỉ của cả hai joystick để làm điểm mốc cân bằng (center).
+- Nếu hướng đi bị ngược, đổi chân VRx/VRy hoặc đổi chiều logic trong `stm32_ub_joystick.c`.
 
-#### 3.6.4. Chế độ 2 người chơi (Co-op)
+#### 3.6.4. Chế độ điều khiển trong trận đấu
 
-Khi chơi 2 người, cấu hình phân chia điều khiển:
-1. **Player 1**: Điều khiển bằng 4 nút nhấn GPIO (PC2, PC3, PC5, PC11).
-2. **Player 2**: Điều khiển bằng Joystick analog (PA1/PA2).
+Khi vào trận, sơ đồ điều khiển được cố định như sau:
+1. **Player 1**: Điều khiển Pacman vàng bằng Joystick 1 (PA5/PA7).
+2. **Player 2**: Điều khiển Pacman xanh bằng Joystick 2 (PA1/PA2) (nếu ở chế độ Co-op).
+   *Các nút bấm hướng vật lý không còn tác dụng di chuyển nhân vật trong trận để tránh xung đột chân LCD.*
 
 ---
 
@@ -211,7 +220,8 @@ Nút DOWN của Player 1 ban đầu dùng chân PC4, nhưng hiện tại đã đ
 |---|---|
 | PC12 | LCD / SDRAM |
 | PC14, PC15 | Thạch anh 32.768 kHz (LSE) |
-| PA1, PA2 | Joystick analog (ADC1) cho Player 2 |
+| PA1, PA2 | Joystick analog 2 (Player 2) |
+| PA5, PA7 | Joystick analog 1 (Player 1) |
 | PA8, PC9 | Chân trống (đã tắt I2C3 touch) |
 | PF7–PF9 | SPI5 LCD |
 
@@ -266,12 +276,11 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 
 **Player 1 (Pacman vàng):**
 
-1. Ưu tiên **nút vật lý** PC2–PC5 (nút DOWN dùng PC11)
-2. Nếu không nhấn nút → dùng **joystick analog** PA1/PA2
+- Điều khiển bằng **Joystick analog 1** (VRx -> PA5, VRy -> PA7)
 
 **Player 2 (Pacman cyan — Co-op):**
 
-- **Joystick analog** PA1/PA2 (VRx/VRy)
+- Điều khiển bằng **Joystick analog 2** (VRx -> PA1, VRy -> PA2)
 
 **Bắt đầu ván:** Nhấn **PA0** (nút xanh) sau menu — đếm 3-2-1-GO.
 
@@ -286,9 +295,9 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 - [ ] Module joystick analog KY-023 + dây nối PA1/PA2 cho Player 2
 - [ ] Dây Dupont hoặc dây hàn + header GPIO
 
-### Bước 2 — Hàn điều khiển Player 1
+### Bước 2 — Hàn điều khiển và kết nối
 
-**Điều khiển Player 1 (4 nút riêng):**
+**Các nút bấm điều hướng Menu:**
 
 - [ ] Nút UP → **PC2** + GND
 - [ ] Nút RIGHT → **PC3** + GND
@@ -296,7 +305,11 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 - [ ] Nút DOWN → **PC11** + GND
 - [ ] Nút BACK → **PC1** + GND
 
-**Điều khiển Player 2 (Co-op - Joystick KY-023):**
+**Joystick điều khiển Player 1:**
+
+- [ ] VRx → **PA5**, VRy → **PA7**, VCC → **3.3V**, GND → **GND**
+
+**Joystick điều khiển Player 2 (chế độ Co-op):**
 
 - [ ] VRx → **PA1**, VRy → **PA2**, VCC → **3.3V**, GND → **GND**
 
