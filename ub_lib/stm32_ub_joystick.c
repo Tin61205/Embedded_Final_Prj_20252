@@ -111,7 +111,7 @@ static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx,
     }
 
     // Left: X = 0-2
-    if (val_x <= 2) {
+    if (val_x <= 4) {
         dir_x = JOY_DIR_LEFT;
         int32_t denom = cx;
         if (denom < 1) denom = 1;
@@ -126,14 +126,14 @@ static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx,
     }
 
     // Up: Y = 0-2
-    if (val_y <= 2) {
+    if (val_y <= 4) {
         dir_y = JOY_DIR_UP;
         int32_t denom = cy;
         if (denom < 1) denom = 1;
         dev_y = ((cy - val_y) * 1000) / denom;
     }
     // Down: Y > 250
-    else if (val_y > 250) {
+    else if (val_y > 150) {
         dir_y = JOY_DIR_DOWN;
         int32_t denom = 255 - cy;
         if (denom < 1) denom = 1;
