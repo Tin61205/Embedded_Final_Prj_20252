@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 
+#include "stm32_ub_buzzer.h"
 #include "gui.h"
 #include "pacman.h"
 #include "player.h"
@@ -275,6 +276,9 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
     if (p->status != PLAYER_STATUS_ALIVE) {
         return;
     }
+
+    // Play death sound (blocking tone sequence)
+    UB_Buzzer_Play_Die();
 
     if (p->lives > 0) {
         p->lives--;

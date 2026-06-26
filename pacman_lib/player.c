@@ -13,8 +13,8 @@
 // Includes
 //--------------------------------------------------------------
 #include "player.h"
-
 #include <stdio.h>
+#include "stm32_ub_buzzer.h"
 
 extern Level_t Level[];
 
@@ -273,9 +273,11 @@ static void player_entity_check_event(Player_t *p) {
         if (Maze.Room[xp][yp].points == ROOM_POINTS_NORMAL) {
             Player.score += (GAME_POINTS_NORMAL * (Player.level + 1)) / 2;
             Player.point_dots++;
+            UB_Buzzer_Play_EatDot();
         } else {
             Player.score += (GAME_POINTS_ENERGY * (Player.level + 1)) / 2;
             Player.point_dots++;
+            UB_Buzzer_Play_EatEnergizer();
             Game.frightened = BOOL_TRUE;
             Game.frightened_timer = GAME_FRIGHTENED_TIME;
             if (Blinky.status == GHOST_STATUS_ALIVE) Blinky.new_mode = 1;

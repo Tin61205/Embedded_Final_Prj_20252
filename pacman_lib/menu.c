@@ -11,6 +11,7 @@
 #include "maze_txtmap.h"
 #include "skin.h"
 #include "stm32_ub_graphic2d.h"
+#include "stm32_ub_buzzer.h"
 
 
 //--------------------------------------------------------------
@@ -223,6 +224,7 @@ static uint32_t menu_run_main(void) {
                 sel--;
             }
             menu_draw_main(sel);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN)) {
@@ -232,9 +234,11 @@ static uint32_t menu_run_main(void) {
                 sel++;
             }
             menu_draw_main(sel);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             if (sel == 0) {
                 return MENU_RESULT_CAMPAIGN;
             } else if (sel == 1) {
@@ -452,6 +456,7 @@ static uint32_t menu_run_custom_wizard(void) {
                 sel_line = max_lines - 1;
             }
             menu_draw_wizard(sel_line, 0);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN)) {
@@ -463,6 +468,7 @@ static uint32_t menu_run_custom_wizard(void) {
                 sel_line = 0;
             }
             menu_draw_wizard(sel_line, 0);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_LEFT) || UB_Button_OnClick(BTN_RIGHT)) {
@@ -479,13 +485,16 @@ static uint32_t menu_run_custom_wizard(void) {
 
             if (menu_handle_value_tap(0, 0, 10, simulated_y)) {
                 menu_draw_wizard(sel_line, 0);
+                UB_Buzzer_Play_MenuClick();
             }
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
             return 0; // Go back to map select
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             return 1; // Start game
         }
 
@@ -530,17 +539,21 @@ static uint32_t menu_run_custom_map_select(void) {
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_LEFT)) {
             Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
             menu_draw_custom_map_select();
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN) || UB_Button_OnClick(BTN_RIGHT)) {
             Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
             menu_draw_custom_map_select();
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
             return 0; // Go back to main menu
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             return 1; // Go to step 2
         }
 
@@ -621,11 +634,13 @@ static uint32_t menu_run_campaign_wizard(void) {
         if (UB_Button_OnClick(BTN_UP)) {
             sel_line = menu_cycle_value(sel_line, 0, 2, -1);
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN)) {
             sel_line = menu_cycle_value(sel_line, 0, 2, 1);
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_LEFT)) {
@@ -637,6 +652,7 @@ static uint32_t menu_run_campaign_wizard(void) {
                 Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_RIGHT)) {
@@ -648,12 +664,15 @@ static uint32_t menu_run_campaign_wizard(void) {
                 Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
             return 0; // Back to main menu
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             return 1; // Start
         }
         UB_Systick_Pause_ms(30);
@@ -694,6 +713,7 @@ static void menu_run_highscore_view(void) {
     
     while (1) {
         if (UB_Button_OnClick(BTN_BACK) || UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
             return;
         }

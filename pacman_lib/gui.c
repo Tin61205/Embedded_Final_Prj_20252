@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "stm32_ub_buzzer.h"
 
 // Global variable definition (declared extern in header)
 GUI_t GUI;
@@ -975,6 +976,9 @@ void gui_show_win_screen(uint32_t score) {
     
     UB_LCD_Refresh();
     
+    // Play win theme (blocking melody)
+    UB_Buzzer_Play_Win();
+    
     gui_wait_interaction();
 }
 
@@ -1012,6 +1016,9 @@ void gui_show_lost_screen(uint32_t score) {
     UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
     
     UB_LCD_Refresh();
+    
+    // Play lost theme (blocking melody)
+    UB_Buzzer_Play_Lost();
     
     gui_wait_interaction();
 }

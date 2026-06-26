@@ -114,6 +114,16 @@ void UB_Systick_Pause_s(volatile uint32_t pause)
 //--------------------------------------------------------------
 void SysTick_Handler(void)
 {
+  extern volatile uint32_t UB_Buzzer_Timer_ms;
+  extern void UB_Buzzer_Off(void);
+  
+  if (UB_Buzzer_Timer_ms != 0) {
+    UB_Buzzer_Timer_ms--;
+    if (UB_Buzzer_Timer_ms == 0) {
+      UB_Buzzer_Off();
+    }
+  }
+
   // Tick for Pause
   if(Systick_Delay != 0x00) {
     Systick_Delay--;

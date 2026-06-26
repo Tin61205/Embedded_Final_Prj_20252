@@ -16,6 +16,7 @@ Dự án hỗ trợ cả chế độ chơi đơn và chơi hai người bằng c
   - **Co-op Mode**: Hai Pacman (Pacman vàng và Pacman xanh lam) cùng tham gia ăn chấm và hỗ trợ nhau.
   - **Vs Ghost Mode**: Một người chơi điều khiển Pacman, người chơi thứ hai điều khiển Ghost Blinky màu đỏ để săn Pacman.
 - **Điều khiển linh hoạt**: Hỗ trợ 2 Joystick Analog (KY-023) để điều khiển nhân vật mượt mà và các phím bấm vật lý để điều hướng menu.
+- **Âm thanh sinh động**: Tích hợp còi chíp thụ động (Passive Buzzer) phát âm thanh click menu, tiếng waka ăn chấm thường/to, còi báo mất mạng và các giai điệu vui tươi/trầm buồn khi thắng hoặc thua game.
 
 ---
 
@@ -32,6 +33,7 @@ Dự án hỗ trợ cả chế độ chơi đơn và chơi hai người bằng c
 Dự án yêu cầu kit **STM32F429I-Discovery** cùng các ngoại vi kết nối qua hàng rào GPIO:
 - 2 Module Joystick Analog (KY-023) cho người chơi.
 - 5 nút nhấn vật lý momentary (NO) để điều hướng menu và dừng game.
+- 1 Còi chíp thụ động (Passive Buzzer).
 
 👉 Chi tiết sơ đồ kết nối và bảng chân GPIO xem tại: **[GUIDE.md](GUIDE.md)**.
 

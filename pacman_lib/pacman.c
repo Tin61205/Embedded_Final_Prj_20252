@@ -2,8 +2,8 @@
 // Includes
 //--------------------------------------------------------------
 #include "pacman.h"
-
 #include <stdio.h>
+#include "stm32_ub_buzzer.h"
 
 // Global variable definition (declared extern in header)
 Game_t Game;
@@ -311,6 +311,7 @@ uint32_t pacman_hw_init(void) {
     UB_Systick_Init();
     UB_Uart_Init();
     UB_Button_Init();
+    UB_Buzzer_Init();
 #if JOYSTICK_USE_ADC == 1
     UB_Joystick_Init();
 #endif
