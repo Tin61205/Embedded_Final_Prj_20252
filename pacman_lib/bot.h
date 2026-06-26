@@ -169,6 +169,7 @@ void bot_ghost_validate_position(Ghost_t *ghost);
 void bot_ghost_unstick(Ghost_t *ghost);
 void bot_release_ghosts_on_pacman_death(void);
 uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint16_t *color);
+void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn_x, uint32_t *respawn_y);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_BOT_H

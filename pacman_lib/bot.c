@@ -236,7 +236,7 @@ Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
     return &Player;
 }
 
-static void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn_x, uint32_t *respawn_y) {
+void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn_x, uint32_t *respawn_y) {
     uint32_t best_x = start_x;
     uint32_t best_y = start_y;
     int32_t max_min_dist = -1;
@@ -1025,9 +1025,28 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         ghosts[i]->status = GHOST_STATUS_ALIVE;
         ghosts[i]->xp = sx;
         ghosts[i]->yp = sy;
-        ghosts[i]->skin = GHOST_SKIN_LEFT1;
-        ghosts[i]->move = MOVE_LEFT;
-        ghosts[i]->next_move = MOVE_LEFT;
+
+        // Tìm hướng đi hợp lệ ban đầu từ vị trí xuất phát
+        uint32_t init_dir = MOVE_STOP;
+        uint32_t init_skin = GHOST_SKIN_LEFT1;
+
+        if (((Maze.Room[sx][sy].door & ROOM_DOOR_L) != 0) && bot_is_walkable(sx - 1, sy, 1)) {
+            init_dir = MOVE_LEFT;
+            init_skin = GHOST_SKIN_LEFT1;
+        } else if (((Maze.Room[sx][sy].door & ROOM_DOOR_R) != 0) && bot_is_walkable(sx + 1, sy, 1)) {
+            init_dir = MOVE_RIGHT;
+            init_skin = GHOST_SKIN_RIGHT1;
+        } else if (((Maze.Room[sx][sy].door & ROOM_DOOR_U) != 0) && bot_is_walkable(sx, sy - 1, 1)) {
+            init_dir = MOVE_UP;
+            init_skin = GHOST_SKIN_UP1;
+        } else if (((Maze.Room[sx][sy].door & ROOM_DOOR_D) != 0) && bot_is_walkable(sx, sy + 1, 1)) {
+            init_dir = MOVE_DOWN;
+            init_skin = GHOST_SKIN_DOWN1;
+        }
+
+        ghosts[i]->skin = init_skin;
+        ghosts[i]->move = init_dir;
+        ghosts[i]->next_move = init_dir;
         if (i == 0) {
             ghosts[i]->dot_cnt = BLINKY_DOT_CNT_MAX;
         } else if (i == 1) {
