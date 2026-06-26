@@ -67,9 +67,6 @@ uint32_t menu_start(void) {
     Game.campaign_map_id = MAZE_MAP_CLASSIC;
     Game.campaign_difficulty = 1;
     Game.campaign_coop = 0;
-    for (i = 0; i < MAZE_MAP_COUNT; i++) {
-        Game.campaign_high_scores[i] = 0;
-    }
 
     while (1) {
         srand_init++;

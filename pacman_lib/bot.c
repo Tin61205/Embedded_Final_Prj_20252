@@ -34,10 +34,14 @@ uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
 // (but don't go backwards to avoid toggling)
 //--------------------------------------------------------------
 uint32_t bot_is_2p_coop(void) {
-    return (Game.play_type == GAME_PLAY_CUSTOM &&
-            Game.custom.player_count == CUSTOM_PLAYER_2 &&
-            Game.custom.two_player_mode == CUSTOM_2P_COOP &&
-            Game.player2_active != 0) ? 1 : 0;
+    if (Game.play_type == GAME_PLAY_CUSTOM) {
+        return (Game.custom.player_count == CUSTOM_PLAYER_2 &&
+                Game.custom.two_player_mode == CUSTOM_2P_COOP &&
+                Game.player2_active != 0) ? 1 : 0;
+    } else if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+        return (Game.campaign_coop != 0 && Game.player2_active != 0) ? 1 : 0;
+    }
+    return 0;
 }
 
 uint32_t bot_is_2p_vs_ghost(void) {

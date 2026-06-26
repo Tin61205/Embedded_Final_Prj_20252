@@ -158,6 +158,13 @@ void pacman_start(void) {
     Game.player2_active = 0;
     Game.campaign_coop = 0;
 
+    {
+        uint32_t i;
+        for (i = 0; i < MAZE_MAP_COUNT; i++) {
+            Game.campaign_high_scores[i] = 0;
+        }
+    }
+
     pacman_init(GAME_OVER);
     pacman_hw_init();
 
