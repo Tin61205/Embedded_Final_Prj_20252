@@ -116,11 +116,39 @@ void gui_draw_errmaze(void) {
 // draw player
 //--------------------------------------------------------------
 void gui_draw_player(void) {
+    extern uint32_t Player_Dying_Timer_ms;
+    extern uint32_t Player_Invuln_Timer_ms;
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    // --- HIỆU ỨNG NHẤP NHÁY ĐỎ KHI CHẾT ---
+    if (Player.status == PLAYER_STATUS_DYING) {
+        if ((Player_Dying_Timer_ms / 100) % 2 == 0) {
+            x = Player.xp;
+            y = Player.yp;
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player.delta_x + BOTS_DIFF_X;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player.delta_y + BOTS_DIFF_Y;
+            if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+            if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+            koord.w = BOTS_WIDTH;
+            koord.h = BOTS_HEIGHT;
+            s = Player.skin;
+            koord.source_xp = Player_Skin[s].xp;
+            koord.source_yp = Player_Skin[s].yp;
+            UB_Graphic2D_DrawImageRectRecolor(koord, RGB_COL_RED);
+        }
+        return;
+    }
+
     if (Player.status != PLAYER_STATUS_ALIVE) {
         return;
+    }
+
+    // --- HIỆU ỨNG NHẤP NHÁY BẤT TỬ KHI HỒI SINH ---
+    if (Player_Invuln_Timer_ms > 0) {
+        if ((Player_Invuln_Timer_ms / 50) % 2 == 0) {
+            return; // Bỏ qua không vẽ frame này
+        }
     }
 
     x = Player.xp;
@@ -187,11 +215,39 @@ void gui_clear_player(void) {
 }
 
 void gui_draw_player2(void) {
+    extern uint32_t Player2_Dying_Timer_ms;
+    extern uint32_t Player2_Invuln_Timer_ms;
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    // --- HIỆU ỨNG NHẤP NHÁY ĐỎ KHI CHẾT ---
+    if (Player2.status == PLAYER_STATUS_DYING) {
+        if ((Player2_Dying_Timer_ms / 100) % 2 == 0) {
+            x = Player2.xp;
+            y = Player2.yp;
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player2.delta_x + BOTS_DIFF_X;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player2.delta_y + BOTS_DIFF_Y;
+            if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+            if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+            koord.w = BOTS_WIDTH;
+            koord.h = BOTS_HEIGHT;
+            s = Player2.skin;
+            koord.source_xp = Player_Skin[s].xp;
+            koord.source_yp = Player_Skin[s].yp;
+            UB_Graphic2D_DrawImageRectRecolor(koord, RGB_COL_RED);
+        }
+        return;
+    }
+
     if (Player2.status != PLAYER_STATUS_ALIVE) {
         return;
+    }
+
+    // --- HIỆU ỨNG NHẤP NHÁY BẤT TỬ KHI HỒI SINH ---
+    if (Player2_Invuln_Timer_ms > 0) {
+        if ((Player2_Invuln_Timer_ms / 50) % 2 == 0) {
+            return; // Bỏ qua không vẽ frame này
+        }
     }
 
     x = Player2.xp;

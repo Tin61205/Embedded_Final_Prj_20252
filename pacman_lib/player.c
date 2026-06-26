@@ -45,6 +45,8 @@ static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, 
     p->move = MOVE_LEFT;
     p->port = PORT_DONE;
     p->frightened_buf = PLAYER_FRIGHTENED_BUF;
+    p->respawn_x = start_x;
+    p->respawn_y = start_y;
 
     if (owns_meta == 1 && mode == GAME_OVER) {
         p->level = 1;
@@ -248,14 +250,20 @@ static void player_entity_change_skin(Player_t *p, uint32_t direction) {
 }
 
 static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
+    extern uint32_t Player_Invuln_Timer_ms;
+    extern uint32_t Player2_Invuln_Timer_ms;
+
     if (ghost->status != GHOST_STATUS_ALIVE) {
         return;
     }
     if (Game.frightened == BOOL_FALSE) {
-        if (p == &Player2) {
-            bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
-        } else {
-            bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
+        // Chỉ bị ma cắn nếu đang ALIVE và không trong thời gian bất tử (invulnerable)
+        if (p->status == PLAYER_STATUS_ALIVE) {
+            if (p == &Player2 && Player2_Invuln_Timer_ms == 0) {
+                bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
+            } else if (p == &Player && Player_Invuln_Timer_ms == 0) {
+                bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
+            }
         }
     } else {
         ghost->status = GHOST_STATUS_DEAD;

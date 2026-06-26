@@ -8,6 +8,8 @@
 #include "stm32f4xx_tim.h"
 
 volatile uint32_t UB_Buzzer_Timer_ms = 0;
+volatile uint32_t buzzer_sequence_step = 0;
+volatile uint32_t buzzer_sequence_timer = 0;
 
 void UB_Buzzer_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -81,8 +83,17 @@ void UB_Buzzer_PlayTone(uint32_t freq, uint32_t duration_ms) {
 }
 
 void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
+    if (buzzer_sequence_timer > 0) {
+        return; // Đang chạy nhạc chết, bỏ qua các âm thanh ngắn khác
+    }
     UB_Buzzer_On(freq);
     UB_Buzzer_Timer_ms = duration_ms;
+}
+
+void UB_Buzzer_Play_Die_NonBlocking(void) {
+    UB_Buzzer_On(1500);
+    buzzer_sequence_step = 0;
+    buzzer_sequence_timer = 100;
 }
 
 // ----------------------------------------------------------------------------

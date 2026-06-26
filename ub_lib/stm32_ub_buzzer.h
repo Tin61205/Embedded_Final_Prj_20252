@@ -29,4 +29,8 @@ void UB_Buzzer_Play_Die(void);
 void UB_Buzzer_Play_Win(void);
 void UB_Buzzer_Play_Lost(void);
 
+extern volatile uint32_t buzzer_sequence_step;
+extern volatile uint32_t buzzer_sequence_timer;
+void UB_Buzzer_Play_Die_NonBlocking(void);
+
 #endif // __STM32F4_UB_BUZZER_H

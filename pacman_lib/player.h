@@ -37,6 +37,7 @@
 #define  PLAYER_STATUS_ALIVE  0
 #define  PLAYER_STATUS_WIN    1
 #define  PLAYER_STATUS_DEAD   2
+#define  PLAYER_STATUS_DYING  3
 
 //--------------------------------------------------------------
 // Global Function

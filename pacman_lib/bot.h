@@ -63,6 +63,9 @@ typedef struct {
     uint32_t lives;
     uint32_t akt_speed_ms;
     uint32_t frightened_buf;
+    // Biến lưu vị trí hồi sinh dự kiến cho chế độ 2 người chơi
+    uint32_t respawn_x;
+    uint32_t respawn_y;
 }
 Player_t;
 

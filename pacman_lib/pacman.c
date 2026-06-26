@@ -404,6 +404,11 @@ void pacman_apply_custom_config(uint32_t mode) {
 // play one round pacman (until pacman die or level complete)
 //--------------------------------------------------------------
 uint32_t pacman_play(void) {
+    extern uint32_t Player_Dying_Timer_ms;
+    extern uint32_t Player_Invuln_Timer_ms;
+    extern uint32_t Player2_Dying_Timer_ms;
+    extern uint32_t Player2_Invuln_Timer_ms;
+
     uint32_t ret_wert = GAME_RUN;
     uint32_t joy = GUI_JOY_NONE;
     uint32_t movement = 0;
@@ -413,6 +418,52 @@ uint32_t pacman_play(void) {
     UB_LCD_Copy_Layer2_to_Layer1();
 
     do {
+        // --- XỬ LÝ RESPAWN NON-BLOCKING CHO PLAYER 1 ---
+        if (Player.status == PLAYER_STATUS_DYING && Player_Dying_Timer_ms == 0) {
+            if (Player.lives == 0) {
+                Player.status = PLAYER_STATUS_DEAD;
+            } else {
+                uint32_t rx = Player.respawn_x;
+                uint32_t ry = Player.respawn_y;
+                bot_find_safe_respawn(Player.respawn_x, Player.respawn_y, &rx, &ry);
+                Player.xp = rx;
+                Player.yp = ry;
+                Player.delta_x = 0;
+                Player.delta_y = 0;
+                Player.move = MOVE_STOP;
+                Player.skin = PLAYER_SKIN_LEFT1;
+                Player.skin_cnt = 0;
+                Player.port = PORT_DONE;
+                Player.status = PLAYER_STATUS_ALIVE;
+                Player_Invuln_Timer_ms = 1500; // Bất tử trong 1.5 giây
+            }
+            bot_release_ghosts_on_pacman_death();
+            GUI.refresh_value = GUI_REFRESH_VALUE;
+        }
+
+        // --- XỬ LÝ RESPAWN NON-BLOCKING CHO PLAYER 2 ---
+        if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DYING && Player2_Dying_Timer_ms == 0) {
+            if (Player2.lives == 0) {
+                Player2.status = PLAYER_STATUS_DEAD;
+            } else {
+                uint32_t rx = Player2.respawn_x;
+                uint32_t ry = Player2.respawn_y;
+                bot_find_safe_respawn(Player2.respawn_x, Player2.respawn_y, &rx, &ry);
+                Player2.xp = rx;
+                Player2.yp = ry;
+                Player2.delta_x = 0;
+                Player2.delta_y = 0;
+                Player2.move = MOVE_STOP;
+                Player2.skin = PLAYER_SKIN_LEFT1;
+                Player2.skin_cnt = 0;
+                Player2.port = PORT_DONE;
+                Player2.status = PLAYER_STATUS_ALIVE;
+                Player2_Invuln_Timer_ms = 1500; // Bất tử trong 1.5 giây
+            }
+            bot_release_ghosts_on_pacman_death();
+            GUI.refresh_value = GUI_REFRESH_VALUE;
+        }
+
         //----------------------------------------
         // Touch/Button Timer
         //----------------------------------------

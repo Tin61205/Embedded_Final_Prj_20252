@@ -277,34 +277,58 @@ static void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *
 }
 
 void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
+    extern uint32_t Player_Dying_Timer_ms;
+    extern uint32_t Player2_Dying_Timer_ms;
+    extern void UB_Buzzer_Play_Die_NonBlocking(void);
+
     if (p->status != PLAYER_STATUS_ALIVE) {
         return;
     }
 
-    // Play death sound (blocking tone sequence)
-    UB_Buzzer_Play_Die();
-
-    if (p->lives > 0) {
-        p->lives--;
-    }
-    if (p->lives == 0) {
-        p->status = PLAYER_STATUS_DEAD;
+    if (Game.player2_active != 0) {
+        // --- CHẾ ĐỘ 2 NGƯỜI CHƠI (NON-BLOCKING) ---
+        if (p->lives > 0) {
+            p->lives--;
+        }
+        
+        p->status = PLAYER_STATUS_DYING;
+        p->respawn_x = start_x;
+        p->respawn_y = start_y;
+        
+        if (p == &Player) {
+            Player_Dying_Timer_ms = 1000; // 1 giây animation
+        } else {
+            Player2_Dying_Timer_ms = 1000; // 1 giây animation
+        }
+        
+        UB_Buzzer_Play_Die_NonBlocking();
     } else {
-        uint32_t rx = start_x;
-        uint32_t ry = start_y;
-        bot_find_safe_respawn(start_x, start_y, &rx, &ry);
-        p->xp = rx;
-        p->yp = ry;
-        p->delta_x = 0;
-        p->delta_y = 0;
-        p->move = MOVE_STOP;
-        p->skin = PLAYER_SKIN_LEFT1;
-        p->skin_cnt = 0;
-        p->port = PORT_DONE;
-        p->status = PLAYER_STATUS_ALIVE;
+        // --- CHẾ ĐỘ 1 NGƯỜI CHƠI (BLOCKING NHƯ CŨ) ---
+        // Play death sound (blocking tone sequence)
+        UB_Buzzer_Play_Die();
+
+        if (p->lives > 0) {
+            p->lives--;
+        }
+        if (p->lives == 0) {
+            p->status = PLAYER_STATUS_DEAD;
+        } else {
+            uint32_t rx = start_x;
+            uint32_t ry = start_y;
+            bot_find_safe_respawn(start_x, start_y, &rx, &ry);
+            p->xp = rx;
+            p->yp = ry;
+            p->delta_x = 0;
+            p->delta_y = 0;
+            p->move = MOVE_STOP;
+            p->skin = PLAYER_SKIN_LEFT1;
+            p->skin_cnt = 0;
+            p->port = PORT_DONE;
+            p->status = PLAYER_STATUS_ALIVE;
+        }
+        bot_release_ghosts_on_pacman_death();
+        GUI.refresh_value = GUI_REFRESH_VALUE;
     }
-    bot_release_ghosts_on_pacman_death();
-    GUI.refresh_value = GUI_REFRESH_VALUE;
 }
 
 void bot_team_kill_pacman(void) {

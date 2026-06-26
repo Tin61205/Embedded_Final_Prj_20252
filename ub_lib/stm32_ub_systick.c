@@ -15,6 +15,10 @@ uint32_t  Pinky_Systic_Timer_ms;
 uint32_t  Inky_Systic_Timer_ms;
 uint32_t  Clyde_Systic_Timer_ms;
 uint32_t  UB_Game_Timers_Paused = 0;
+uint32_t  Player_Dying_Timer_ms = 0;
+uint32_t  Player_Invuln_Timer_ms = 0;
+uint32_t  Player2_Dying_Timer_ms = 0;
+uint32_t  Player2_Invuln_Timer_ms = 0;
 
 
 
@@ -46,6 +50,10 @@ void UB_Systick_Init(void) {
   Gui_Touch_Timer_ms=0;
   Blinky_Systic_Timer_ms=0;
   Mode_Systic_Timer_ms=0;
+  Player_Dying_Timer_ms=0;
+  Player_Invuln_Timer_ms=0;
+  Player2_Dying_Timer_ms=0;
+  Player2_Invuln_Timer_ms=0;
 
 
   #if SYSTICK_RESOLUTION==1
@@ -116,11 +124,38 @@ void SysTick_Handler(void)
 {
   extern volatile uint32_t UB_Buzzer_Timer_ms;
   extern void UB_Buzzer_Off(void);
+  extern void UB_Buzzer_On(uint32_t freq);
+  extern volatile uint32_t buzzer_sequence_step;
+  extern volatile uint32_t buzzer_sequence_timer;
   
   if (UB_Buzzer_Timer_ms != 0) {
     UB_Buzzer_Timer_ms--;
     if (UB_Buzzer_Timer_ms == 0) {
       UB_Buzzer_Off();
+    }
+  }
+
+  // Máy trạng thái âm thanh non-blocking nhạc chết
+  if (buzzer_sequence_timer > 0) {
+    buzzer_sequence_timer--;
+    if (buzzer_sequence_timer == 0) {
+      buzzer_sequence_step++;
+      if (buzzer_sequence_step == 1) {
+        UB_Buzzer_On(1200);
+        buzzer_sequence_timer = 100;
+      } else if (buzzer_sequence_step == 2) {
+        UB_Buzzer_On(900);
+        buzzer_sequence_timer = 100;
+      } else if (buzzer_sequence_step == 3) {
+        UB_Buzzer_On(600);
+        buzzer_sequence_timer = 100;
+      } else if (buzzer_sequence_step == 4) {
+        UB_Buzzer_On(300);
+        buzzer_sequence_timer = 150;
+      } else {
+        UB_Buzzer_Off();
+        buzzer_sequence_step = 0;
+      }
     }
   }
 
@@ -160,6 +195,22 @@ void SysTick_Handler(void)
 
     if(Clyde_Systic_Timer_ms!=0) {
       Clyde_Systic_Timer_ms--;
+    }
+    
+    // Đếm ngược timer hiệu ứng cho Player 1
+    if (Player_Dying_Timer_ms != 0) {
+      Player_Dying_Timer_ms--;
+    }
+    if (Player_Invuln_Timer_ms != 0) {
+      Player_Invuln_Timer_ms--;
+    }
+    
+    // Đếm ngược timer hiệu ứng cho Player 2
+    if (Player2_Dying_Timer_ms != 0) {
+      Player2_Dying_Timer_ms--;
+    }
+    if (Player2_Invuln_Timer_ms != 0) {
+      Player2_Invuln_Timer_ms--;
     }
   }
 }
