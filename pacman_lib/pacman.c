@@ -128,7 +128,7 @@ void pacman_apply_campaign_difficulty(uint32_t mode) {
     Inky.strategy = config.strategies[2];
     Clyde.strategy = config.strategies[3];
     
-    Player.akt_speed_ms = 30; // Standard speed for player
+    Player.akt_speed_ms = Level[diff - 1].player_speed;
     Player.level = diff;
 
     Game.player2_active = 0;
