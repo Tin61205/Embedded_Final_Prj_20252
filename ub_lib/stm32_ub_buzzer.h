@@ -29,6 +29,16 @@ void UB_Buzzer_Play_Die(void);
 void UB_Buzzer_Play_Win(void);
 void UB_Buzzer_Play_Lost(void);
 
+typedef enum {
+    BUZZER_COUNTDOWN_READY = 0,
+    BUZZER_COUNTDOWN_3,
+    BUZZER_COUNTDOWN_2,
+    BUZZER_COUNTDOWN_1,
+    BUZZER_COUNTDOWN_GO,
+} BuzzerCountdownStep_t;
+
+uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step);
+
 extern volatile uint32_t buzzer_sequence_step;
 extern volatile uint32_t buzzer_sequence_timer;
 void UB_Buzzer_Play_Die_NonBlocking(void);

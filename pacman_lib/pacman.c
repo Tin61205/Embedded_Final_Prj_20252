@@ -206,16 +206,39 @@ void pacman_start(void) {
             GUI.refresh_buttons = GUI_REFRESH_VALUE;
             gui_draw_gui(GUI_JOY_NONE);
 
-            gui_show_countdown_text("GET READY", 2);
-            UB_Systick_Pause_ms(1000);
-            gui_show_countdown_text("3", 3);
-            UB_Systick_Pause_ms(1000);
-            gui_show_countdown_text("2", 3);
-            UB_Systick_Pause_ms(1000);
-            gui_show_countdown_text("1", 3);
-            UB_Systick_Pause_ms(1000);
-            gui_show_countdown_text("GO!", 3);
-            UB_Systick_Pause_ms(500);
+            {
+                uint32_t played_ms;
+
+                gui_show_countdown_text("GET READY", 2);
+                played_ms = UB_Buzzer_Play_Countdown(BUZZER_COUNTDOWN_READY);
+                if (played_ms < 1000U) {
+                    UB_Systick_Pause_ms(1000U - played_ms);
+                }
+
+                gui_show_countdown_text("3", 3);
+                played_ms = UB_Buzzer_Play_Countdown(BUZZER_COUNTDOWN_3);
+                if (played_ms < 1000U) {
+                    UB_Systick_Pause_ms(1000U - played_ms);
+                }
+
+                gui_show_countdown_text("2", 3);
+                played_ms = UB_Buzzer_Play_Countdown(BUZZER_COUNTDOWN_2);
+                if (played_ms < 1000U) {
+                    UB_Systick_Pause_ms(1000U - played_ms);
+                }
+
+                gui_show_countdown_text("1", 3);
+                played_ms = UB_Buzzer_Play_Countdown(BUZZER_COUNTDOWN_1);
+                if (played_ms < 1000U) {
+                    UB_Systick_Pause_ms(1000U - played_ms);
+                }
+
+                gui_show_countdown_text("GO!", 3);
+                played_ms = UB_Buzzer_Play_Countdown(BUZZER_COUNTDOWN_GO);
+                if (played_ms < 1500U) {
+                    UB_Systick_Pause_ms(1500U - played_ms);
+                }
+            }
 
             // Redraw clean maze/bots/gui to remove countdown text overlay
             gui_draw_maze();

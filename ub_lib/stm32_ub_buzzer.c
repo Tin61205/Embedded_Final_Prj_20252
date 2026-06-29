@@ -96,6 +96,23 @@ void UB_Buzzer_Play_Die_NonBlocking(void) {
     buzzer_sequence_timer = 100;
 }
 
+typedef struct {
+    uint32_t freq;
+    uint32_t duration_ms;
+} BuzzerNote_t;
+
+static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) {
+    uint32_t i;
+    uint32_t total_ms = 0;
+
+    for (i = 0; i < count; i++) {
+        UB_Buzzer_PlayTone(notes[i].freq, notes[i].duration_ms);
+        total_ms += notes[i].duration_ms;
+    }
+
+    return total_ms;
+}
+
 // ----------------------------------------------------------------------------
 // Game sound effects implementation
 // ----------------------------------------------------------------------------
@@ -121,13 +138,109 @@ void UB_Buzzer_Play_Die(void) {
     UB_Buzzer_PlayTone(300, 150);
 }
 
+// Countdown cues derived from sound/starting-game.mp3
+static const BuzzerNote_t countdown_ready[] = {
+    { 587,  80 }, // D5
+    { 523,  80 }, // C5
+    { 1047, 80 }, // C6
+};
+
+static const BuzzerNote_t countdown_3[] = {
+    { 1047, 80 }, // C6
+    { 784,  80 }, // G5
+    { 659,  160 }, // E5
+    { 1047, 80 }, // C6
+    { 784,  160 }, // G5
+    { 659,  160 }, // E5
+};
+
+static const BuzzerNote_t countdown_2[] = {
+    { 587,  80 }, // D5
+    { 1175, 80 }, // D6
+    { 1047, 80 }, // C6
+    { 880,  80 }, // A5
+    { 698,  160 }, // F5
+    { 1175, 80 }, // D6
+    { 880,  80 }, // A5
+};
+
+static const BuzzerNote_t countdown_1[] = {
+    { 698,  240 }, // F5
+    { 262,  80 }, // C4
+    { 523,  80 }, // C5
+    { 1047, 160 }, // C6
+    { 784,  160 }, // G5
+};
+
+static const BuzzerNote_t countdown_go[] = {
+    { 1047, 160 }, // C6
+    { 784,  80 }, // G5
+    { 659,  320 }, // E5
+    { 698,  160 }, // F5
+    { 784,  320 }, // G5
+    { 880,  160 }, // A5
+    { 1047, 160 }, // C6
+    { 262,  80 }, // C4
+};
+
+uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step) {
+    switch (step) {
+        case BUZZER_COUNTDOWN_READY:
+            return UB_Buzzer_PlayMelody(countdown_ready,
+                sizeof(countdown_ready) / sizeof(countdown_ready[0]));
+        case BUZZER_COUNTDOWN_3:
+            return UB_Buzzer_PlayMelody(countdown_3,
+                sizeof(countdown_3) / sizeof(countdown_3[0]));
+        case BUZZER_COUNTDOWN_2:
+            return UB_Buzzer_PlayMelody(countdown_2,
+                sizeof(countdown_2) / sizeof(countdown_2[0]));
+        case BUZZER_COUNTDOWN_1:
+            return UB_Buzzer_PlayMelody(countdown_1,
+                sizeof(countdown_1) / sizeof(countdown_1[0]));
+        case BUZZER_COUNTDOWN_GO:
+            return UB_Buzzer_PlayMelody(countdown_go,
+                sizeof(countdown_go) / sizeof(countdown_go[0]));
+        default:
+            return 0;
+    }
+}
+
+// Victory fanfare derived from sound/victory_effect.mp3 (~3.9s)
+static const BuzzerNote_t win_melody[] = {
+    { 523,  100 }, // C5
+    { 1047, 100 }, // C6
+    { 784,  100 }, // G5
+    { 659,  100 }, // E5
+    { 1047, 100 }, // C6
+    { 784,  100 }, // G5
+    { 659,  300 }, // E5
+    { 523,  100 }, // C5
+    { 1047, 100 }, // C6
+    { 784,  100 }, // G5
+    { 392,  100 }, // G4
+    { 698,  100 }, // F5
+    { 1047, 100 }, // C6
+    { 784,  100 }, // G5
+    { 698,  100 }, // F5
+    { 523,  100 }, // C5
+    { 294,  100 }, // D4
+    { 1047, 100 }, // C6
+    { 784,  100 }, // G5
+    { 659,  100 }, // E5
+    { 784,  100 }, // G5
+    { 392,  100 }, // G4
+    { 659,  300 }, // E5
+    { 698,  100 }, // F5
+    { 784,  400 }, // G5
+    { 880,  100 }, // A5
+    { 1047, 200 }, // C6
+    { 440,  200 }, // A4
+    { 392,  100 }, // G4
+    { 330,  100 }, // E4
+};
+
 void UB_Buzzer_Play_Win(void) {
-    // Upbeat winning melody: Do-Re-Mi-Sol-Do
-    UB_Buzzer_PlayTone(523, 150);  // Do (C5)
-    UB_Buzzer_PlayTone(587, 150);  // Re (D5)
-    UB_Buzzer_PlayTone(659, 150);  // Mi (E5)
-    UB_Buzzer_PlayTone(784, 250);  // Sol (G5)
-    UB_Buzzer_PlayTone(1046, 400); // Do (C6)
+    UB_Buzzer_PlayMelody(win_melody, sizeof(win_melody) / sizeof(win_melody[0]));
 }
 
 void UB_Buzzer_Play_Lost(void) {
