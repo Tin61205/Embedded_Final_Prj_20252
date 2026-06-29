@@ -423,7 +423,6 @@ uint32_t pacman_play(void) {
             if (Player.lives == 0) {
                 Player.status = PLAYER_STATUS_DEAD;
             } else {
-                gui_clear_player();
                 uint32_t rx = Player.respawn_x;
                 uint32_t ry = Player.respawn_y;
                 bot_find_safe_respawn(Player.respawn_x, Player.respawn_y, &rx, &ry);
@@ -437,6 +436,12 @@ uint32_t pacman_play(void) {
                 Player.port = PORT_DONE;
                 Player.status = PLAYER_STATUS_ALIVE;
                 Player_Invuln_Timer_ms = 1500; // Bất tử trong 1.5 giây
+
+                // Vẽ lại toàn bộ mê cung và đồng bộ 2 layer LCD để xóa hoàn toàn sprite cũ ở vị trí chết
+                gui_draw_maze();
+                gui_draw_bots();
+                UB_LCD_Copy_Layer2_to_Layer1();
+                UB_LCD_Refresh();
             }
             bot_release_ghosts_on_pacman_death();
             GUI.refresh_value = GUI_REFRESH_VALUE;
@@ -447,7 +452,6 @@ uint32_t pacman_play(void) {
             if (Player2.lives == 0) {
                 Player2.status = PLAYER_STATUS_DEAD;
             } else {
-                gui_clear_player2();
                 uint32_t rx = Player2.respawn_x;
                 uint32_t ry = Player2.respawn_y;
                 bot_find_safe_respawn(Player2.respawn_x, Player2.respawn_y, &rx, &ry);
@@ -461,6 +465,12 @@ uint32_t pacman_play(void) {
                 Player2.port = PORT_DONE;
                 Player2.status = PLAYER_STATUS_ALIVE;
                 Player2_Invuln_Timer_ms = 1500; // Bất tử trong 1.5 giây
+
+                // Vẽ lại toàn bộ mê cung và đồng bộ 2 layer LCD để xóa hoàn toàn sprite cũ ở vị trí chết
+                gui_draw_maze();
+                gui_draw_bots();
+                UB_LCD_Copy_Layer2_to_Layer1();
+                UB_LCD_Refresh();
             }
             bot_release_ghosts_on_pacman_death();
             GUI.refresh_value = GUI_REFRESH_VALUE;

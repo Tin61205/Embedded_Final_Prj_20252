@@ -73,11 +73,11 @@ void UB_Joystick_Init(void) {
         joy2_center_x = sum2_x / JOY_ADC_CALIB_SAMPLES;
         joy2_center_y = sum2_y / JOY_ADC_CALIB_SAMPLES;
 
-        // Giới hạn an toàn (Safe bounds) cho hiệu chuẩn trung tâm (nếu lệch quá thì đưa về 2048)
-        if (joy1_center_x < 1500 || joy1_center_x > 2600) joy1_center_x = JOY_ADC_CENTER;
-        if (joy1_center_y < 1500 || joy1_center_y > 2600) joy1_center_y = JOY_ADC_CENTER;
-        if (joy2_center_x < 1500 || joy2_center_x > 2600) joy2_center_x = JOY_ADC_CENTER;
-        if (joy2_center_y < 1500 || joy2_center_y > 2600) joy2_center_y = JOY_ADC_CENTER;
+        // Giới hạn an toàn (Safe bounds) cho hiệu chuẩn trung tâm (chỉ đưa về 2048 nếu bị đứt dây/hỏng hẳn)
+        if (joy1_center_x < 200 || joy1_center_x > 3900) joy1_center_x = JOY_ADC_CENTER;
+        if (joy1_center_y < 200 || joy1_center_y > 3900) joy1_center_y = JOY_ADC_CENTER;
+        if (joy2_center_x < 200 || joy2_center_x > 3900) joy2_center_x = JOY_ADC_CENTER;
+        if (joy2_center_y < 200 || joy2_center_y > 3900) joy2_center_y = JOY_ADC_CENTER;
     }
 }
 

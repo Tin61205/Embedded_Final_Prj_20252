@@ -313,14 +313,6 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         if (p->lives == 0) {
             p->status = PLAYER_STATUS_DEAD;
         } else {
-            extern void gui_clear_player(void);
-            extern void gui_clear_player2(void);
-            if (p == &Player) {
-                gui_clear_player();
-            } else {
-                gui_clear_player2();
-            }
-
             uint32_t rx = start_x;
             uint32_t ry = start_y;
             bot_find_safe_respawn(start_x, start_y, &rx, &ry);
@@ -333,6 +325,16 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
             p->skin_cnt = 0;
             p->port = PORT_DONE;
             p->status = PLAYER_STATUS_ALIVE;
+
+            // Vẽ lại toàn bộ mê cung và đồng bộ 2 layer LCD để xóa hoàn toàn sprite cũ ở vị trí chết
+            extern void gui_draw_maze(void);
+            extern void gui_draw_bots(void);
+            extern void UB_LCD_Copy_Layer2_to_Layer1(void);
+            extern void UB_LCD_Refresh(void);
+            gui_draw_maze();
+            gui_draw_bots();
+            UB_LCD_Copy_Layer2_to_Layer1();
+            UB_LCD_Refresh();
         }
         bot_release_ghosts_on_pacman_death();
         GUI.refresh_value = GUI_REFRESH_VALUE;
