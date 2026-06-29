@@ -11,11 +11,11 @@ volatile uint32_t UB_Buzzer_Timer_ms = 0;
 volatile uint32_t buzzer_sequence_step = 0;
 volatile uint32_t buzzer_sequence_timer = 0;
 
-// Chỉ bật buzzer lúc countdown (starting) và thắng game
-#define BUZZER_ENABLE_MENU_CLICK   0
-#define BUZZER_ENABLE_EAT_DOT      0
-#define BUZZER_ENABLE_EAT_ENERGY   0
-#define BUZZER_ENABLE_DIE          0
+// Bật/tắt từng loại âm thanh (countdown + win luôn bật)
+#define BUZZER_ENABLE_MENU_CLICK   1
+#define BUZZER_ENABLE_EAT_DOT      1
+#define BUZZER_ENABLE_EAT_ENERGY   1
+#define BUZZER_ENABLE_DIE          1
 #define BUZZER_ENABLE_LOST         0
 
 void UB_Buzzer_Init(void) {
@@ -106,9 +106,10 @@ void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
 
 void UB_Buzzer_Play_Die_NonBlocking(void) {
 #if BUZZER_ENABLE_DIE
-    UB_Buzzer_On(1500);
+    UB_Buzzer_StopAll();
+    UB_Buzzer_On(880);
     buzzer_sequence_step = 0;
-    buzzer_sequence_timer = 100;
+    buzzer_sequence_timer = 120;
 #endif
 }
 
@@ -137,29 +138,41 @@ static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) 
 
 void UB_Buzzer_Play_MenuClick(void) {
 #if BUZZER_ENABLE_MENU_CLICK
-    UB_Buzzer_PlayToneNonBlocking(1200, 50);
+    if (buzzer_sequence_timer > 0) {
+        return;
+    }
+    UB_Buzzer_PlayToneNonBlocking(880, 40);
 #endif
 }
 
 void UB_Buzzer_Play_EatDot(void) {
 #if BUZZER_ENABLE_EAT_DOT
-    UB_Buzzer_PlayToneNonBlocking(800, 30);
+    static uint8_t waka_high = 0;
+
+    if (buzzer_sequence_timer > 0 || UB_Buzzer_Timer_ms > 0) {
+        return;
+    }
+    waka_high ^= 1;
+    UB_Buzzer_PlayToneNonBlocking(waka_high ? 440 : 330, 35);
 #endif
 }
 
 void UB_Buzzer_Play_EatEnergizer(void) {
 #if BUZZER_ENABLE_EAT_ENERGY
-    UB_Buzzer_PlayToneNonBlocking(1500, 100);
+    UB_Buzzer_StopAll();
+    UB_Buzzer_On(988);
+    UB_Buzzer_Timer_ms = 60;
 #endif
 }
 
 void UB_Buzzer_Play_Die(void) {
 #if BUZZER_ENABLE_DIE
-    UB_Buzzer_PlayTone(1500, 100);
-    UB_Buzzer_PlayTone(1200, 100);
-    UB_Buzzer_PlayTone(900, 100);
-    UB_Buzzer_PlayTone(600, 100);
-    UB_Buzzer_PlayTone(300, 150);
+    UB_Buzzer_StopAll();
+    UB_Buzzer_PlayTone(880, 120);
+    UB_Buzzer_PlayTone(698, 120);
+    UB_Buzzer_PlayTone(523, 120);
+    UB_Buzzer_PlayTone(392, 120);
+    UB_Buzzer_PlayTone(262, 200);
 #endif
 }
 
