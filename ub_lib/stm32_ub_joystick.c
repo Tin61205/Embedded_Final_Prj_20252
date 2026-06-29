@@ -111,7 +111,7 @@ static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx,
     }
 
     // Ngưỡng vùng chết (deadzone) cho dải 8-bit (0-255)
-    int32_t threshold = 30;
+    int32_t threshold = 15;
 
     // Left: val_x nhỏ hơn cx - threshold
     if (val_x < (cx - threshold)) {
