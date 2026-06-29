@@ -110,30 +110,33 @@ static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx,
         cy >>= 4;
     }
 
-    // Left: X = 0-2
-    if (val_x <= 4) {
+    // Ngưỡng vùng chết (deadzone) cho dải 8-bit (0-255)
+    int32_t threshold = 30;
+
+    // Left: val_x nhỏ hơn cx - threshold
+    if (val_x < (cx - threshold)) {
         dir_x = JOY_DIR_LEFT;
         int32_t denom = cx;
         if (denom < 1) denom = 1;
         dev_x = ((cx - val_x) * 1000) / denom;
     }
-    // Right: X > 100
-    else if (val_x > 100) {
+    // Right: val_x lớn hơn cx + threshold
+    else if (val_x > (cx + threshold)) {
         dir_x = JOY_DIR_RIGHT;
         int32_t denom = 255 - cx;
         if (denom < 1) denom = 1;
         dev_x = ((val_x - cx) * 1000) / denom;
     }
 
-    // Up: Y = 0-2
-    if (val_y <= 4) {
+    // Up: val_y nhỏ hơn cy - threshold
+    if (val_y < (cy - threshold)) {
         dir_y = JOY_DIR_UP;
         int32_t denom = cy;
         if (denom < 1) denom = 1;
         dev_y = ((cy - val_y) * 1000) / denom;
     }
-    // Down: Y > 250
-    else if (val_y > 150) {
+    // Down: val_y lớn hơn cy + threshold
+    else if (val_y > (cy + threshold)) {
         dir_y = JOY_DIR_DOWN;
         int32_t denom = 255 - cy;
         if (denom < 1) denom = 1;

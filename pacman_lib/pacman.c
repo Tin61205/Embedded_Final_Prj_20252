@@ -475,12 +475,13 @@ uint32_t pacman_play(void) {
             if (joy == GUI_JOY_NONE) {
                 joy = gui_check_touch();
             }
-        }
 
-        if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
-            Game.player2_joy = gui_check_joystick2();
-        } else {
-            Game.player2_joy = GUI_JOY_NONE;
+            // Player 2 controls via Joystick 2 in gameplay
+            if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
+                Game.player2_joy = gui_check_joystick2();
+            } else {
+                Game.player2_joy = GUI_JOY_NONE;
+            }
         }
 
         if (UB_Button_OnClick(BTN_BACK)) {
