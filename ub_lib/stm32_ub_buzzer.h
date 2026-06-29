@@ -6,17 +6,15 @@
 
 #include "stm32f4xx.h"
 
-// Passive Buzzer hardware configuration
-// PC9 corresponds to TIM3_CH4
+// TMB12A05 active buzzer on PC9 (GPIO on/off, not PWM tone)
 #define BUZZER_GPIO_PORT       GPIOC
 #define BUZZER_GPIO_PIN        GPIO_Pin_9
 #define BUZZER_GPIO_CLK        RCC_AHB1Periph_GPIOC
-#define BUZZER_GPIO_PINSOURCE  GPIO_PinSource9
-#define BUZZER_GPIO_AF         GPIO_AF_TIM3
 
 void UB_Buzzer_Init(void);
 void UB_Buzzer_Stop(void);
 void UB_Buzzer_TickMenuCooldown(void);
+void UB_Buzzer_SequenceTick(void);
 void UB_Buzzer_SetTone(uint32_t freq);
 void UB_Buzzer_On(uint32_t freq);
 void UB_Buzzer_Off(void);

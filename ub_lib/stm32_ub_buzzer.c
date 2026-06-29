@@ -1,19 +1,23 @@
 //--------------------------------------------------------------
 // File     : stm32_ub_buzzer.c
+// Buzzer: TMB12A05 (active, ~2.3kHz fixed) — GPIO on/off only
 //--------------------------------------------------------------
 #include "stm32_ub_buzzer.h"
 #include "stm32_ub_systick.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_rcc.h"
-#include "stm32f4xx_tim.h"
 
 volatile uint32_t UB_Buzzer_Timer_ms = 0;
 volatile uint32_t buzzer_sequence_step = 0;
 volatile uint32_t buzzer_sequence_timer = 0;
 
-// Bật/tắt từng loại âm thanh (countdown + win luôn bật)
+#define BUZZER_ACTIVE              1
+#define BUZZER_NOTE_GAP_MS         25
+#define BUZZER_WAKA_SHORT_MS       24
+#define BUZZER_WAKA_LONG_MS        32
+
 #define BUZZER_ENABLE_MENU_CLICK   1
-#define BUZZER_ENABLE_EAT_DOT      0
+#define BUZZER_ENABLE_EAT_DOT      1
 #define BUZZER_ENABLE_EAT_ENERGY   1
 #define BUZZER_ENABLE_DIE          1
 #define BUZZER_ENABLE_LOST         0
@@ -23,68 +27,33 @@ static volatile uint32_t buzzer_menu_cooldown_ms = 0;
 
 void UB_Buzzer_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_OCInitTypeDef TIM_OCInitStructure;
 
-    // 1. Enable Clocks for GPIOC and TIM3
     RCC_AHB1PeriphClockCmd(BUZZER_GPIO_CLK, ENABLE);
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-
-    // 2. Configure PC9 as Alternate Function for TIM3 CH4
-    GPIO_PinAFConfig(BUZZER_GPIO_PORT, BUZZER_GPIO_PINSOURCE, BUZZER_GPIO_AF);
 
     GPIO_InitStructure.GPIO_Pin = BUZZER_GPIO_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(BUZZER_GPIO_PORT, &GPIO_InitStructure);
 
-    // 3. Configure TIM3 Base
-    // Prescaler = 89 => Timer clock = 90MHz / 90 = 1MHz (1 tick = 1us)
-    // TIM3 is on APB1, on STM32F429 APB1 clock is max 45MHz, so TIM3 clock is 45MHz * 2 = 90MHz.
-    TIM_TimeBaseStructure.TIM_Period = 999; // Default 1000Hz
-    TIM_TimeBaseStructure.TIM_Prescaler = 89;
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
-
-    // 4. Configure TIM3 CH4 as PWM Mode 1
-    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 0; // Off by default (Duty Cycle = 0%)
-    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-    TIM_OC4Init(TIM3, &TIM_OCInitStructure);
-
-    TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);
-    TIM_ARRPreloadConfig(TIM3, ENABLE);
-
-    // 5. Start TIM3
-    TIM_Cmd(TIM3, ENABLE);
     UB_Buzzer_StopAll();
 }
 
 void UB_Buzzer_SetTone(uint32_t freq) {
-    if (freq == 0) {
-        TIM3->CCR4 = 0;
-        return;
-    }
-
-    // Timer clock = 1MHz (after prescaler 89)
-    // Period = 1,000,000 / freq
-    uint32_t period = 1000000 / freq;
-    if (period < 2) period = 2;
-
-    TIM3->ARR = period - 1;
-    TIM3->CCR4 = period / 2; // Duty Cycle = 50%
+    (void)freq;
+#if !BUZZER_ACTIVE
+    /* passive buzzer PWM path kept for reference */
+#endif
 }
 
 void UB_Buzzer_On(uint32_t freq) {
-    UB_Buzzer_SetTone(freq);
+    (void)freq;
+    GPIO_SetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
 }
 
 void UB_Buzzer_Off(void) {
-    TIM3->CCR4 = 0;
+    GPIO_ResetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
 }
 
 static void UB_Buzzer_StopAll(void) {
@@ -107,6 +76,9 @@ void UB_Buzzer_TickMenuCooldown(void) {
 
 void UB_Buzzer_PlayTone(uint32_t freq, uint32_t duration_ms) {
     UB_Buzzer_StopAll();
+    if (duration_ms == 0) {
+        return;
+    }
     UB_Buzzer_On(freq);
     UB_Systick_Pause_ms(duration_ms);
     UB_Buzzer_Off();
@@ -119,9 +91,6 @@ void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
     if (buzzer_sequence_timer > 0) {
         return;
     }
-    if (UB_Buzzer_Timer_ms > 0) {
-        return;
-    }
     UB_Buzzer_On(freq);
     UB_Buzzer_Timer_ms = duration_ms;
 }
@@ -129,10 +98,53 @@ void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
 void UB_Buzzer_Play_Die_NonBlocking(void) {
 #if BUZZER_ENABLE_DIE
     UB_Buzzer_StopAll();
-    UB_Buzzer_On(880);
     buzzer_sequence_step = 0;
-    buzzer_sequence_timer = 120;
+    buzzer_sequence_timer = 1;
 #endif
+}
+
+void UB_Buzzer_SequenceTick(void) {
+    if (buzzer_sequence_timer == 0) {
+        return;
+    }
+
+    buzzer_sequence_timer--;
+    if (buzzer_sequence_timer != 0) {
+        return;
+    }
+
+    switch (buzzer_sequence_step) {
+        case 0:
+            UB_Buzzer_On(0);
+            buzzer_sequence_timer = 90;
+            buzzer_sequence_step = 1;
+            break;
+        case 1:
+            UB_Buzzer_Off();
+            buzzer_sequence_timer = 45;
+            buzzer_sequence_step = 2;
+            break;
+        case 2:
+            UB_Buzzer_On(0);
+            buzzer_sequence_timer = 90;
+            buzzer_sequence_step = 3;
+            break;
+        case 3:
+            UB_Buzzer_Off();
+            buzzer_sequence_timer = 45;
+            buzzer_sequence_step = 4;
+            break;
+        case 4:
+            UB_Buzzer_On(0);
+            buzzer_sequence_timer = 130;
+            buzzer_sequence_step = 5;
+            break;
+        default:
+            UB_Buzzer_Off();
+            buzzer_sequence_step = 0;
+            buzzer_sequence_timer = 0;
+            break;
+    }
 }
 
 typedef struct {
@@ -147,103 +159,88 @@ static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) 
     UB_Buzzer_StopAll();
 
     for (i = 0; i < count; i++) {
-        UB_Buzzer_PlayTone(notes[i].freq, notes[i].duration_ms);
+        UB_Buzzer_On(notes[i].freq);
+        UB_Systick_Pause_ms(notes[i].duration_ms);
+        UB_Buzzer_Off();
         total_ms += notes[i].duration_ms;
+
+        if ((i + 1) < count) {
+            UB_Systick_Pause_ms(BUZZER_NOTE_GAP_MS);
+            total_ms += BUZZER_NOTE_GAP_MS;
+        }
     }
 
     UB_Buzzer_StopAll();
     return total_ms;
 }
 
-// ----------------------------------------------------------------------------
-// Game sound effects implementation
-// ----------------------------------------------------------------------------
-
 void UB_Buzzer_Play_MenuClick(void) {
 #if BUZZER_ENABLE_MENU_CLICK
     if (buzzer_menu_cooldown_ms > 0) {
         return;
     }
-    if (UB_Buzzer_Timer_ms > 0 || buzzer_sequence_timer > 0) {
+    if (buzzer_sequence_timer > 0) {
         return;
     }
-    UB_Buzzer_On(880);
-    UB_Buzzer_Timer_ms = 40;
-    buzzer_menu_cooldown_ms = 200;
+    UB_Buzzer_On(0);
+    UB_Buzzer_Timer_ms = 35;
+    buzzer_menu_cooldown_ms = 180;
 #endif
 }
 
 void UB_Buzzer_Play_EatDot(void) {
 #if BUZZER_ENABLE_EAT_DOT
-    static uint8_t waka_high = 0;
+    static uint8_t waka_phase = 0;
 
-    waka_high ^= 1;
-    UB_Buzzer_PlayToneNonBlocking(waka_high ? 440 : 330, 25);
+    if (buzzer_sequence_timer > 0) {
+        return;
+    }
+
+    waka_phase ^= 1;
+    UB_Buzzer_On(0);
+    UB_Buzzer_Timer_ms = waka_phase ? BUZZER_WAKA_SHORT_MS : BUZZER_WAKA_LONG_MS;
 #endif
 }
 
 void UB_Buzzer_Play_EatEnergizer(void) {
 #if BUZZER_ENABLE_EAT_ENERGY
-    UB_Buzzer_StopAll();
-    UB_Buzzer_On(988);
-    UB_Buzzer_Timer_ms = 80;
+    if (buzzer_sequence_timer > 0) {
+        return;
+    }
+    UB_Buzzer_On(0);
+    UB_Buzzer_Timer_ms = 90;
 #endif
 }
 
 void UB_Buzzer_Play_Die(void) {
 #if BUZZER_ENABLE_DIE
-    UB_Buzzer_StopAll();
-    UB_Buzzer_PlayTone(880, 120);
-    UB_Buzzer_PlayTone(698, 120);
-    UB_Buzzer_PlayTone(523, 120);
-    UB_Buzzer_PlayTone(392, 120);
-    UB_Buzzer_PlayTone(262, 200);
+    UB_Buzzer_PlayTone(0, 90);
+    UB_Systick_Pause_ms(45);
+    UB_Buzzer_PlayTone(0, 90);
+    UB_Systick_Pause_ms(45);
+    UB_Buzzer_PlayTone(0, 130);
 #endif
 }
 
-// Countdown cues derived from sound/starting-game.mp3
 static const BuzzerNote_t countdown_ready[] = {
-    { 587,  80 }, // D5
-    { 523,  80 }, // C5
-    { 1047, 80 }, // C6
+    { 0, 80 }, { 0, 80 }, { 0, 80 },
 };
 
 static const BuzzerNote_t countdown_3[] = {
-    { 1047, 80 }, // C6
-    { 784,  80 }, // G5
-    { 659,  160 }, // E5
-    { 1047, 80 }, // C6
-    { 784,  160 }, // G5
-    { 659,  160 }, // E5
+    { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 80 }, { 0, 160 }, { 0, 160 },
 };
 
 static const BuzzerNote_t countdown_2[] = {
-    { 587,  80 }, // D5
-    { 1175, 80 }, // D6
-    { 1047, 80 }, // C6
-    { 880,  80 }, // A5
-    { 698,  160 }, // F5
-    { 1175, 80 }, // D6
-    { 880,  80 }, // A5
+    { 0, 80 }, { 0, 80 }, { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 80 }, { 0, 80 },
 };
 
 static const BuzzerNote_t countdown_1[] = {
-    { 698,  240 }, // F5
-    { 262,  80 }, // C4
-    { 523,  80 }, // C5
-    { 1047, 160 }, // C6
-    { 784,  160 }, // G5
+    { 0, 240 }, { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 160 },
 };
 
 static const BuzzerNote_t countdown_go[] = {
-    { 1047, 160 }, // C6
-    { 784,  80 }, // G5
-    { 659,  320 }, // E5
-    { 698,  160 }, // F5
-    { 784,  320 }, // G5
-    { 880,  160 }, // A5
-    { 1047, 160 }, // C6
-    { 262,  80 }, // C4
+    { 0, 160 }, { 0, 80 }, { 0, 320 }, { 0, 160 }, { 0, 320 },
+    { 0, 160 }, { 0, 160 }, { 0, 80 },
 };
 
 uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step) {
@@ -268,38 +265,12 @@ uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step) {
     }
 }
 
-// Victory fanfare derived from sound/victory_effect.mp3 (~3.9s)
 static const BuzzerNote_t win_melody[] = {
-    { 523,  100 }, // C5
-    { 1047, 100 }, // C6
-    { 784,  100 }, // G5
-    { 659,  100 }, // E5
-    { 1047, 100 }, // C6
-    { 784,  100 }, // G5
-    { 659,  300 }, // E5
-    { 523,  100 }, // C5
-    { 1047, 100 }, // C6
-    { 784,  100 }, // G5
-    { 392,  100 }, // G4
-    { 698,  100 }, // F5
-    { 1047, 100 }, // C6
-    { 784,  100 }, // G5
-    { 698,  100 }, // F5
-    { 523,  100 }, // C5
-    { 294,  100 }, // D4
-    { 1047, 100 }, // C6
-    { 784,  100 }, // G5
-    { 659,  100 }, // E5
-    { 784,  100 }, // G5
-    { 392,  100 }, // G4
-    { 659,  300 }, // E5
-    { 698,  100 }, // F5
-    { 784,  400 }, // G5
-    { 880,  100 }, // A5
-    { 1047, 200 }, // C6
-    { 440,  200 }, // A4
-    { 392,  100 }, // G4
-    { 330,  100 }, // E4
+    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
+    { 0, 300 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
+    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
+    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 300 }, { 0, 100 },
+    { 0, 400 }, { 0, 100 }, { 0, 200 }, { 0, 200 }, { 0, 100 }, { 0, 100 },
 };
 
 void UB_Buzzer_Play_Win(void) {
@@ -308,9 +279,12 @@ void UB_Buzzer_Play_Win(void) {
 
 void UB_Buzzer_Play_Lost(void) {
 #if BUZZER_ENABLE_LOST
-    UB_Buzzer_PlayTone(440, 250);
-    UB_Buzzer_PlayTone(415, 250);
-    UB_Buzzer_PlayTone(392, 250);
-    UB_Buzzer_PlayTone(349, 500);
+    UB_Buzzer_PlayTone(0, 250);
+    UB_Systick_Pause_ms(40);
+    UB_Buzzer_PlayTone(0, 250);
+    UB_Systick_Pause_ms(40);
+    UB_Buzzer_PlayTone(0, 250);
+    UB_Systick_Pause_ms(40);
+    UB_Buzzer_PlayTone(0, 500);
 #endif
 }

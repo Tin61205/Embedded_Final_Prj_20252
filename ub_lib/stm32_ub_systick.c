@@ -130,6 +130,7 @@ void SysTick_Handler(void)
   extern volatile uint32_t buzzer_sequence_step;
   extern volatile uint32_t buzzer_sequence_timer;
   extern void UB_Buzzer_TickMenuCooldown(void);
+  extern void UB_Buzzer_SequenceTick(void);
 
   UB_Buzzer_TickMenuCooldown();
 
@@ -140,30 +141,7 @@ void SysTick_Handler(void)
     }
   }
 
-  // Máy trạng thái âm thanh non-blocking nhạc chết
-  if (buzzer_sequence_timer > 0) {
-    buzzer_sequence_timer--;
-    if (buzzer_sequence_timer == 0) {
-      buzzer_sequence_step++;
-      if (buzzer_sequence_step == 1) {
-        UB_Buzzer_On(698);
-        buzzer_sequence_timer = 120;
-      } else if (buzzer_sequence_step == 2) {
-        UB_Buzzer_On(523);
-        buzzer_sequence_timer = 120;
-      } else if (buzzer_sequence_step == 3) {
-        UB_Buzzer_On(392);
-        buzzer_sequence_timer = 120;
-      } else if (buzzer_sequence_step == 4) {
-        UB_Buzzer_On(262);
-        buzzer_sequence_timer = 200;
-      } else {
-        UB_Buzzer_Off();
-        buzzer_sequence_step = 0;
-        buzzer_sequence_timer = 0;
-      }
-    }
-  }
+  UB_Buzzer_SequenceTick();
 
   // Tick for Pause
   if(Systick_Delay != 0x00) {
