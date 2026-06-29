@@ -46,6 +46,16 @@
 #define JOY_DIR_DOWN    3
 #define JOY_DIR_LEFT    4
 
+extern uint16_t debug_joy1_x;
+extern uint16_t debug_joy1_y;
+extern uint16_t debug_joy2_x;
+extern uint16_t debug_joy2_y;
+
+extern int32_t joy1_center_x;
+extern int32_t joy1_center_y;
+extern int32_t joy2_center_x;
+extern int32_t joy2_center_y;
+
 void UB_Joystick_Init(void);
 uint32_t UB_Joystick1_ReadDirection(void);
 uint32_t UB_Joystick2_ReadDirection(void);

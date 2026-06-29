@@ -687,6 +687,21 @@ void gui_draw_gui(uint32_t joy) {
         }
     }
 
+    // In thông tin debug joystick lên màn hình
+    {
+        extern uint16_t debug_joy1_x, debug_joy1_y, debug_joy2_x, debug_joy2_y;
+        extern int32_t joy1_center_x, joy1_center_y, joy2_center_x, joy2_center_y;
+        char dbg_buf[32];
+        
+        // Joystick 1: Giá trị thô
+        sprintf(dbg_buf, "J1:%4u %4u", debug_joy1_x, debug_joy1_y);
+        UB_Font_DrawString(10, 310, dbg_buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        
+        // Joystick 2: Giá trị thô
+        sprintf(dbg_buf, "J2:%4u %4u", debug_joy2_x, debug_joy2_y);
+        UB_Font_DrawString(120, 310, dbg_buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    }
+
     if (GUI.refresh_buttons > 0) {
         GUI.refresh_buttons--;
         gui_draw_buttons(joy);

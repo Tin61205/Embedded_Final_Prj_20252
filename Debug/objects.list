@@ -32,6 +32,7 @@
 "./ub_lib/bilder/background_menu.o"
 "./ub_lib/font/ub_font_arial_7x10.o"
 "./ub_lib/stm32_ub_button.o"
+"./ub_lib/stm32_ub_buzzer.o"
 "./ub_lib/stm32_ub_font.o"
 "./ub_lib/stm32_ub_graphic2d.o"
 "./ub_lib/stm32_ub_joystick.o"

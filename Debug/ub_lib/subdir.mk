@@ -6,6 +6,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../ub_lib/stm32_ub_button.c \
+../ub_lib/stm32_ub_buzzer.c \
 ../ub_lib/stm32_ub_font.c \
 ../ub_lib/stm32_ub_graphic2d.c \
 ../ub_lib/stm32_ub_joystick.c \
@@ -17,6 +18,7 @@ C_SRCS += \
 
 OBJS += \
 ./ub_lib/stm32_ub_button.o \
+./ub_lib/stm32_ub_buzzer.o \
 ./ub_lib/stm32_ub_font.o \
 ./ub_lib/stm32_ub_graphic2d.o \
 ./ub_lib/stm32_ub_joystick.o \
@@ -28,6 +30,7 @@ OBJS += \
 
 C_DEPS += \
 ./ub_lib/stm32_ub_button.d \
+./ub_lib/stm32_ub_buzzer.d \
 ./ub_lib/stm32_ub_font.d \
 ./ub_lib/stm32_ub_graphic2d.d \
 ./ub_lib/stm32_ub_joystick.d \
@@ -45,7 +48,7 @@ ub_lib/%.o ub_lib/%.su ub_lib/%.cyclo: ../ub_lib/%.c ub_lib/subdir.mk
 clean: clean-ub_lib
 
 clean-ub_lib:
-	-$(RM) ./ub_lib/stm32_ub_button.cyclo ./ub_lib/stm32_ub_button.d ./ub_lib/stm32_ub_button.o ./ub_lib/stm32_ub_button.su ./ub_lib/stm32_ub_font.cyclo ./ub_lib/stm32_ub_font.d ./ub_lib/stm32_ub_font.o ./ub_lib/stm32_ub_font.su ./ub_lib/stm32_ub_graphic2d.cyclo ./ub_lib/stm32_ub_graphic2d.d ./ub_lib/stm32_ub_graphic2d.o ./ub_lib/stm32_ub_graphic2d.su ./ub_lib/stm32_ub_joystick.cyclo ./ub_lib/stm32_ub_joystick.d ./ub_lib/stm32_ub_joystick.o ./ub_lib/stm32_ub_joystick.su ./ub_lib/stm32_ub_lcd_ili9341.cyclo ./ub_lib/stm32_ub_lcd_ili9341.d ./ub_lib/stm32_ub_lcd_ili9341.o ./ub_lib/stm32_ub_lcd_ili9341.su ./ub_lib/stm32_ub_sdram.cyclo ./ub_lib/stm32_ub_sdram.d ./ub_lib/stm32_ub_sdram.o ./ub_lib/stm32_ub_sdram.su ./ub_lib/stm32_ub_spi5.cyclo ./ub_lib/stm32_ub_spi5.d ./ub_lib/stm32_ub_spi5.o ./ub_lib/stm32_ub_spi5.su ./ub_lib/stm32_ub_systick.cyclo ./ub_lib/stm32_ub_systick.d ./ub_lib/stm32_ub_systick.o ./ub_lib/stm32_ub_systick.su ./ub_lib/stm32_ub_uart.cyclo ./ub_lib/stm32_ub_uart.d ./ub_lib/stm32_ub_uart.o ./ub_lib/stm32_ub_uart.su
+	-$(RM) ./ub_lib/stm32_ub_button.cyclo ./ub_lib/stm32_ub_button.d ./ub_lib/stm32_ub_button.o ./ub_lib/stm32_ub_button.su ./ub_lib/stm32_ub_buzzer.cyclo ./ub_lib/stm32_ub_buzzer.d ./ub_lib/stm32_ub_buzzer.o ./ub_lib/stm32_ub_buzzer.su ./ub_lib/stm32_ub_font.cyclo ./ub_lib/stm32_ub_font.d ./ub_lib/stm32_ub_font.o ./ub_lib/stm32_ub_font.su ./ub_lib/stm32_ub_graphic2d.cyclo ./ub_lib/stm32_ub_graphic2d.d ./ub_lib/stm32_ub_graphic2d.o ./ub_lib/stm32_ub_graphic2d.su ./ub_lib/stm32_ub_joystick.cyclo ./ub_lib/stm32_ub_joystick.d ./ub_lib/stm32_ub_joystick.o ./ub_lib/stm32_ub_joystick.su ./ub_lib/stm32_ub_lcd_ili9341.cyclo ./ub_lib/stm32_ub_lcd_ili9341.d ./ub_lib/stm32_ub_lcd_ili9341.o ./ub_lib/stm32_ub_lcd_ili9341.su ./ub_lib/stm32_ub_sdram.cyclo ./ub_lib/stm32_ub_sdram.d ./ub_lib/stm32_ub_sdram.o ./ub_lib/stm32_ub_sdram.su ./ub_lib/stm32_ub_spi5.cyclo ./ub_lib/stm32_ub_spi5.d ./ub_lib/stm32_ub_spi5.o ./ub_lib/stm32_ub_spi5.su ./ub_lib/stm32_ub_systick.cyclo ./ub_lib/stm32_ub_systick.d ./ub_lib/stm32_ub_systick.o ./ub_lib/stm32_ub_systick.su ./ub_lib/stm32_ub_uart.cyclo ./ub_lib/stm32_ub_uart.d ./ub_lib/stm32_ub_uart.o ./ub_lib/stm32_ub_uart.su
 
 .PHONY: clean-ub_lib
 
