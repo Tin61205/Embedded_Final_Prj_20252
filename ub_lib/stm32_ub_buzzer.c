@@ -11,6 +11,13 @@ volatile uint32_t UB_Buzzer_Timer_ms = 0;
 volatile uint32_t buzzer_sequence_step = 0;
 volatile uint32_t buzzer_sequence_timer = 0;
 
+// Chỉ bật buzzer lúc countdown (starting) và thắng game
+#define BUZZER_ENABLE_MENU_CLICK   0
+#define BUZZER_ENABLE_EAT_DOT      0
+#define BUZZER_ENABLE_EAT_ENERGY   0
+#define BUZZER_ENABLE_DIE          0
+#define BUZZER_ENABLE_LOST         0
+
 void UB_Buzzer_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -76,6 +83,13 @@ void UB_Buzzer_Off(void) {
     TIM3->CCR4 = 0;
 }
 
+static void UB_Buzzer_StopAll(void) {
+    UB_Buzzer_Timer_ms = 0;
+    buzzer_sequence_step = 0;
+    buzzer_sequence_timer = 0;
+    UB_Buzzer_Off();
+}
+
 void UB_Buzzer_PlayTone(uint32_t freq, uint32_t duration_ms) {
     UB_Buzzer_On(freq);
     UB_Systick_Pause_ms(duration_ms);
@@ -91,9 +105,11 @@ void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
 }
 
 void UB_Buzzer_Play_Die_NonBlocking(void) {
+#if BUZZER_ENABLE_DIE
     UB_Buzzer_On(1500);
     buzzer_sequence_step = 0;
     buzzer_sequence_timer = 100;
+#endif
 }
 
 typedef struct {
@@ -104,6 +120,8 @@ typedef struct {
 static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) {
     uint32_t i;
     uint32_t total_ms = 0;
+
+    UB_Buzzer_StopAll();
 
     for (i = 0; i < count; i++) {
         UB_Buzzer_PlayTone(notes[i].freq, notes[i].duration_ms);
@@ -118,24 +136,31 @@ static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) 
 // ----------------------------------------------------------------------------
 
 void UB_Buzzer_Play_MenuClick(void) {
-    UB_Buzzer_PlayToneNonBlocking(1200, 50); // 1200Hz, 50ms bíp ngắn
+#if BUZZER_ENABLE_MENU_CLICK
+    UB_Buzzer_PlayToneNonBlocking(1200, 50);
+#endif
 }
 
 void UB_Buzzer_Play_EatDot(void) {
-    UB_Buzzer_PlayToneNonBlocking(800, 30); // 800Hz, 30ms waka waka ngắn
+#if BUZZER_ENABLE_EAT_DOT
+    UB_Buzzer_PlayToneNonBlocking(800, 30);
+#endif
 }
 
 void UB_Buzzer_Play_EatEnergizer(void) {
-    UB_Buzzer_PlayToneNonBlocking(1500, 100); // 1500Hz, 100ms
+#if BUZZER_ENABLE_EAT_ENERGY
+    UB_Buzzer_PlayToneNonBlocking(1500, 100);
+#endif
 }
 
 void UB_Buzzer_Play_Die(void) {
-    // Falling tone sequence when Pacman dies
+#if BUZZER_ENABLE_DIE
     UB_Buzzer_PlayTone(1500, 100);
     UB_Buzzer_PlayTone(1200, 100);
     UB_Buzzer_PlayTone(900, 100);
     UB_Buzzer_PlayTone(600, 100);
     UB_Buzzer_PlayTone(300, 150);
+#endif
 }
 
 // Countdown cues derived from sound/starting-game.mp3
@@ -244,9 +269,10 @@ void UB_Buzzer_Play_Win(void) {
 }
 
 void UB_Buzzer_Play_Lost(void) {
-    // Melancholic losing melody: La-Lab-Sol-Fa
-    UB_Buzzer_PlayTone(440, 250);  // La (A4)
-    UB_Buzzer_PlayTone(415, 250);  // La flat (Ab4)
-    UB_Buzzer_PlayTone(392, 250);  // Sol (G4)
-    UB_Buzzer_PlayTone(349, 500);  // Fa (F4)
+#if BUZZER_ENABLE_LOST
+    UB_Buzzer_PlayTone(440, 250);
+    UB_Buzzer_PlayTone(415, 250);
+    UB_Buzzer_PlayTone(392, 250);
+    UB_Buzzer_PlayTone(349, 500);
+#endif
 }
