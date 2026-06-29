@@ -292,6 +292,9 @@ static void player_entity_check_event(Player_t *p) {
             if (Pinky.status == GHOST_STATUS_ALIVE) Pinky.new_mode = 1;
             if (Inky.status == GHOST_STATUS_ALIVE) Inky.new_mode = 1;
             if (Clyde.status == GHOST_STATUS_ALIVE) Clyde.new_mode = 1;
+            if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
+                HumanGhost.new_mode = 1;
+            }
         }
         Maze.Room[xp][yp].points = ROOM_POINTS_NONE;
         Maze.Room[xp][yp].skin = ROOM_SKIN_POINTS_NONE;
@@ -318,6 +321,10 @@ static void player_entity_check_event(Player_t *p) {
         }
         if (Clyde.status == GHOST_STATUS_ALIVE && Clyde.xp == xp && Clyde.yp == yp) {
             player_entity_handle_ghost_hit(p, &Clyde);
+        }
+        if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE &&
+            HumanGhost.xp == xp && HumanGhost.yp == yp) {
+            player_entity_handle_ghost_hit(p, &HumanGhost);
         }
     }
 }
@@ -547,6 +554,25 @@ static void player_check_entity_collision(Player_t *p) {
                 continue;
             }
 
+            int32_t px = ((int32_t)p->xp * ROOM_WIDTH) + p->delta_x;
+            int32_t py = ((int32_t)p->yp * ROOM_HEIGHT) + p->delta_y;
+            int32_t gx = ((int32_t)g->xp * ROOM_WIDTH) + g->delta_x;
+            int32_t gy = ((int32_t)g->yp * ROOM_HEIGHT) + g->delta_y;
+
+            if (ABS(px - gx) < 6 && ABS(py - gy) < 6) {
+                player_entity_handle_ghost_hit(p, g);
+            }
+        }
+    }
+
+    if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE &&
+        (Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) {
+        Ghost_t *g = &HumanGhost;
+        if (ABS((int32_t)p->xp - (int32_t)g->xp) > 1 || ABS((int32_t)p->yp - (int32_t)g->yp) > 1) {
+            return;
+        }
+
+        {
             int32_t px = ((int32_t)p->xp * ROOM_WIDTH) + p->delta_x;
             int32_t py = ((int32_t)p->yp * ROOM_HEIGHT) + p->delta_y;
             int32_t gx = ((int32_t)g->xp * ROOM_WIDTH) + g->delta_x;

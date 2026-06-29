@@ -88,6 +88,7 @@ Level_t;
 #define MOVE_INKY 0x08 // Bit3
 #define MOVE_CLYDE 0x10 // Bit4
 #define MOVE_PLAYER2 0x20 // Bit5
+#define MOVE_HUMAN_GHOST 0x40 // Bit6
 
 //--------------------------------------------------------------
 #define BOOL_FALSE 0

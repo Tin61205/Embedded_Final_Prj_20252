@@ -300,8 +300,8 @@ static void menu_draw_wizard(uint32_t sel_line, uint32_t unused) {
 
     if (menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 1) {
         color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 118, "G1 Ctrl:", &Arial_7x10, color, BACKGROUND_COL);
-        UB_Font_DrawString(75, 118, "Player 2", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+        UB_Font_DrawString(10, 118, "Human G:", &Arial_7x10, color, BACKGROUND_COL);
+        UB_Font_DrawString(75, 118, "P2 Green", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
     } else if (Game.custom.ghost_count >= 1) {
         color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
         UB_Font_DrawString(10, 118, "G1 Str:", &Arial_7x10, color, BACKGROUND_COL);

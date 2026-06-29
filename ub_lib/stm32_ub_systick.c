@@ -14,6 +14,7 @@ uint32_t  Blinky_Systic_Timer_ms;
 uint32_t  Pinky_Systic_Timer_ms;
 uint32_t  Inky_Systic_Timer_ms;
 uint32_t  Clyde_Systic_Timer_ms;
+uint32_t  HumanGhost_Systic_Timer_ms;
 uint32_t  UB_Game_Timers_Paused = 0;
 uint32_t  Player_Dying_Timer_ms = 0;
 uint32_t  Player_Invuln_Timer_ms = 0;
@@ -49,6 +50,7 @@ void UB_Systick_Init(void) {
   UB_Game_Timers_Paused=0;
   Gui_Touch_Timer_ms=0;
   Blinky_Systic_Timer_ms=0;
+  HumanGhost_Systic_Timer_ms=0;
   Mode_Systic_Timer_ms=0;
   Player_Dying_Timer_ms=0;
   Player_Invuln_Timer_ms=0;

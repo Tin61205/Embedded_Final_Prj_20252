@@ -27,6 +27,8 @@ void gui_clear_inky(void);
 void gui_draw_inky(void);
 void gui_clear_clyde(void);
 void gui_draw_clyde(void);
+void gui_clear_humanghost(void);
+void gui_draw_humanghost(void);
 
 //--------------------------------------------------------------
 // clear screen
@@ -47,6 +49,7 @@ void gui_clear_bots(void) {
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_clear_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_clear_inky();
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_clear_clyde();
+    if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_clear_humanghost();
 }
 
 //--------------------------------------------------------------
@@ -59,6 +62,7 @@ void gui_draw_bots(void) {
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_draw_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_draw_inky();
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_draw_clyde();
+    if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_draw_humanghost();
 }
 
 //--------------------------------------------------------------
@@ -548,6 +552,67 @@ void gui_clear_clyde(void) {
 
     xp = Clyde.xp;
     yp = Clyde.yp;
+
+    xmin = xp - 1;
+    xmax = xp + 1;
+    ymin = yp - 1;
+    ymax = yp + 1;
+
+    if (xmin < 0) xmin = 0;
+    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
+    if (ymin < 0) ymin = 0;
+    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
+
+    koord.w = ROOM_WIDTH;
+    koord.h = ROOM_HEIGHT;
+
+    for (y = ymin; y <= ymax; y++) {
+        for (x = xmin; x <= xmax; x++) {
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
+            s = Maze.Room[x][y].skin;
+            koord.source_xp = Room_Skin[s].xp;
+            koord.source_yp = Room_Skin[s].yp;
+            UB_Graphic2D_DrawImageRect(koord);
+        }
+    }
+}
+
+//--------------------------------------------------------------
+// draw bot : HumanGhost (player 2 controlled)
+//--------------------------------------------------------------
+void gui_draw_humanghost(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+
+    x = HumanGhost.xp;
+    y = HumanGhost.yp;
+
+    if (HumanGhost.port != PORT_DONE) {
+    } else {
+        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + HumanGhost.delta_x + BOTS_DIFF_X;
+        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + HumanGhost.delta_y + BOTS_DIFF_Y;
+        if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+        if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+        koord.w = BOTS_WIDTH;
+        koord.h = BOTS_HEIGHT;
+        s = HumanGhost.skin;
+        gui_draw_ghost_sprite(koord, Blinky_Skin, s, GHOST_HUMAN, &HumanGhost);
+    }
+}
+
+//--------------------------------------------------------------
+// clear bot : HumanGhost
+//--------------------------------------------------------------
+void gui_clear_humanghost(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+    uint32_t xp, yp;
+    int16_t xmin, xmax;
+    int16_t ymin, ymax;
+
+    xp = HumanGhost.xp;
+    yp = HumanGhost.yp;
 
     xmin = xp - 1;
     xmax = xp + 1;

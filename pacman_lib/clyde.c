@@ -259,18 +259,7 @@ void clyde_check_event(void) {
     // check if contact
     bot_ghost_hit_pacman(xp, yp, &Clyde);
 
-    // check if home position after dead
-    if (Clyde.status == GHOST_STATUS_DEAD) {
-        if ((xp == CLYDE_HOME_X) && (yp == CLYDE_HOME_Y)) {
-            Clyde.status = GHOST_STATUS_ALIVE;
-            Clyde.skin = GHOST_SKIN_LEFT1;
-            Clyde.delta_x = GHOST_HOME_X_DIFF;
-            Clyde.delta_y = GHOST_HOME_Y_DIFF;
-            Clyde.move = MOVE_LEFT;
-            Clyde.next_move = MOVE_LEFT;
-            Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
-        }
-    }
+    bot_ghost_try_revive(&Clyde, GHOST_CLYDE);
 }
 
 //--------------------------------------------------------------
@@ -310,11 +299,7 @@ void clyde_calc_next_move(void) {
     if (door_cnt == 0) {
         Clyde.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
-        // take the only possible way
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Clyde.next_move = MOVE_UP;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) Clyde.next_move = MOVE_RIGHT;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) Clyde.next_move = MOVE_DOWN;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) Clyde.next_move = MOVE_LEFT;
+        Clyde.next_move = bot_calc_only_exit(xp, yp);
     } else {
         // more than one possible way
         if (Clyde.new_mode == 1) {

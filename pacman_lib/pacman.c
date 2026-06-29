@@ -4,6 +4,7 @@
 #include "pacman.h"
 #include <stdio.h>
 #include "stm32_ub_buzzer.h"
+#include "humanghost.h"
 
 // Global variable definition (declared extern in header)
 Game_t Game;
@@ -361,8 +362,13 @@ void pacman_init(uint32_t mode) {
         Game.collision = BOOL_TRUE;
         Game.controller = GAME_CONTROL_4BUTTON;
     }
-    Game.mode = GAME_MODE_SCATTER;
-    Game.mode_timer = GAME_SCATTER_TIME;
+    if (Game.play_type == GAME_PLAY_CUSTOM) {
+        Game.mode = GAME_MODE_CHASE;
+        Game.mode_timer = GAME_CHASE_TIME;
+    } else {
+        Game.mode = GAME_MODE_SCATTER;
+        Game.mode_timer = GAME_SCATTER_TIME;
+    }
     Game.frightened = BOOL_FALSE;
     Game.frightened_timer = GAME_FRIGHTENED_TIME;
     Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
@@ -406,14 +412,24 @@ void pacman_apply_custom_config(uint32_t mode) {
     Player.akt_speed_ms = Level[0].player_speed;
 
     Game.ghost_active_mask = 0;
-    for (i = 0; i < Game.custom.ghost_count; i++) {
-        if (i == 0) Game.ghost_active_mask |= MOVE_BLINKY;
-        if (i == 1) Game.ghost_active_mask |= MOVE_PINKY;
-        if (i == 2) Game.ghost_active_mask |= MOVE_INKY;
-        if (i == 3) Game.ghost_active_mask |= MOVE_CLYDE;
+    {
+        uint32_t ai_count = Game.custom.ghost_count;
+        if (bot_is_2p_vs_ghost() != 0) {
+            ai_count = bot_custom_ai_ghost_count();
+            Game.ghost_active_mask |= MOVE_HUMAN_GHOST;
+        }
+        for (i = 0; i < ai_count; i++) {
+            if (i == 0) Game.ghost_active_mask |= MOVE_BLINKY;
+            if (i == 1) Game.ghost_active_mask |= MOVE_PINKY;
+            if (i == 2) Game.ghost_active_mask |= MOVE_INKY;
+            if (i == 3) Game.ghost_active_mask |= MOVE_CLYDE;
+        }
     }
 
     bot_apply_custom_ghosts(Game.custom.ghost_count, Game.custom.ghost_strategies, speed_ms);
+
+    Game.mode = GAME_MODE_CHASE;
+    Game.mode_timer = GAME_CHASE_TIME;
 
     Game.player2_active = 0;
     if (Game.custom.player_count == CUSTOM_PLAYER_2 &&
@@ -528,10 +544,7 @@ uint32_t pacman_play(void) {
         movement = MOVE_NOBODY;
 
         {
-            uint32_t allow_ghost_move = 1;
-            if (Game.player2_active == 0 && Player.status != PLAYER_STATUS_ALIVE) {
-                allow_ghost_move = 0;
-            }
+            uint32_t allow_ghost_move = bot_should_allow_ghost_move();
 
         //----------------------------------------
         // Player Timer
@@ -622,6 +635,20 @@ uint32_t pacman_play(void) {
             movement |= MOVE_CLYDE;
         }
 
+        if (allow_ghost_move != 0 && HumanGhost_Systic_Timer_ms == 0 &&
+            (Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) {
+            if (HumanGhost.status == GHOST_STATUS_ALIVE) {
+                if (Game.frightened == BOOL_FALSE) {
+                    HumanGhost_Systic_Timer_ms = HumanGhost.akt_speed_ms;
+                } else {
+                    HumanGhost_Systic_Timer_ms = HumanGhost.akt_speed_ms + HumanGhost.frightened_buf;
+                }
+            } else {
+                HumanGhost_Systic_Timer_ms = GHOST_DEAD_DELAY_MS;
+            }
+            movement |= MOVE_HUMAN_GHOST;
+        }
+
         //----------------------------------------
         // Mode Timer
         //----------------------------------------
@@ -664,6 +691,11 @@ uint32_t pacman_play(void) {
 
         if (allow_ghost_move != 0 && (movement & MOVE_CLYDE) != 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
             clyde_move();
+        }
+
+        if (allow_ghost_move != 0 && (movement & MOVE_HUMAN_GHOST) != 0 &&
+            (Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) {
+            humanghost_move();
         }
         }
 
@@ -716,6 +748,9 @@ void pacman_dec_mode_timer(void) {
             if (Pinky.status == GHOST_STATUS_ALIVE) Pinky.new_mode = 1;
             if (Inky.status == GHOST_STATUS_ALIVE) Inky.new_mode = 1;
             if (Clyde.status == GHOST_STATUS_ALIVE) Clyde.new_mode = 1;
+            if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
+                HumanGhost.new_mode = 1;
+            }
         }
     } else {
         Game.frightened_timer--;
