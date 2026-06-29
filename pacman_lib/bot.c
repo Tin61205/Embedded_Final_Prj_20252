@@ -333,17 +333,17 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         if (p->lives > 0) {
             p->lives--;
         }
-        
+
         p->status = PLAYER_STATUS_DYING;
         p->respawn_x = start_x;
         p->respawn_y = start_y;
-        
+
         if (p == &Player) {
-            Player_Dying_Timer_ms = 1000; // 1 giây animation
+            Player_Dying_Timer_ms = 1000;
         } else {
-            Player2_Dying_Timer_ms = 1000; // 1 giây animation
+            Player2_Dying_Timer_ms = 1000;
         }
-        
+
         UB_Buzzer_Play_Die_NonBlocking();
     } else {
         // --- CHẾ ĐỘ 1 NGƯỜI CHƠI (BLOCKING NHƯ CŨ) ---
@@ -638,14 +638,23 @@ void bot_release_ghosts_on_pacman_death(void) {
 }
 
 uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
+    Room_t *room;
+
     if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE) {
         return 0;
     }
     if (ghost->dot_cnt < bot_ghost_dot_cnt_max(ghost_id)) {
         return 0;
     }
-    if (Maze.Room[ghost->xp][ghost->yp].special == ROOM_SPEC_GATE &&
-        (ghost->xp != GHOST_HOUSE_EXIT_X || ghost->yp != GHOST_HOUSE_EXIT_Y)) {
+    if (ghost->xp >= ROOM_CNT_X || ghost->yp >= ROOM_CNT_Y) {
+        return 0;
+    }
+    room = &Maze.Room[ghost->xp][ghost->yp];
+    if (room->special == ROOM_SPEC_GATE) {
+        return 0;
+    }
+    if (ghost->yp >= 12 && ghost->yp <= 15 && ghost->xp >= 11 && ghost->xp <= 16 &&
+        room->typ == ROOM_TYP_WALL && (room->door & 0x0F) != 0) {
         return 0;
     }
     return 1;

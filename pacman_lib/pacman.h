@@ -115,6 +115,10 @@ Level_t;
 #define CUSTOM_SPEED_NORMAL 1
 #define CUSTOM_SPEED_FAST 2
 
+#define PLAYER_SPEED_SLOW_MS   40
+#define PLAYER_SPEED_NORMAL_MS 30
+#define PLAYER_SPEED_FAST_MS   20
+
 #define CUSTOM_MAX_GHOSTS 4
 
 //--------------------------------------------------------------
@@ -123,6 +127,7 @@ Level_t;
 typedef struct {
     uint32_t player_count;
     uint32_t map_id;
+    uint32_t player_speed_idx;
     uint32_t ghost_speed_idx;
     uint32_t two_player_mode;
     uint32_t ghost_count;

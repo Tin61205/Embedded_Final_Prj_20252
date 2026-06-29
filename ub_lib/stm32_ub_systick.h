@@ -29,6 +29,7 @@ extern uint32_t  Player2_Invuln_Timer_ms;
 // Function prototypes
 //--------------------------------------------------------------
 void UB_Systick_Init(void);
+void UB_Systick_Reset_Player_Timers(void);
 #if SYSTICK_RESOLUTION==1
   void UB_Systick_Pause_us(volatile uint32_t pause);
 #endif

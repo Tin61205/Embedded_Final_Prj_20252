@@ -69,6 +69,13 @@ void UB_Systick_Init(void) {
   #endif
 }
 
+void UB_Systick_Reset_Player_Timers(void) {
+  Player_Dying_Timer_ms = 0;
+  Player_Invuln_Timer_ms = 0;
+  Player2_Dying_Timer_ms = 0;
+  Player2_Invuln_Timer_ms = 0;
+}
+
 
 #if SYSTICK_RESOLUTION==1
 //--------------------------------------------------------------

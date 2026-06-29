@@ -87,14 +87,14 @@ Level_t Level[] = {
 };
 
 CampaignDifficulty_t CampaignDifficultyScenario[10] = {
-    // 1: 1 Clyde (Drunk), 80ms
-    { 1, MOVE_CLYDE, 80, { GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
-    // 2: 1 Blinky (Lazy), 70ms
-    { 1, MOVE_BLINKY, 70, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
-    // 3: 2 Ghost (1 Drunk, 1 Lazy), 65ms
-    { 2, MOVE_BLINKY | MOVE_CLYDE, 65, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
-    // 4: 2 Ghost (1 Lazy, 1 Shy Clyde), 60ms
-    { 2, MOVE_BLINKY | MOVE_CLYDE, 60, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_CLYDE } },
+    // 1: 4 Ghost (all Lazy), 80ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 80, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY } },
+    // 2: 4 Ghost (all Drunk), 75ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 75, { GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    // 3: 3 Ghost (Lazy + 2 Drunk), 70ms
+    { 3, MOVE_BLINKY | MOVE_PINKY | MOVE_CLYDE, 70, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    // 4: 4 Ghost (Lazy + Drunk mix), 65ms
+    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 65, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK } },
     // 5: 3 Ghost (1 Chase, 1 Drunk, 1 Lazy), 55ms
     { 3, MOVE_BLINKY | MOVE_PINKY | MOVE_CLYDE, 55, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_LAZY } },
     // 6: 3 Ghost (1 Chase, 1 Lazy, 1 Tricky Inky), 50ms
@@ -107,6 +107,11 @@ CampaignDifficulty_t CampaignDifficultyScenario[10] = {
     { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 32, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } },
     // 10: 4 Ghost (Chase, Ambush, Tricky, Shy) - Ác mộng, 24ms
     { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 24, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } }
+};
+
+/* Pacman speed (ms/tick) per campaign difficulty — slower than Level[] table. */
+static const uint32_t CampaignPlayerSpeedMs[10] = {
+    50, 46, 42, 40, 38, 36, 34, 32, 30, 28
 };
 
 void pacman_apply_campaign_difficulty(uint32_t mode) {
@@ -129,7 +134,7 @@ void pacman_apply_campaign_difficulty(uint32_t mode) {
     Inky.strategy = config.strategies[2];
     Clyde.strategy = config.strategies[3];
     
-    Player.akt_speed_ms = Level[diff - 1].player_speed;
+    Player.akt_speed_ms = CampaignPlayerSpeedMs[diff - 1];
     Player.level = diff;
 
     Game.player2_active = 0;
@@ -309,6 +314,8 @@ void pacman_start(void) {
                 pacman_apply_campaign_difficulty(check);
             }
 
+            UB_Systick_Reset_Player_Timers();
+
             Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
 
             if (check == GAME_OVER) {
@@ -395,6 +402,7 @@ void pacman_set_level(void) {
 
 void pacman_apply_custom_config(uint32_t mode) {
     uint32_t speed_ms = GHOST_SPEED_NORMAL_MS;
+    uint32_t player_speed_ms = PLAYER_SPEED_NORMAL_MS;
     uint32_t i;
 
     if (Game.custom.ghost_speed_idx == CUSTOM_SPEED_SLOW) {
@@ -403,13 +411,19 @@ void pacman_apply_custom_config(uint32_t mode) {
         speed_ms = GHOST_SPEED_FAST_MS;
     }
 
+    if (Game.custom.player_speed_idx == CUSTOM_SPEED_SLOW) {
+        player_speed_ms = PLAYER_SPEED_SLOW_MS;
+    } else if (Game.custom.player_speed_idx == CUSTOM_SPEED_FAST) {
+        player_speed_ms = PLAYER_SPEED_FAST_MS;
+    }
+
     if (mode == GAME_OVER) {
         Player.level = 1;
         Player.lives = PLAYER_START_LIVES;
         Player2.lives = PLAYER_START_LIVES;
         Player.score = 0;
     }
-    Player.akt_speed_ms = Level[0].player_speed;
+    Player.akt_speed_ms = player_speed_ms;
 
     Game.ghost_active_mask = 0;
     {

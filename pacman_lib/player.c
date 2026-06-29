@@ -53,7 +53,13 @@ static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, 
         p->score = 0;
         p->lives = PLAYER_START_LIVES;
     }
+    if (owns_meta == 1 && mode == GAME_PLAYER_WIN && Game.play_type == GAME_PLAY_CAMPAIGN) {
+        p->lives = PLAYER_START_LIVES;
+    }
     if (owns_meta == 2 && mode == GAME_OVER) {
+        p->lives = PLAYER_START_LIVES;
+    }
+    if (owns_meta == 2 && mode == GAME_PLAYER_WIN && Game.play_type == GAME_PLAY_CAMPAIGN) {
         p->lives = PLAYER_START_LIVES;
     }
     if (owns_meta == 1) {
