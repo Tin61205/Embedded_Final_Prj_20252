@@ -137,6 +137,7 @@ uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, 
 void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     uint32_t xp;
     uint32_t yp;
+    uint32_t aligned;
 
     if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE || joy == GUI_JOY_NONE) {
         return;
@@ -144,6 +145,7 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
 
     xp = ghost->xp;
     yp = ghost->yp;
+    aligned = (ABS(ghost->delta_x) <= PLAYER_TURN_ALIGN) && (ABS(ghost->delta_y) <= PLAYER_TURN_ALIGN);
 
     if (ghost->move == MOVE_STOP && ghost->port == PORT_DONE &&
         ghost->delta_x == 0 && ghost->delta_y == 0) {
@@ -189,6 +191,46 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
                 }
             }
         }
+        if (ghost->move == MOVE_RIGHT && ghost->delta_x >= (int32_t)(ROOM_WIDTH - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_UP) {
+                if (bot_ghost_can_turn(xp + 1, yp, MOVE_UP) != 0) {
+                    ghost->xp = xp + 1;
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_UP;
+                    ghost->next_move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN) {
+                if (bot_ghost_can_turn(xp + 1, yp, MOVE_DOWN) != 0) {
+                    ghost->xp = xp + 1;
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_DOWN;
+                    ghost->next_move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
+        if (ghost->move == MOVE_LEFT && ghost->delta_x <= -(int32_t)(ROOM_WIDTH - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_UP) {
+                if (bot_ghost_can_turn(xp - 1, yp, MOVE_UP) != 0) {
+                    ghost->xp = xp - 1;
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_UP;
+                    ghost->next_move = MOVE_UP;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_DOWN) {
+                if (bot_ghost_can_turn(xp - 1, yp, MOVE_DOWN) != 0) {
+                    ghost->xp = xp - 1;
+                    ghost->delta_x = 0;
+                    ghost->move = MOVE_DOWN;
+                    ghost->next_move = MOVE_DOWN;
+                    return;
+                }
+            }
+        }
     }
 
     if ((ghost->move == MOVE_UP || ghost->move == MOVE_DOWN) &&
@@ -211,6 +253,46 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
                 }
             }
         }
+        if (ghost->move == MOVE_DOWN && ghost->delta_y >= (int32_t)(ROOM_HEIGHT - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_LEFT) {
+                if (bot_ghost_can_turn(xp, yp + 1, MOVE_LEFT) != 0) {
+                    ghost->yp = yp + 1;
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_LEFT;
+                    ghost->next_move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT) {
+                if (bot_ghost_can_turn(xp, yp + 1, MOVE_RIGHT) != 0) {
+                    ghost->yp = yp + 1;
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_RIGHT;
+                    ghost->next_move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
+        if (ghost->move == MOVE_UP && ghost->delta_y <= -(int32_t)(ROOM_HEIGHT - PLAYER_TURN_ALIGN)) {
+            if (joy == GUI_JOY_LEFT) {
+                if (bot_ghost_can_turn(xp, yp - 1, MOVE_LEFT) != 0) {
+                    ghost->yp = yp - 1;
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_LEFT;
+                    ghost->next_move = MOVE_LEFT;
+                    return;
+                }
+            }
+            if (joy == GUI_JOY_RIGHT) {
+                if (bot_ghost_can_turn(xp, yp - 1, MOVE_RIGHT) != 0) {
+                    ghost->yp = yp - 1;
+                    ghost->delta_y = 0;
+                    ghost->move = MOVE_RIGHT;
+                    ghost->next_move = MOVE_RIGHT;
+                    return;
+                }
+            }
+        }
     }
 
     if (joy == GUI_JOY_UP) {
@@ -221,8 +303,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
             ghost->next_move = MOVE_UP;
             return;
         }
-        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+        if (aligned != 0) {
             if (bot_ghost_can_turn(xp, yp, MOVE_UP) != 0) {
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
                 ghost->move = MOVE_UP;
                 ghost->next_move = MOVE_UP;
             }
@@ -235,8 +319,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
             ghost->next_move = MOVE_RIGHT;
             return;
         }
-        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+        if (aligned != 0) {
             if (bot_ghost_can_turn(xp, yp, MOVE_RIGHT) != 0) {
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
                 ghost->move = MOVE_RIGHT;
                 ghost->next_move = MOVE_RIGHT;
             }
@@ -249,8 +335,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
             ghost->next_move = MOVE_DOWN;
             return;
         }
-        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+        if (aligned != 0) {
             if (bot_ghost_can_turn(xp, yp, MOVE_DOWN) != 0) {
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
                 ghost->move = MOVE_DOWN;
                 ghost->next_move = MOVE_DOWN;
             }
@@ -263,8 +351,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
             ghost->next_move = MOVE_LEFT;
             return;
         }
-        if ((ghost->delta_x == 0) && (ghost->delta_y == 0)) {
+        if (aligned != 0) {
             if (bot_ghost_can_turn(xp, yp, MOVE_LEFT) != 0) {
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
                 ghost->move = MOVE_LEFT;
                 ghost->next_move = MOVE_LEFT;
             }
@@ -531,6 +621,9 @@ void bot_ghost_validate_position(Ghost_t *ghost) {
 
 void bot_ghost_unstick(Ghost_t *ghost) {
     if (ghost->status != GHOST_STATUS_ALIVE || ghost->move != MOVE_STOP) {
+        return;
+    }
+    if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
         return;
     }
     ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);

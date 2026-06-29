@@ -182,6 +182,13 @@ static void menu_draw_nav_buttons(uint32_t show_back, const char *next_label) {
 }
 */
 
+static void menu_present_frame(void) {
+    UB_LCD_SetLayer_2();
+    UB_LCD_SetTransparency(255);
+    UB_LCD_Copy_Layer2_to_Layer1();
+    UB_LCD_Refresh();
+}
+
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir) {
     if (dir > 0) {
         if (val < max_v) {
@@ -196,6 +203,9 @@ static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, i
 }
 
 static void menu_draw_main(uint32_t sel) {
+    UB_LCD_SetLayer_2();
+    UB_LCD_SetTransparency(255);
+
     // 1. Draw the background image
     UB_Graphic2D_DrawImageFull(&background_menu, 0, 0);
     
@@ -236,6 +246,8 @@ static void menu_draw_main(uint32_t sel) {
         UB_Graphic2D_DrawRectDMA(40, 220, 160, 30, RGB_COL_BLACK);
         UB_Font_DrawString(85, 230, "High Score", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
     }
+
+    menu_present_frame();
 }
 
 static uint32_t menu_run_main(void) {
@@ -414,6 +426,7 @@ static void menu_draw_custom_players_speed(uint32_t sel_line) {
     UB_Font_DrawString(10, 220, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
 
     menu_draw_footer_buttons("Next", 180);
+    menu_present_frame();
 }
 
 static uint32_t menu_run_custom_players_speed(void) {
@@ -508,6 +521,7 @@ static void menu_draw_custom_ghosts(uint32_t sel_line) {
     UB_Font_DrawString(10, 220, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
 
     menu_draw_footer_buttons("Start", 175);
+    menu_present_frame();
 }
 
 static uint32_t menu_run_custom_ghosts(void) {
@@ -585,6 +599,7 @@ static void menu_draw_custom_map_select(void) {
     // Next Button (Red border, white text)
     UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
     UB_Font_DrawString(180, 282, "Next", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    menu_present_frame();
 }
 
 static uint32_t menu_run_custom_map_select(void) {
@@ -656,6 +671,7 @@ static void menu_draw_campaign_wizard(uint32_t sel_line) {
     // Start Button (Red border, white text)
     UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
     UB_Font_DrawString(175, 282, "Start", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    menu_present_frame();
 }
 
 static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
@@ -762,6 +778,7 @@ static void menu_draw_highscore_view(void) {
     
     // Draw prompt instruction at the bottom
     UB_Font_DrawString(29, 275, "[Back] / [Center] to Return", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    menu_present_frame();
 }
 
 static void menu_run_highscore_view(void) {

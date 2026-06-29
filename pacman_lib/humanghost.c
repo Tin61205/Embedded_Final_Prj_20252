@@ -9,9 +9,28 @@ void humanghost_check_event(void);
 void humanghost_change_skin(uint32_t direction);
 void humanghost_calc_next_move(void);
 
+static void humanghost_advance_cell(void) {
+    humanghost_check_event();
+    if (bot_is_human_ghost_active() != 0) {
+        uint32_t dir = bot_calc_move_player_ghost(
+            HumanGhost.xp, HumanGhost.yp, HumanGhost.move, Game.player2_joy);
+        if (dir != MOVE_STOP) {
+            HumanGhost.move = dir;
+        } else if (HumanGhost.next_move != MOVE_STOP) {
+            HumanGhost.move = HumanGhost.next_move;
+        }
+        HumanGhost.next_move = HumanGhost.move;
+    } else {
+        HumanGhost.move = HumanGhost.next_move;
+    }
+    humanghost_calc_next_move();
+}
+
 void humanghost_move(void) {
     if (HumanGhost.move == MOVE_STOP && HumanGhost.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&HumanGhost);
+        if (bot_is_human_ghost_active() == 0) {
+            bot_ghost_unstick(&HumanGhost);
+        }
     }
     if (HumanGhost.move == MOVE_STOP) {
         return;
@@ -34,9 +53,7 @@ void humanghost_move(void) {
                 HumanGhost.port = PORT_DONE;
                 HumanGhost.yp--;
             }
-            humanghost_check_event();
-            HumanGhost.move = HumanGhost.next_move;
-            humanghost_calc_next_move();
+            humanghost_advance_cell();
         }
     } else if (HumanGhost.move == MOVE_RIGHT) {
         HumanGhost.delta_x++;
@@ -55,9 +72,7 @@ void humanghost_move(void) {
                 HumanGhost.port = PORT_DONE;
                 HumanGhost.xp++;
             }
-            humanghost_check_event();
-            HumanGhost.move = HumanGhost.next_move;
-            humanghost_calc_next_move();
+            humanghost_advance_cell();
         }
     } else if (HumanGhost.move == MOVE_DOWN) {
         HumanGhost.delta_y++;
@@ -76,9 +91,7 @@ void humanghost_move(void) {
                 HumanGhost.port = PORT_DONE;
                 HumanGhost.yp++;
             }
-            humanghost_check_event();
-            HumanGhost.move = HumanGhost.next_move;
-            humanghost_calc_next_move();
+            humanghost_advance_cell();
         }
     } else if (HumanGhost.move == MOVE_LEFT) {
         HumanGhost.delta_x--;
@@ -97,9 +110,7 @@ void humanghost_move(void) {
                 HumanGhost.port = PORT_DONE;
                 HumanGhost.xp--;
             }
-            humanghost_check_event();
-            HumanGhost.move = HumanGhost.next_move;
-            humanghost_calc_next_move();
+            humanghost_advance_cell();
         }
     } else {
         HumanGhost.next_move = MOVE_STOP;
