@@ -548,6 +548,9 @@ uint32_t pacman_play(void) {
             // Player 2 controls via Joystick 2 in gameplay
             if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
                 Game.player2_joy = gui_check_joystick2();
+                if (bot_is_2p_vs_ghost() != 0 && Game.player2_joy == GUI_JOY_NONE) {
+                    Game.player2_joy = gui_check_button();
+                }
             } else {
                 Game.player2_joy = GUI_JOY_NONE;
             }

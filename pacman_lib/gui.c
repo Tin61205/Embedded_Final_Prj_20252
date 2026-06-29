@@ -29,6 +29,8 @@ void gui_clear_clyde(void);
 void gui_draw_clyde(void);
 void gui_clear_humanghost(void);
 void gui_draw_humanghost(void);
+static void gui_draw_hud_line(uint16_t y, const char *text, uint32_t color);
+static void gui_draw_status_line(uint16_t y, const char *text);
 
 //--------------------------------------------------------------
 // clear screen
@@ -639,6 +641,15 @@ void gui_clear_humanghost(void) {
     }
 }
 
+static void gui_draw_hud_line(uint16_t y, const char *text, uint32_t color) {
+    uint16_t x = (uint16_t)((240 - strlen(text) * 7) / 2);
+    UB_Font_DrawString(x, y, (char *)text, &Arial_7x10, color, BACKGROUND_COL);
+}
+
+static void gui_draw_status_line(uint16_t y, const char *text) {
+    gui_draw_hud_line(y, text, FONT_COL2);
+}
+
 //--------------------------------------------------------------
 // draw gui (buttons, text ...)
 //--------------------------------------------------------------
@@ -652,14 +663,14 @@ void gui_draw_gui(uint32_t joy) {
     if (Game.player2_active != 0) {
         if (Game.play_type == GAME_PLAY_CAMPAIGN) {
             sprintf(buf, "L: %d", (int)(Player.level));
-            UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            gui_draw_hud_line(260, buf, FONT_COL3);
         }
 
         sprintf(buf, "S: %d", (int)(Player.score));
-        UB_Font_DrawString(92, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        gui_draw_hud_line(275, buf, FONT_COL3);
 
         sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
-        UB_Font_DrawString(90, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        gui_draw_hud_line(290, buf, FONT_COL3);
     } else {
         if (Game.play_type == GAME_PLAY_CAMPAIGN) {
             sprintf(buf, "level : %d", (int)(Player.level));
@@ -675,15 +686,27 @@ void gui_draw_gui(uint32_t joy) {
 
     if (Player.status == PLAYER_STATUS_WIN) {
         if (Game.play_type == GAME_PLAY_CUSTOM) {
-            UB_Font_DrawString(10, 305, "you win!", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            if (Game.player2_active != 0) {
+                gui_draw_status_line(305, "you win!");
+            } else {
+                UB_Font_DrawString(10, 305, "you win!", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            }
         } else {
-            UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            if (Game.player2_active != 0) {
+                gui_draw_status_line(305, "level complete");
+            } else {
+                UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            }
         }
     } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
-        UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        gui_draw_status_line(305, "GAME OVER");
     } else if (Player.status == PLAYER_STATUS_DEAD) {
         if (Player.lives >= 1) {
-            UB_Font_DrawString(10, 305, "P1 respawn", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            if (Game.player2_active != 0) {
+                gui_draw_status_line(305, "P1 respawn");
+            } else {
+                UB_Font_DrawString(10, 305, "P1 respawn", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            }
         } else if (Game.player2_active == 0) {
             if (Player.lives >= 2) {
                 UB_Font_DrawString(10, 305, "player lose", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
@@ -692,7 +715,7 @@ void gui_draw_gui(uint32_t joy) {
             }
         }
     } else if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD && Player2.lives == 0) {
-        UB_Font_DrawString(10, 305, "P2 out", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        gui_draw_status_line(305, "P2 out");
     }
 
     // In thông tin debug joystick lên màn hình
