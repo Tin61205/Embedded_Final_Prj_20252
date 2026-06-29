@@ -313,6 +313,14 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         if (p->lives == 0) {
             p->status = PLAYER_STATUS_DEAD;
         } else {
+            extern void gui_clear_player(void);
+            extern void gui_clear_player2(void);
+            if (p == &Player) {
+                gui_clear_player();
+            } else {
+                gui_clear_player2();
+            }
+
             uint32_t rx = start_x;
             uint32_t ry = start_y;
             bot_find_safe_respawn(start_x, start_y, &rx, &ry);
