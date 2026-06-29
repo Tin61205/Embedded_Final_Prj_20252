@@ -9,6 +9,7 @@ C_SRCS += \
 ../pacman_lib/bot.c \
 ../pacman_lib/clyde.c \
 ../pacman_lib/gui.c \
+../pacman_lib/humanghost.c \
 ../pacman_lib/inky.c \
 ../pacman_lib/maze.c \
 ../pacman_lib/maze_generate.c \
@@ -25,6 +26,7 @@ OBJS += \
 ./pacman_lib/bot.o \
 ./pacman_lib/clyde.o \
 ./pacman_lib/gui.o \
+./pacman_lib/humanghost.o \
 ./pacman_lib/inky.o \
 ./pacman_lib/maze.o \
 ./pacman_lib/maze_generate.o \
@@ -41,6 +43,7 @@ C_DEPS += \
 ./pacman_lib/bot.d \
 ./pacman_lib/clyde.d \
 ./pacman_lib/gui.d \
+./pacman_lib/humanghost.d \
 ./pacman_lib/inky.d \
 ./pacman_lib/maze.d \
 ./pacman_lib/maze_generate.d \
@@ -60,7 +63,7 @@ pacman_lib/%.o pacman_lib/%.su pacman_lib/%.cyclo: ../pacman_lib/%.c pacman_lib/
 clean: clean-pacman_lib
 
 clean-pacman_lib:
-	-$(RM) ./pacman_lib/blinky.cyclo ./pacman_lib/blinky.d ./pacman_lib/blinky.o ./pacman_lib/blinky.su ./pacman_lib/bot.cyclo ./pacman_lib/bot.d ./pacman_lib/bot.o ./pacman_lib/bot.su ./pacman_lib/clyde.cyclo ./pacman_lib/clyde.d ./pacman_lib/clyde.o ./pacman_lib/clyde.su ./pacman_lib/gui.cyclo ./pacman_lib/gui.d ./pacman_lib/gui.o ./pacman_lib/gui.su ./pacman_lib/inky.cyclo ./pacman_lib/inky.d ./pacman_lib/inky.o ./pacman_lib/inky.su ./pacman_lib/maze.cyclo ./pacman_lib/maze.d ./pacman_lib/maze.o ./pacman_lib/maze.su ./pacman_lib/maze_generate.cyclo ./pacman_lib/maze_generate.d ./pacman_lib/maze_generate.o ./pacman_lib/maze_generate.su ./pacman_lib/maze_txtmap.cyclo ./pacman_lib/maze_txtmap.d ./pacman_lib/maze_txtmap.o ./pacman_lib/maze_txtmap.su ./pacman_lib/menu.cyclo ./pacman_lib/menu.d ./pacman_lib/menu.o ./pacman_lib/menu.su ./pacman_lib/pacman.cyclo ./pacman_lib/pacman.d ./pacman_lib/pacman.o ./pacman_lib/pacman.su ./pacman_lib/pinky.cyclo ./pacman_lib/pinky.d ./pacman_lib/pinky.o ./pacman_lib/pinky.su ./pacman_lib/player.cyclo ./pacman_lib/player.d ./pacman_lib/player.o ./pacman_lib/player.su ./pacman_lib/random.cyclo ./pacman_lib/random.d ./pacman_lib/random.o ./pacman_lib/random.su ./pacman_lib/skin.cyclo ./pacman_lib/skin.d ./pacman_lib/skin.o ./pacman_lib/skin.su
+	-$(RM) ./pacman_lib/blinky.cyclo ./pacman_lib/blinky.d ./pacman_lib/blinky.o ./pacman_lib/blinky.su ./pacman_lib/bot.cyclo ./pacman_lib/bot.d ./pacman_lib/bot.o ./pacman_lib/bot.su ./pacman_lib/clyde.cyclo ./pacman_lib/clyde.d ./pacman_lib/clyde.o ./pacman_lib/clyde.su ./pacman_lib/gui.cyclo ./pacman_lib/gui.d ./pacman_lib/gui.o ./pacman_lib/gui.su ./pacman_lib/humanghost.cyclo ./pacman_lib/humanghost.d ./pacman_lib/humanghost.o ./pacman_lib/humanghost.su ./pacman_lib/inky.cyclo ./pacman_lib/inky.d ./pacman_lib/inky.o ./pacman_lib/inky.su ./pacman_lib/maze.cyclo ./pacman_lib/maze.d ./pacman_lib/maze.o ./pacman_lib/maze.su ./pacman_lib/maze_generate.cyclo ./pacman_lib/maze_generate.d ./pacman_lib/maze_generate.o ./pacman_lib/maze_generate.su ./pacman_lib/maze_txtmap.cyclo ./pacman_lib/maze_txtmap.d ./pacman_lib/maze_txtmap.o ./pacman_lib/maze_txtmap.su ./pacman_lib/menu.cyclo ./pacman_lib/menu.d ./pacman_lib/menu.o ./pacman_lib/menu.su ./pacman_lib/pacman.cyclo ./pacman_lib/pacman.d ./pacman_lib/pacman.o ./pacman_lib/pacman.su ./pacman_lib/pinky.cyclo ./pacman_lib/pinky.d ./pacman_lib/pinky.o ./pacman_lib/pinky.su ./pacman_lib/player.cyclo ./pacman_lib/player.d ./pacman_lib/player.o ./pacman_lib/player.su ./pacman_lib/random.cyclo ./pacman_lib/random.d ./pacman_lib/random.o ./pacman_lib/random.su ./pacman_lib/skin.cyclo ./pacman_lib/skin.d ./pacman_lib/skin.o ./pacman_lib/skin.su
 
 .PHONY: clean-pacman_lib
 

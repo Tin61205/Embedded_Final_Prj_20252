@@ -18,6 +18,7 @@
 "./pacman_lib/bot.o"
 "./pacman_lib/clyde.o"
 "./pacman_lib/gui.o"
+"./pacman_lib/humanghost.o"
 "./pacman_lib/inky.o"
 "./pacman_lib/maze.o"
 "./pacman_lib/maze_generate.o"
