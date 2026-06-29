@@ -280,6 +280,9 @@ void pacman_start(void) {
                 }
                 gui_show_win_screen(Player.score);
                 Player.score = 0;
+                if (Game.play_type == GAME_PLAY_CUSTOM) {
+                    check = GAME_OVER;
+                }
             } else {
                 if (Game.player2_active != 0 && bot_is_2p_coop()) {
                     if (Player.lives == 0 && Player2.lives == 0) {
