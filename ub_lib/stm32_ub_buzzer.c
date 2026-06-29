@@ -6,15 +6,16 @@
 #include "stm32_ub_systick.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_rcc.h"
+#include "stm32f4xx_tim.h"
 
 volatile uint32_t UB_Buzzer_Timer_ms = 0;
 volatile uint32_t buzzer_sequence_step = 0;
 volatile uint32_t buzzer_sequence_timer = 0;
 
-#define BUZZER_ACTIVE              1
 #define BUZZER_NOTE_GAP_MS         25
-#define BUZZER_WAKA_SHORT_MS       24
-#define BUZZER_WAKA_LONG_MS        32
+#define BUZZER_WAKA_SHORT_MS       22
+#define BUZZER_WAKA_LONG_MS        30
+#define BUZZER_WAKA_GAP_MS         58
 
 #define BUZZER_ENABLE_MENU_CLICK   1
 #define BUZZER_ENABLE_EAT_DOT      1
@@ -24,11 +25,37 @@ volatile uint32_t buzzer_sequence_timer = 0;
 
 static void UB_Buzzer_StopAll(void);
 static volatile uint32_t buzzer_menu_cooldown_ms = 0;
+static volatile uint32_t buzzer_waka_gap_ms = 0;
+
+static void UB_Buzzer_PinOn(void) {
+#if BUZZER_ACTIVE_LOW
+    GPIO_ResetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+#else
+    GPIO_SetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+#endif
+}
+
+static void UB_Buzzer_PinOff(void) {
+#if BUZZER_ACTIVE_LOW
+    GPIO_SetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+#else
+    GPIO_ResetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+#endif
+}
+
+static void UB_Buzzer_DisableLegacyPwm(void) {
+    /* Tắt TIM3 nếu firmware cũ còn bật PWM trên PC9 */
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    TIM_Cmd(TIM3, DISABLE);
+    TIM3->CCR4 = 0;
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, DISABLE);
+}
 
 void UB_Buzzer_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
 
     RCC_AHB1PeriphClockCmd(BUZZER_GPIO_CLK, ENABLE);
+    UB_Buzzer_DisableLegacyPwm();
 
     GPIO_InitStructure.GPIO_Pin = BUZZER_GPIO_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -42,18 +69,15 @@ void UB_Buzzer_Init(void) {
 
 void UB_Buzzer_SetTone(uint32_t freq) {
     (void)freq;
-#if !BUZZER_ACTIVE
-    /* passive buzzer PWM path kept for reference */
-#endif
 }
 
 void UB_Buzzer_On(uint32_t freq) {
     (void)freq;
-    GPIO_SetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+    UB_Buzzer_PinOn();
 }
 
 void UB_Buzzer_Off(void) {
-    GPIO_ResetBits(BUZZER_GPIO_PORT, BUZZER_GPIO_PIN);
+    UB_Buzzer_PinOff();
 }
 
 static void UB_Buzzer_StopAll(void) {
@@ -61,6 +85,7 @@ static void UB_Buzzer_StopAll(void) {
     buzzer_sequence_step = 0;
     buzzer_sequence_timer = 0;
     buzzer_menu_cooldown_ms = 0;
+    buzzer_waka_gap_ms = 0;
     UB_Buzzer_Off();
 }
 
@@ -68,9 +93,12 @@ void UB_Buzzer_Stop(void) {
     UB_Buzzer_StopAll();
 }
 
-void UB_Buzzer_TickMenuCooldown(void) {
+void UB_Buzzer_Tick1ms(void) {
     if (buzzer_menu_cooldown_ms > 0) {
         buzzer_menu_cooldown_ms--;
+    }
+    if (buzzer_waka_gap_ms > 0) {
+        buzzer_waka_gap_ms--;
     }
 }
 
@@ -195,10 +223,17 @@ void UB_Buzzer_Play_EatDot(void) {
     if (buzzer_sequence_timer > 0) {
         return;
     }
+    if (UB_Buzzer_Timer_ms > 0) {
+        return;
+    }
+    if (buzzer_waka_gap_ms > 0) {
+        return;
+    }
 
     waka_phase ^= 1;
     UB_Buzzer_On(0);
     UB_Buzzer_Timer_ms = waka_phase ? BUZZER_WAKA_SHORT_MS : BUZZER_WAKA_LONG_MS;
+    buzzer_waka_gap_ms = BUZZER_WAKA_GAP_MS;
 #endif
 }
 
@@ -207,6 +242,7 @@ void UB_Buzzer_Play_EatEnergizer(void) {
     if (buzzer_sequence_timer > 0) {
         return;
     }
+    UB_Buzzer_StopAll();
     UB_Buzzer_On(0);
     UB_Buzzer_Timer_ms = 90;
 #endif

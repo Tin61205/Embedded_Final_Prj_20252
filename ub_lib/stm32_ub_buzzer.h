@@ -1,19 +1,35 @@
 //--------------------------------------------------------------
 // File     : stm32_ub_buzzer.h
+// Buzzer TMB12A05 (active ~2.3kHz) on PC9 — GPIO on/off
 //--------------------------------------------------------------
 #ifndef __STM32F4_UB_BUZZER_H
 #define __STM32F4_UB_BUZZER_H
 
 #include "stm32f4xx.h"
 
-// TMB12A05 active buzzer on PC9 (GPIO on/off, not PWM tone)
 #define BUZZER_GPIO_PORT       GPIOC
 #define BUZZER_GPIO_PIN        GPIO_Pin_9
 #define BUZZER_GPIO_CLK        RCC_AHB1Periph_GPIOC
 
+/*
+ * Chọn cách đấu dây (KHÔNG cần đổi chân — luôn dùng PC9):
+ *
+ * BUZZER_ACTIVE_LOW = 0  (cách A)
+ *   PC9 ──► (+) TMB12A05
+ *   GND ──► (-) TMB12A05
+ *
+ * BUZZER_ACTIVE_LOW = 1  (cách B — hay gặp khi nối 3.3V thẳng vào chân +)
+ *   3.3V ──► (+) TMB12A05
+ *   PC9  ──► (-) TMB12A05
+ *
+ * Nếu vẫn kêu liên tục: đổi 0 <-> 1 rồi flash lại.
+ * KHÔNG nối (+) và (-) thẳng 3.3V + GND (sẽ kêu mãi).
+ */
+#define BUZZER_ACTIVE_LOW      1
+
 void UB_Buzzer_Init(void);
 void UB_Buzzer_Stop(void);
-void UB_Buzzer_TickMenuCooldown(void);
+void UB_Buzzer_Tick1ms(void);
 void UB_Buzzer_SequenceTick(void);
 void UB_Buzzer_SetTone(uint32_t freq);
 void UB_Buzzer_On(uint32_t freq);
@@ -21,7 +37,6 @@ void UB_Buzzer_Off(void);
 void UB_Buzzer_PlayTone(uint32_t freq, uint32_t duration_ms);
 void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms);
 
-// Game sound effects
 void UB_Buzzer_Play_MenuClick(void);
 void UB_Buzzer_Play_EatDot(void);
 void UB_Buzzer_Play_EatEnergizer(void);

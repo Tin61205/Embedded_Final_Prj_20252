@@ -340,9 +340,9 @@ uint32_t pacman_hw_init(void) {
     uint32_t ret_wert = 0;
 
     UB_Systick_Init();
+    UB_Buzzer_Init();
     UB_Uart_Init();
     UB_Button_Init();
-    UB_Buzzer_Init();
 #if JOYSTICK_USE_ADC == 1
     UB_Joystick_Init();
 #endif
