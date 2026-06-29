@@ -259,18 +259,7 @@ void inky_check_event(void) {
     // check if contact
     bot_ghost_hit_pacman(xp, yp, &Inky);
 
-    // check if home position after dead
-    if (Inky.status == GHOST_STATUS_DEAD) {
-        if ((xp == INKY_HOME_X) && (yp == INKY_HOME_Y)) {
-            Inky.status = GHOST_STATUS_ALIVE;
-            Inky.skin = GHOST_SKIN_RIGHT1;
-            Inky.delta_x = GHOST_HOME_X_DIFF;
-            Inky.delta_y = GHOST_HOME_Y_DIFF;
-            Inky.move = MOVE_RIGHT;
-            Inky.next_move = MOVE_RIGHT;
-            Inky.dot_cnt = INKY_DOT_CNT_MAX;
-        }
-    }
+    bot_ghost_try_revive(&Inky, GHOST_INKY);
 }
 
 //--------------------------------------------------------------
@@ -310,11 +299,7 @@ void inky_calc_next_move(void) {
     if (door_cnt == 0) {
         Inky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
-        // take the only possible way
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Inky.next_move = MOVE_UP;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) Inky.next_move = MOVE_RIGHT;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) Inky.next_move = MOVE_DOWN;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) Inky.next_move = MOVE_LEFT;
+        Inky.next_move = bot_calc_only_exit(xp, yp);
     } else {
         // more than one possible way
         if (Inky.new_mode == 1) {

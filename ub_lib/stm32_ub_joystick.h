@@ -21,11 +21,15 @@
 
 //--------------------------------------------------------------
 // Hardware mapping
-// VRx -> PA1 (ADC1_IN1), VRy -> PA2 (ADC1_IN2)
+// Joystick 1 (Player 1): VRx -> PA5 (ADC1_IN5), VRy -> PA7 (ADC1_IN7)
+// Joystick 2 (Player 2): VRx -> PA1 (ADC1_IN1), VRy -> PA2 (ADC1_IN2)
 // Optional SW pin is not used by firmware (use PA0 for Start)
 //--------------------------------------------------------------
-#define JOY_ADC_X_CHANNEL      1
-#define JOY_ADC_Y_CHANNEL      2
+#define JOY1_ADC_X_CHANNEL     5
+#define JOY1_ADC_Y_CHANNEL     7
+
+#define JOY2_ADC_X_CHANNEL     1
+#define JOY2_ADC_Y_CHANNEL     2
 
 #define JOY_ADC_CENTER         2048
 #define JOY_ADC_DEADZONE       150
@@ -42,8 +46,19 @@
 #define JOY_DIR_DOWN    3
 #define JOY_DIR_LEFT    4
 
+extern uint16_t debug_joy1_x;
+extern uint16_t debug_joy1_y;
+extern uint16_t debug_joy2_x;
+extern uint16_t debug_joy2_y;
+
+extern int32_t joy1_center_x;
+extern int32_t joy1_center_y;
+extern int32_t joy2_center_x;
+extern int32_t joy2_center_y;
+
 void UB_Joystick_Init(void);
-uint32_t UB_Joystick_ReadDirection(void);
+uint32_t UB_Joystick1_ReadDirection(void);
+uint32_t UB_Joystick2_ReadDirection(void);
 
 #endif
 

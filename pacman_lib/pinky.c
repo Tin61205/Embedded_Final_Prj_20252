@@ -253,18 +253,7 @@ void pinky_check_event(void) {
     // check if contact
     bot_ghost_hit_pacman(xp, yp, &Pinky);
 
-    // check if home position after dead
-    if (Pinky.status == GHOST_STATUS_DEAD) {
-        if ((xp == PINKY_HOME_X) && (yp == PINKY_HOME_Y)) {
-            Pinky.status = GHOST_STATUS_ALIVE;
-            Pinky.skin = GHOST_SKIN_UP1;
-            Pinky.delta_x = GHOST_HOME_X_DIFF;
-            Pinky.delta_y = GHOST_HOME_Y_DIFF;
-            Pinky.move = MOVE_UP;
-            Pinky.next_move = MOVE_UP;
-            Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
-        }
-    }
+    bot_ghost_try_revive(&Pinky, GHOST_PINKY);
 }
 
 //--------------------------------------------------------------
@@ -304,11 +293,7 @@ void pinky_calc_next_move(void) {
     if (door_cnt == 0) {
         Pinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
-        // take the only possible way
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Pinky.next_move = MOVE_UP;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) Pinky.next_move = MOVE_RIGHT;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) Pinky.next_move = MOVE_DOWN;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) Pinky.next_move = MOVE_LEFT;
+        Pinky.next_move = bot_calc_only_exit(xp, yp);
     } else {
         // more than one possible way
         if (Pinky.new_mode == 1) {

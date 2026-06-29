@@ -13,13 +13,20 @@
 //--------------------------------------------------------------
 static uint16_t joystick_adc_read(uint8_t channel);
 static uint16_t joystick_adc_read_avg(uint8_t channel, uint8_t samples);
-static int32_t joystick_abs(int32_t value);
+static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx, int32_t cy);
 
-static int32_t joy_center_x = JOY_ADC_CENTER;
-static int32_t joy_center_y = JOY_ADC_CENTER;
+uint16_t debug_joy1_x = 0;
+uint16_t debug_joy1_y = 0;
+uint16_t debug_joy2_x = 0;
+uint16_t debug_joy2_y = 0;
+
+int32_t joy1_center_x = JOY_ADC_CENTER;
+int32_t joy1_center_y = JOY_ADC_CENTER;
+int32_t joy2_center_x = JOY_ADC_CENTER;
+int32_t joy2_center_y = JOY_ADC_CENTER;
 
 //--------------------------------------------------------------
-// init ADC1 + analog pins PA1 (X) and PA2 (Y)
+// init ADC1 + analog pins PA1, PA2, PA5, PA7
 //--------------------------------------------------------------
 void UB_Joystick_Init(void) {
     GPIO_InitTypeDef gpio;
@@ -27,7 +34,7 @@ void UB_Joystick_Init(void) {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 
-    gpio.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2;
+    gpio.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_5 | GPIO_Pin_7;
     gpio.GPIO_Mode = GPIO_Mode_AN;
     gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOA, &gpio);
@@ -43,46 +50,113 @@ void UB_Joystick_Init(void) {
         while (delay--);
     }
 
-    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x3F << 3)) | ((uint32_t)0x06 << 3) | ((uint32_t)0x06 << 6);
+    // Set sample time for channels 1, 2, 5, 7 to 480 cycles (0x07) to reduce crosstalk
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x3F << 3)) | ((uint32_t)0x07 << 3) | ((uint32_t)0x07 << 6);
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 15)) | ((uint32_t)0x07 << 15);
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 21)) | ((uint32_t)0x07 << 21);
     ADC1->SQR1 = 0;
-    ADC1->SQR3 = JOY_ADC_X_CHANNEL;
 
-    joystick_adc_read(JOY_ADC_X_CHANNEL);
-    joystick_adc_read(JOY_ADC_Y_CHANNEL);
+    joystick_adc_read(JOY1_ADC_X_CHANNEL);
+    joystick_adc_read(JOY1_ADC_Y_CHANNEL);
+    joystick_adc_read(JOY2_ADC_X_CHANNEL);
+    joystick_adc_read(JOY2_ADC_Y_CHANNEL);
 
     {
-        int32_t sum_x = 0;
-        int32_t sum_y = 0;
+        int32_t sum1_x = 0, sum1_y = 0;
+        int32_t sum2_x = 0, sum2_y = 0;
         uint8_t i;
 
         for (i = 0; i < JOY_ADC_CALIB_SAMPLES; i++) {
-            sum_x += joystick_adc_read(JOY_ADC_X_CHANNEL);
-            sum_y += joystick_adc_read(JOY_ADC_Y_CHANNEL);
+            sum1_x += joystick_adc_read(JOY1_ADC_X_CHANNEL);
+            sum1_y += joystick_adc_read(JOY1_ADC_Y_CHANNEL);
+            sum2_x += joystick_adc_read(JOY2_ADC_X_CHANNEL);
+            sum2_y += joystick_adc_read(JOY2_ADC_Y_CHANNEL);
         }
 
-        joy_center_x = sum_x / JOY_ADC_CALIB_SAMPLES;
-        joy_center_y = sum_y / JOY_ADC_CALIB_SAMPLES;
+        joy1_center_x = sum1_x / JOY_ADC_CALIB_SAMPLES;
+        joy1_center_y = sum1_y / JOY_ADC_CALIB_SAMPLES;
+        joy2_center_x = sum2_x / JOY_ADC_CALIB_SAMPLES;
+        joy2_center_y = sum2_y / JOY_ADC_CALIB_SAMPLES;
+
+        // Giới hạn an toàn (Safe bounds) cho hiệu chuẩn trung tâm (chỉ đưa về 2048 nếu bị đứt dây/hỏng hẳn)
+        if (joy1_center_x < 200 || joy1_center_x > 3900) joy1_center_x = JOY_ADC_CENTER;
+        if (joy1_center_y < 200 || joy1_center_y > 3900) joy1_center_y = JOY_ADC_CENTER;
+        if (joy2_center_x < 200 || joy2_center_x > 3900) joy2_center_x = JOY_ADC_CENTER;
+        if (joy2_center_y < 200 || joy2_center_y > 3900) joy2_center_y = JOY_ADC_CENTER;
     }
 }
 
 //--------------------------------------------------------------
-// read joystick and map to one direction
+// read joystick 1 and map to one direction
 //--------------------------------------------------------------
-uint32_t UB_Joystick_ReadDirection(void) {
-    uint16_t raw_x;
-    uint16_t raw_y;
+uint32_t UB_Joystick1_ReadDirection(void) {
+    uint16_t raw_x = joystick_adc_read_avg(JOY1_ADC_X_CHANNEL, JOY_ADC_READ_SAMPLES);
+    uint16_t raw_y = joystick_adc_read_avg(JOY1_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
+    debug_joy1_x = raw_x;
+    debug_joy1_y = raw_y;
+    return joystick_process_dir(raw_x, raw_y, joy1_center_x, joy1_center_y);
+}
+
+//--------------------------------------------------------------
+// read joystick 2 and map to one direction
+//--------------------------------------------------------------
+uint32_t UB_Joystick2_ReadDirection(void) {
+    uint16_t raw_x = joystick_adc_read_avg(JOY2_ADC_X_CHANNEL, JOY_ADC_READ_SAMPLES);
+    uint16_t raw_y = joystick_adc_read_avg(JOY2_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
+    debug_joy2_x = raw_x;
+    debug_joy2_y = raw_y;
+
     uint32_t dir_x = JOY_DIR_NONE;
     uint32_t dir_y = JOY_DIR_NONE;
     int32_t dev_x = 0;
     int32_t dev_y = 0;
 
-    raw_x = joystick_adc_read_avg(JOY_ADC_X_CHANNEL, JOY_ADC_READ_SAMPLES);
-    raw_y = joystick_adc_read_avg(JOY_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
+    // LEFT: khi x sát 0 (dưới 4)
+    if (raw_x < 4) {
+        dir_x = JOY_DIR_LEFT;
+        dev_x = 9 - raw_x;
+    }
+    // RIGHT: khi x vượt ngưỡng (lớn hơn 80)
+    else if (raw_x > 80) {
+        dir_x = JOY_DIR_RIGHT;
+        dev_x = raw_x - 9;
+    }
+
+    // UP: khi y sát 0 (dưới 4)
+    if (raw_y < 4) {
+        dir_y = JOY_DIR_UP;
+        dev_y = 9 - raw_y;
+    }
+    // DOWN: khi y vượt ngưỡng (lớn hơn 80)
+    else if (raw_y > 80) {
+        dir_y = JOY_DIR_DOWN;
+        dev_y = raw_y - 9;
+    }
+
+    // Chọn hướng đi chéo dựa trên độ lệch lớn hơn
+    if (dir_x != JOY_DIR_NONE && dir_y != JOY_DIR_NONE) {
+        if (dev_x >= dev_y) {
+            return dir_x;
+        } else {
+            return dir_y;
+        }
+    } else if (dir_x != JOY_DIR_NONE) {
+        return dir_x;
+    } else if (dir_y != JOY_DIR_NONE) {
+        return dir_y;
+    }
+
+    return JOY_DIR_NONE;
+}
+
+static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx, int32_t cy) {
+    uint32_t dir_x = JOY_DIR_NONE;
+    uint32_t dir_y = JOY_DIR_NONE;
+    int32_t dev_x = 0;
+    int32_t dev_y = 0;
 
     int32_t val_x = raw_x;
     int32_t val_y = raw_y;
-    int32_t cx = joy_center_x;
-    int32_t cy = joy_center_y;
 
     // Auto-scale 12-bit ADC values to 8-bit if calibration center is in 12-bit range (> 255)
     if (cx > 255 || cy > 255) {
@@ -92,30 +166,33 @@ uint32_t UB_Joystick_ReadDirection(void) {
         cy >>= 4;
     }
 
-    // Left: X = 0-2
-    if (val_x <= 2) {
+    // Ngưỡng vùng chết (deadzone) cho dải 8-bit (0-255)
+    int32_t threshold = 15;
+
+    // Left: val_x nhỏ hơn cx - threshold
+    if (val_x < (cx - threshold)) {
         dir_x = JOY_DIR_LEFT;
         int32_t denom = cx;
         if (denom < 1) denom = 1;
         dev_x = ((cx - val_x) * 1000) / denom;
     }
-    // Right: X > 250
-    else if (val_x > 100) {
+    // Right: val_x lớn hơn cx + threshold
+    else if (val_x > (cx + threshold)) {
         dir_x = JOY_DIR_RIGHT;
         int32_t denom = 255 - cx;
         if (denom < 1) denom = 1;
         dev_x = ((val_x - cx) * 1000) / denom;
     }
 
-    // Up: Y = 0-2
-    if (val_y <= 2) {
+    // Up: val_y nhỏ hơn cy - threshold
+    if (val_y < (cy - threshold)) {
         dir_y = JOY_DIR_UP;
         int32_t denom = cy;
         if (denom < 1) denom = 1;
         dev_y = ((cy - val_y) * 1000) / denom;
     }
-    // Down: Y > 250
-    else if (val_y > 250) {
+    // Down: val_y lớn hơn cy + threshold
+    else if (val_y > (cy + threshold)) {
         dir_y = JOY_DIR_DOWN;
         int32_t denom = 255 - cy;
         if (denom < 1) denom = 1;
@@ -140,6 +217,11 @@ uint32_t UB_Joystick_ReadDirection(void) {
 
 static uint16_t joystick_adc_read(uint8_t channel) {
     ADC1->SQR3 = (uint32_t)(channel & 0x1F);
+    
+    // Thêm trễ ngắn để tụ lấy mẫu và bộ trộn kênh ADC ổn định
+    volatile uint32_t delay = 100;
+    while (delay--);
+
     ADC1->SR = (uint32_t)~ADC_SR_EOC; // Clear EOC flag
     ADC1->CR2 |= ADC_CR2_SWSTART;
     while ((ADC1->SR & ADC_SR_EOC) == 0) {
@@ -160,13 +242,6 @@ static uint16_t joystick_adc_read_avg(uint8_t channel, uint8_t samples) {
     }
 
     return (uint16_t)(sum / samples);
-}
-
-static int32_t joystick_abs(int32_t value) {
-    if (value < 0) {
-        return -value;
-    }
-    return value;
 }
 
 #endif

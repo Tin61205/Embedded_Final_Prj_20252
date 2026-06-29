@@ -60,6 +60,7 @@ extern GUI_t GUI;
 #define  FONT_COL2       RGB_COL_YELLOW
 #define  FONT_COL3       RGB_COL_GREY
 #define  GHOST_P2_COLOR    RGB_COL_GREEN
+#define  HUMAN_GHOST_COLOR RGB_COL_GREEN
 #define  GHOST_COLOR_CHASE RGB_COL_RED
 #define  GHOST_COLOR_AMBUSH RGB_COL_MAGENTA
 #define  GHOST_COLOR_TRICKY RGB_COL_CYAN
@@ -131,7 +132,8 @@ void gui_draw_bots(void);
 void gui_draw_gui(uint32_t joy);
 uint32_t gui_check_touch(void);
 uint32_t gui_check_button(void);
-uint32_t gui_check_joystick(void);
+uint32_t gui_check_joystick1(void);
+uint32_t gui_check_joystick2(void);
 void gui_draw_buttons(uint32_t joy);
 void gui_debug_uart(char *ptr);
 void gui_show_countdown_text(const char *text, uint8_t scale);

@@ -88,6 +88,7 @@ Level_t;
 #define MOVE_INKY 0x08 // Bit3
 #define MOVE_CLYDE 0x10 // Bit4
 #define MOVE_PLAYER2 0x20 // Bit5
+#define MOVE_HUMAN_GHOST 0x40 // Bit6
 
 //--------------------------------------------------------------
 #define BOOL_FALSE 0
@@ -114,6 +115,10 @@ Level_t;
 #define CUSTOM_SPEED_NORMAL 1
 #define CUSTOM_SPEED_FAST 2
 
+#define PLAYER_SPEED_SLOW_MS   40
+#define PLAYER_SPEED_NORMAL_MS 30
+#define PLAYER_SPEED_FAST_MS   20
+
 #define CUSTOM_MAX_GHOSTS 4
 
 //--------------------------------------------------------------
@@ -122,6 +127,7 @@ Level_t;
 typedef struct {
     uint32_t player_count;
     uint32_t map_id;
+    uint32_t player_speed_idx;
     uint32_t ghost_speed_idx;
     uint32_t two_player_mode;
     uint32_t ghost_count;
@@ -155,7 +161,9 @@ typedef struct {
     uint32_t player2_active;
     uint32_t campaign_map_id;
     uint32_t campaign_difficulty;
+    uint32_t campaign_coop;
     CustomConfig_t custom;
+    uint32_t campaign_high_scores[MAZE_MAP_COUNT];
 }
 Game_t;
 extern Game_t Game;
@@ -164,7 +172,7 @@ extern Game_t Game;
 // Global functions
 //--------------------------------------------------------------
 void pacman_start(void);
-void pacman_apply_campaign_difficulty(void);
+void pacman_apply_campaign_difficulty(uint32_t mode);
 uint32_t pacman_hw_init(void);
 void pacman_init(uint32_t mode);
 void pacman_set_level(void);

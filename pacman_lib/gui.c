@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "stm32_ub_buzzer.h"
 
 // Global variable definition (declared extern in header)
 GUI_t GUI;
@@ -26,6 +27,8 @@ void gui_clear_inky(void);
 void gui_draw_inky(void);
 void gui_clear_clyde(void);
 void gui_draw_clyde(void);
+void gui_clear_humanghost(void);
+void gui_draw_humanghost(void);
 
 //--------------------------------------------------------------
 // clear screen
@@ -46,6 +49,7 @@ void gui_clear_bots(void) {
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_clear_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_clear_inky();
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_clear_clyde();
+    if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_clear_humanghost();
 }
 
 //--------------------------------------------------------------
@@ -58,6 +62,7 @@ void gui_draw_bots(void) {
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_draw_pinky();
     if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_draw_inky();
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_draw_clyde();
+    if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_draw_humanghost();
 }
 
 //--------------------------------------------------------------
@@ -115,11 +120,39 @@ void gui_draw_errmaze(void) {
 // draw player
 //--------------------------------------------------------------
 void gui_draw_player(void) {
+    extern uint32_t Player_Dying_Timer_ms;
+    extern uint32_t Player_Invuln_Timer_ms;
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    // --- HIỆU ỨNG NHẤP NHÁY ĐỎ KHI CHẾT ---
+    if (Player.status == PLAYER_STATUS_DYING) {
+        if ((Player_Dying_Timer_ms / 100) % 2 == 0) {
+            x = Player.xp;
+            y = Player.yp;
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player.delta_x + BOTS_DIFF_X;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player.delta_y + BOTS_DIFF_Y;
+            if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+            if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+            koord.w = BOTS_WIDTH;
+            koord.h = BOTS_HEIGHT;
+            s = Player.skin;
+            koord.source_xp = Player_Skin[s].xp;
+            koord.source_yp = Player_Skin[s].yp;
+            UB_Graphic2D_DrawImageRectRecolor(koord, RGB_COL_RED);
+        }
+        return;
+    }
+
     if (Player.status != PLAYER_STATUS_ALIVE) {
         return;
+    }
+
+    // --- HIỆU ỨNG NHẤP NHÁY BẤT TỬ KHI HỒI SINH ---
+    if (Player_Invuln_Timer_ms > 0) {
+        if ((Player_Invuln_Timer_ms / 50) % 2 == 0) {
+            return; // Bỏ qua không vẽ frame này
+        }
     }
 
     x = Player.xp;
@@ -186,11 +219,39 @@ void gui_clear_player(void) {
 }
 
 void gui_draw_player2(void) {
+    extern uint32_t Player2_Dying_Timer_ms;
+    extern uint32_t Player2_Invuln_Timer_ms;
     Image2LCD_t koord;
     uint32_t x, y, s;
 
+    // --- HIỆU ỨNG NHẤP NHÁY ĐỎ KHI CHẾT ---
+    if (Player2.status == PLAYER_STATUS_DYING) {
+        if ((Player2_Dying_Timer_ms / 100) % 2 == 0) {
+            x = Player2.xp;
+            y = Player2.yp;
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Player2.delta_x + BOTS_DIFF_X;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Player2.delta_y + BOTS_DIFF_Y;
+            if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+            if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+            koord.w = BOTS_WIDTH;
+            koord.h = BOTS_HEIGHT;
+            s = Player2.skin;
+            koord.source_xp = Player_Skin[s].xp;
+            koord.source_yp = Player_Skin[s].yp;
+            UB_Graphic2D_DrawImageRectRecolor(koord, RGB_COL_RED);
+        }
+        return;
+    }
+
     if (Player2.status != PLAYER_STATUS_ALIVE) {
         return;
+    }
+
+    // --- HIỆU ỨNG NHẤP NHÁY BẤT TỬ KHI HỒI SINH ---
+    if (Player2_Invuln_Timer_ms > 0) {
+        if ((Player2_Invuln_Timer_ms / 50) % 2 == 0) {
+            return; // Bỏ qua không vẽ frame này
+        }
     }
 
     x = Player2.xp;
@@ -518,6 +579,67 @@ void gui_clear_clyde(void) {
 }
 
 //--------------------------------------------------------------
+// draw bot : HumanGhost (player 2 controlled)
+//--------------------------------------------------------------
+void gui_draw_humanghost(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+
+    x = HumanGhost.xp;
+    y = HumanGhost.yp;
+
+    if (HumanGhost.port != PORT_DONE) {
+    } else {
+        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + HumanGhost.delta_x + BOTS_DIFF_X;
+        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + HumanGhost.delta_y + BOTS_DIFF_Y;
+        if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
+        if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
+        koord.w = BOTS_WIDTH;
+        koord.h = BOTS_HEIGHT;
+        s = HumanGhost.skin;
+        gui_draw_ghost_sprite(koord, Blinky_Skin, s, GHOST_HUMAN, &HumanGhost);
+    }
+}
+
+//--------------------------------------------------------------
+// clear bot : HumanGhost
+//--------------------------------------------------------------
+void gui_clear_humanghost(void) {
+    Image2LCD_t koord;
+    uint32_t x, y, s;
+    uint32_t xp, yp;
+    int16_t xmin, xmax;
+    int16_t ymin, ymax;
+
+    xp = HumanGhost.xp;
+    yp = HumanGhost.yp;
+
+    xmin = xp - 1;
+    xmax = xp + 1;
+    ymin = yp - 1;
+    ymax = yp + 1;
+
+    if (xmin < 0) xmin = 0;
+    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
+    if (ymin < 0) ymin = 0;
+    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
+
+    koord.w = ROOM_WIDTH;
+    koord.h = ROOM_HEIGHT;
+
+    for (y = ymin; y <= ymax; y++) {
+        for (x = xmin; x <= xmax; x++) {
+            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
+            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
+            s = Maze.Room[x][y].skin;
+            koord.source_xp = Room_Skin[s].xp;
+            koord.source_yp = Room_Skin[s].yp;
+            UB_Graphic2D_DrawImageRect(koord);
+        }
+    }
+}
+
+//--------------------------------------------------------------
 // draw gui (buttons, text ...)
 //--------------------------------------------------------------
 void gui_draw_gui(uint32_t joy) {
@@ -565,6 +687,21 @@ void gui_draw_gui(uint32_t joy) {
         }
     }
 
+    // In thông tin debug joystick lên màn hình
+    {
+        extern uint16_t debug_joy1_x, debug_joy1_y, debug_joy2_x, debug_joy2_y;
+        extern int32_t joy1_center_x, joy1_center_y, joy2_center_x, joy2_center_y;
+        char dbg_buf[32];
+        
+        // Joystick 1: Giá trị thô
+        sprintf(dbg_buf, "J1:%4u %4u", debug_joy1_x, debug_joy1_y);
+        UB_Font_DrawString(10, 310, dbg_buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        
+        // Joystick 2: Giá trị thô
+        sprintf(dbg_buf, "J2:%4u %4u", debug_joy2_x, debug_joy2_y);
+        UB_Font_DrawString(120, 310, dbg_buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    }
+
     if (GUI.refresh_buttons > 0) {
         GUI.refresh_buttons--;
         gui_draw_buttons(joy);
@@ -578,7 +715,7 @@ void gui_draw_buttons(uint32_t joy) {
     Image2LCD_t koord;
     uint32_t su, sd, sr, sl;
 
-    if (Game.player2_active != 0) {
+    if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
         // --- PLAYER 1 D-PAD (LEFT SIDE - COMPACT) ---
         su = BUTTON_SKIN1;
         sd = BUTTON_SKIN1;
@@ -761,18 +898,37 @@ uint32_t gui_check_button(void) {
 }
 
 //--------------------------------------------------------------
-// check analog joystick (VRx/VRy via ADC)
+// check analog joystick 1 (VRx/VRy via ADC)
 //--------------------------------------------------------------
-uint32_t gui_check_joystick(void) {
+uint32_t gui_check_joystick1(void) {
     uint32_t ret_wert = GUI_JOY_NONE;
-    static uint32_t old_button = 999;
+    static uint32_t old_button1 = 999;
 
 #if JOYSTICK_USE_ADC == 1
-    ret_wert = UB_Joystick_ReadDirection();
+    ret_wert = UB_Joystick1_ReadDirection();
 #endif
 
-    if (old_button != ret_wert) {
-        old_button = ret_wert;
+    if (old_button1 != ret_wert) {
+        old_button1 = ret_wert;
+        GUI.refresh_buttons = GUI_REFRESH_VALUE;
+    }
+
+    return (ret_wert);
+}
+
+//--------------------------------------------------------------
+// check analog joystick 2 (VRx/VRy via ADC)
+//--------------------------------------------------------------
+uint32_t gui_check_joystick2(void) {
+    uint32_t ret_wert = GUI_JOY_NONE;
+    static uint32_t old_button2 = 999;
+
+#if JOYSTICK_USE_ADC == 1
+    ret_wert = UB_Joystick2_ReadDirection();
+#endif
+
+    if (old_button2 != ret_wert) {
+        old_button2 = ret_wert;
         GUI.refresh_buttons = GUI_REFRESH_VALUE;
     }
 
@@ -956,6 +1112,9 @@ void gui_show_win_screen(uint32_t score) {
     
     UB_LCD_Refresh();
     
+    // Play win theme (blocking melody)
+    UB_Buzzer_Play_Win();
+    
     gui_wait_interaction();
 }
 
@@ -993,6 +1152,9 @@ void gui_show_lost_screen(uint32_t score) {
     UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
     
     UB_LCD_Refresh();
+    
+    // Play lost theme (blocking melody)
+    UB_Buzzer_Play_Lost();
     
     gui_wait_interaction();
 }

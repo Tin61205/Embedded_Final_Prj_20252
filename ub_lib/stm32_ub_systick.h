@@ -18,12 +18,18 @@ extern uint32_t  Blinky_Systic_Timer_ms;
 extern uint32_t  Pinky_Systic_Timer_ms;
 extern uint32_t  Inky_Systic_Timer_ms;
 extern uint32_t  Clyde_Systic_Timer_ms;
+extern uint32_t  HumanGhost_Systic_Timer_ms;
 extern uint32_t  UB_Game_Timers_Paused;
+extern uint32_t  Player_Dying_Timer_ms;
+extern uint32_t  Player_Invuln_Timer_ms;
+extern uint32_t  Player2_Dying_Timer_ms;
+extern uint32_t  Player2_Invuln_Timer_ms;
 
 //--------------------------------------------------------------
 // Function prototypes
 //--------------------------------------------------------------
 void UB_Systick_Init(void);
+void UB_Systick_Reset_Player_Timers(void);
 #if SYSTICK_RESOLUTION==1
   void UB_Systick_Pause_us(volatile uint32_t pause);
 #endif

@@ -50,12 +50,6 @@ void blinky_move(void) {
     }
     if (Blinky.move == MOVE_STOP) return;
 
-    if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 &&
-        Blinky.status == GHOST_STATUS_ALIVE &&
-        Game.frightened == BOOL_FALSE) {
-        bot_apply_player_ghost_input(&Blinky, Game.player2_joy);
-    }
-
     if (Blinky.move == MOVE_UP) {
         // move one pixel
         Blinky.delta_y--;
@@ -261,16 +255,7 @@ void blinky_check_event(void) {
 
     bot_ghost_hit_pacman(xp, yp, &Blinky);
 
-    // check if home position after dead
-    if (Blinky.status == GHOST_STATUS_DEAD) {
-        if ((xp == BLINKY_HOME_X) && (yp == BLINKY_HOME_Y)) {
-            Blinky.status = GHOST_STATUS_ALIVE;
-            Blinky.skin = GHOST_SKIN_UP1;
-            Blinky.move = MOVE_UP;
-            Blinky.next_move = MOVE_UP;
-            Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
-        }
-    }
+    bot_ghost_try_revive(&Blinky, GHOST_BLINKY);
 }
 
 //--------------------------------------------------------------
@@ -310,11 +295,7 @@ void blinky_calc_next_move(void) {
     if (door_cnt == 0) {
         Blinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
-        // take the only possible way
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) Blinky.next_move = MOVE_UP;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) Blinky.next_move = MOVE_RIGHT;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) Blinky.next_move = MOVE_DOWN;
-        if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) Blinky.next_move = MOVE_LEFT;
+        Blinky.next_move = bot_calc_only_exit(xp, yp);
     } else {
         // more than one possible way
         if (Blinky.new_mode == 1) {
@@ -339,11 +320,6 @@ void blinky_calc_next_move(void) {
             } else {
                 Blinky.next_move = bot_calc_move_home(GHOST_BLINKY, xp, yp, Blinky.move);
             }
-            return;
-        }
-
-        if (bot_is_player_controlled_ghost(GHOST_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
-            Blinky.next_move = bot_calc_move_player_ghost(xp, yp, Blinky.move, Game.player2_joy);
             return;
         }
 

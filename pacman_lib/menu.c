@@ -8,9 +8,9 @@
 
 #include "bot.h"
 #include "maze.h"
-#include "maze_txtmap.h"
 #include "skin.h"
 #include "stm32_ub_graphic2d.h"
+#include "stm32_ub_buzzer.h"
 
 
 //--------------------------------------------------------------
@@ -40,14 +40,18 @@
 static void menu_draw_main(uint32_t sel);
 static uint32_t menu_run_main(void);
 static void menu_custom_defaults(void);
-static void menu_draw_wizard(uint32_t step, uint32_t ghost_idx);
-static uint32_t menu_run_custom_wizard(void);
+static void menu_draw_custom_players_speed(uint32_t sel_line);
+static uint32_t menu_run_custom_players_speed(void);
+static void menu_draw_custom_ghosts(uint32_t sel_line);
+static uint32_t menu_run_custom_ghosts(void);
 static void menu_draw_custom_map_select(void);
 static uint32_t menu_run_custom_map_select(void);
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir);
 static void menu_draw_campaign_wizard(uint32_t sel_line);
 static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty);
 static uint32_t menu_run_campaign_wizard(void);
+static void menu_draw_highscore_view(void);
+static void menu_run_highscore_view(void);
 
 //--------------------------------------------------------------
 // entry: main menu then optional custom wizard
@@ -55,7 +59,9 @@ static uint32_t menu_run_campaign_wizard(void);
 uint32_t menu_start(void) {
     uint32_t result;
     uint32_t srand_init = 0;
+    uint32_t i;
 
+    UB_Buzzer_Stop();
     GUI.refresh_value = GUI_REFRESH_VALUE;
     GUI.refresh_buttons = GUI_REFRESH_VALUE;
 
@@ -63,6 +69,7 @@ uint32_t menu_start(void) {
     menu_custom_defaults();
     Game.campaign_map_id = MAZE_MAP_CLASSIC;
     Game.campaign_difficulty = 1;
+    Game.campaign_coop = 0;
 
     while (1) {
         srand_init++;
@@ -84,18 +91,25 @@ uint32_t menu_start(void) {
                         custom_done = 1; // Back to main menu
                     }
                 } else if (custom_step == 2) {
-                    uint32_t wizard_res = menu_run_custom_wizard();
-                    if (wizard_res == 1) {
+                    if (menu_run_custom_players_speed() != 0) {
+                        custom_step = 3;
+                    } else {
+                        custom_step = 1; // Go back to map select
+                    }
+                } else if (custom_step == 3) {
+                    if (menu_run_custom_ghosts() != 0) {
                         Game.play_type = GAME_PLAY_CUSTOM;
                         custom_done = 2; // Start game
                     } else {
-                        custom_step = 1; // Go back to map select
+                        custom_step = 2; // Go back to players & speed
                     }
                 }
             }
             if (custom_done == 2) {
                 break;
             }
+        } else if (result == MENU_RESULT_HIGHSCORE) {
+            menu_run_highscore_view();
         }
     }
 
@@ -115,8 +129,30 @@ static uint32_t menu_ai_ghost_count(void) {
     return Game.custom.ghost_count;
 }
 
-static uint32_t menu_wizard_max_lines(void) {
-    return 4 + Game.custom.ghost_count;
+static uint32_t menu_players_speed_max_lines(void) {
+    return 4;
+}
+
+static uint32_t menu_ghosts_max_lines(void) {
+    if (menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 1) {
+        return 2 + menu_ai_ghost_count();
+    }
+    return 1 + Game.custom.ghost_count;
+}
+
+static uint32_t menu_players_speed_skip_line(uint32_t line) {
+    return (line == 1 && Game.custom.player_count == CUSTOM_PLAYER_1) ? 1 : 0;
+}
+
+static uint32_t menu_ghosts_skip_line(uint32_t line) {
+    return (menu_is_vs_ghost_2p() && line == 1 && Game.custom.ghost_count >= 1) ? 1 : 0;
+}
+
+static void menu_draw_footer_buttons(const char *next_label, uint16_t next_x) {
+    UB_Graphic2D_DrawRectDMA(10, 275, 70, 25, RGB_COL_BLUE);
+    UB_Font_DrawString(25, 282, "Back", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
+    UB_Font_DrawString(next_x, 282, next_label, &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
 }
 
 static void menu_custom_defaults(void) {
@@ -124,6 +160,7 @@ static void menu_custom_defaults(void) {
 
     Game.custom.player_count = CUSTOM_PLAYER_1;
     Game.custom.map_id = MAZE_MAP_CLASSIC;
+    Game.custom.player_speed_idx = CUSTOM_SPEED_NORMAL;
     Game.custom.ghost_speed_idx = CUSTOM_SPEED_NORMAL;
     Game.custom.two_player_mode = CUSTOM_2P_COOP;
     Game.custom.ghost_count = 1;
@@ -189,7 +226,16 @@ static void menu_draw_main(uint32_t sel) {
         UB_Font_DrawString(99, 180, "Custom", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
     }
     
-    // 5. Draw prompt message container at the bottom
+    // 5. Draw High Score Button (Centered, X: 40, Y: 220, W: 160, H: 30)
+    if (sel == 2) {
+        UB_Graphic2D_DrawFullRectDMA(40, 220, 160, 30, RGB_COL_RED);
+        UB_Graphic2D_DrawRectDMA(40, 220, 160, 30, RGB_COL_WHITE);
+        UB_Font_DrawString(85, 230, "High Score", &Arial_7x10, RGB_COL_WHITE, RGB_COL_RED);
+    } else {
+        UB_Graphic2D_DrawFullRectDMA(40, 220, 160, 30, 0x39E7); // Dark Grey
+        UB_Graphic2D_DrawRectDMA(40, 220, 160, 30, RGB_COL_BLACK);
+        UB_Font_DrawString(85, 230, "High Score", &Arial_7x10, RGB_COL_WHITE, 0x39E7);
+    }
 }
 
 static uint32_t menu_run_main(void) {
@@ -198,16 +244,35 @@ static uint32_t menu_run_main(void) {
     menu_draw_main(sel);
 
     while (1) {
-        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
-            sel = 1 - sel;
+        if (UB_Button_OnClick(BTN_UP)) {
+            if (sel == 0) {
+                sel = 2;
+            } else {
+                sel--;
+            }
             menu_draw_main(sel);
+            UB_Buzzer_Play_MenuClick();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN)) {
+            if (sel == 2) {
+                sel = 0;
+            } else {
+                sel++;
+            }
+            menu_draw_main(sel);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             if (sel == 0) {
                 return MENU_RESULT_CAMPAIGN;
+            } else if (sel == 1) {
+                return MENU_RESULT_CUSTOM;
+            } else if (sel == 2) {
+                return MENU_RESULT_HIGHSCORE;
             }
-            return MENU_RESULT_CUSTOM;
         }
 
         UB_Systick_Pause_ms(30);
@@ -215,13 +280,6 @@ static uint32_t menu_run_main(void) {
 }
 
 static const char* menu_map_name(uint32_t map_id) {
-    if (map_id >= MAZE_MAP_TXT_BASE) {
-        uint32_t idx = map_id - MAZE_MAP_TXT_BASE;
-        if (idx < MAZE_TXTMAP_COUNT) {
-            return maze_txtmap_names[idx];
-        }
-        return "Unknown";
-    }
     if (map_id == MAZE_MAP_OPEN) return "Arena";
     if (map_id == MAZE_MAP_THREE) return "Spiral";
     if (map_id == MAZE_MAP_FOUR) return "Blocks";
@@ -236,223 +294,263 @@ static const char* menu_speed_name(uint32_t idx) {
     return "Normal";
 }
 
-static void menu_draw_wizard(uint32_t sel_line, uint32_t unused) {
-    char buf[32];
-    uint32_t color;
-
-    gui_clear_screen();
-    UB_Font_DrawString(70, 5, "CUSTOM SETUP", &Arial_7x10, FONT_COL, BACKGROUND_COL);
-
-    // 1. Players count
-    color = (sel_line == 0) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 30, "Players:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%uP", (unsigned int)Game.custom.player_count);
-    UB_Font_DrawString(75, 30, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-
-    // 2. 2P Mode
-    if (Game.custom.player_count == CUSTOM_PLAYER_2) {
-        color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 52, "2P Mode:", &Arial_7x10, color, BACKGROUND_COL);
-        sprintf(buf, "%s", (Game.custom.two_player_mode == CUSTOM_2P_COOP) ? "Co-op" : "Vs Ghost");
-        UB_Font_DrawString(75, 52, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-    } else {
-        UB_Font_DrawString(10, 52, "2P Mode: N/A", &Arial_7x10, FONT_COL3, BACKGROUND_COL);
-    }
-
-    // 3. Ghost Speed
-    color = (sel_line == 2) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 74, "Speed:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%s", menu_speed_name(Game.custom.ghost_speed_idx));
-    UB_Font_DrawString(75, 74, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-
-    // 4. Ghost Count
-    color = (sel_line == 3) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 96, "Ghosts:", &Arial_7x10, color, BACKGROUND_COL);
-    sprintf(buf, "%u", (unsigned int)Game.custom.ghost_count);
-    UB_Font_DrawString(75, 96, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-
-    if (menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 1) {
-        color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 118, "G1 Ctrl:", &Arial_7x10, color, BACKGROUND_COL);
-        UB_Font_DrawString(75, 118, "Player 2", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-    } else if (Game.custom.ghost_count >= 1) {
-        color = (sel_line == 4) ? MENUE_COL_ON : MENUE_COL_OFF;
-        UB_Font_DrawString(10, 118, "G1 Str:", &Arial_7x10, color, BACKGROUND_COL);
-        sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[0]));
-        UB_Font_DrawString(75, 118, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-    }
-
-    if (menu_is_vs_ghost_2p()) {
-        if (menu_ai_ghost_count() >= 1) {
-            color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 140, "AI1 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[0]));
-            UB_Font_DrawString(75, 140, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-        if (menu_ai_ghost_count() >= 2) {
-            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 162, "AI2 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[1]));
-            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-        if (menu_ai_ghost_count() >= 3) {
-            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 184, "AI3 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[2]));
-            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-    } else {
-        if (Game.custom.ghost_count >= 2) {
-            color = (sel_line == 5) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 140, "G2 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[1]));
-            UB_Font_DrawString(75, 140, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-        if (Game.custom.ghost_count >= 3) {
-            color = (sel_line == 6) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 162, "G3 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[2]));
-            UB_Font_DrawString(75, 162, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-        if (Game.custom.ghost_count == 4) {
-            color = (sel_line == 7) ? MENUE_COL_ON : MENUE_COL_OFF;
-            UB_Font_DrawString(10, 184, "G4 Str:", &Arial_7x10, color, BACKGROUND_COL);
-            sprintf(buf, "%s", bot_strategy_name(Game.custom.ghost_strategies[3]));
-            UB_Font_DrawString(75, 184, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
-        }
-    }
-
-    sprintf(buf, "Map: %s", menu_map_name(Game.custom.map_id));
-    UB_Font_DrawString(10, 215, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
-
-    // Draw Buttons
-    // Back Button (Blue border, white text)
-    UB_Graphic2D_DrawRectDMA(10, 275, 70, 25, RGB_COL_BLUE);
-    UB_Font_DrawString(25, 282, "Back", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
-
-    // Start Button (Red border, white text)
-    UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
-    UB_Font_DrawString(175, 282, "Start", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
-}
-
-static uint32_t menu_handle_value_tap(uint32_t unused1, uint32_t unused2, uint16_t tx, uint16_t ty) {
-    if (tx > 115) {
-        return 0;
-    }
-
-    // Players
-    if (ty >= 26 && ty <= 44) {
+static uint32_t menu_adjust_players_speed(uint32_t sel_line, int32_t dir) {
+    if (sel_line == 0) {
         Game.custom.player_count = (Game.custom.player_count == CUSTOM_PLAYER_1) ? CUSTOM_PLAYER_2 : CUSTOM_PLAYER_1;
         return 1;
     }
-    // 2P Mode
-    if (ty >= 48 && ty <= 66) {
+    if (sel_line == 1) {
         if (Game.custom.player_count == CUSTOM_PLAYER_2) {
             Game.custom.two_player_mode = (Game.custom.two_player_mode == CUSTOM_2P_COOP) ? CUSTOM_2P_VS_GHOST : CUSTOM_2P_COOP;
             return 1;
         }
         return 0;
     }
-    // Speed
-    if (ty >= 70 && ty <= 88) {
-        Game.custom.ghost_speed_idx = menu_cycle_value(Game.custom.ghost_speed_idx, CUSTOM_SPEED_SLOW, CUSTOM_SPEED_FAST, 1);
+    if (sel_line == 2) {
+        Game.custom.player_speed_idx = menu_cycle_value(Game.custom.player_speed_idx, CUSTOM_SPEED_SLOW, CUSTOM_SPEED_FAST, dir);
         return 1;
     }
-    // Ghosts count
-    if (ty >= 92 && ty <= 110) {
-        Game.custom.ghost_count = menu_cycle_value(Game.custom.ghost_count, 1, CUSTOM_MAX_GHOSTS, 1);
+    if (sel_line == 3) {
+        Game.custom.ghost_speed_idx = menu_cycle_value(Game.custom.ghost_speed_idx, CUSTOM_SPEED_SLOW, CUSTOM_SPEED_FAST, dir);
         return 1;
     }
-    if (menu_is_vs_ghost_2p()) {
-        if (ty >= 114 && ty <= 132 && menu_ai_ghost_count() >= 1) {
-            Game.custom.ghost_strategies[0] = menu_cycle_value(Game.custom.ghost_strategies[0], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-        if (ty >= 136 && ty <= 154 && menu_ai_ghost_count() >= 2) {
-            Game.custom.ghost_strategies[1] = menu_cycle_value(Game.custom.ghost_strategies[1], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-        if (ty >= 158 && ty <= 176 && menu_ai_ghost_count() >= 3) {
-            Game.custom.ghost_strategies[2] = menu_cycle_value(Game.custom.ghost_strategies[2], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-    } else {
-        if (ty >= 114 && ty <= 132 && Game.custom.ghost_count >= 1) {
-            Game.custom.ghost_strategies[0] = menu_cycle_value(Game.custom.ghost_strategies[0], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-        if (ty >= 136 && ty <= 154 && Game.custom.ghost_count >= 2) {
-            Game.custom.ghost_strategies[1] = menu_cycle_value(Game.custom.ghost_strategies[1], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-        if (ty >= 158 && ty <= 176 && Game.custom.ghost_count >= 3) {
-            Game.custom.ghost_strategies[2] = menu_cycle_value(Game.custom.ghost_strategies[2], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-        if (ty >= 180 && ty <= 198 && Game.custom.ghost_count == 4) {
-            Game.custom.ghost_strategies[3] = menu_cycle_value(Game.custom.ghost_strategies[3], 0, GHOST_STRATEGY_COUNT - 1, 1);
-            return 1;
-        }
-    }
-
     return 0;
 }
 
-static uint32_t menu_run_custom_wizard(void) {
-    uint32_t sel_line = 0;
-    uint32_t max_lines;
+static uint32_t menu_adjust_ghosts(uint32_t sel_line, int32_t dir) {
+    uint32_t ai_idx;
 
-    menu_draw_wizard(sel_line, 0);
+    if (sel_line == 0) {
+        Game.custom.ghost_count = menu_cycle_value(Game.custom.ghost_count, 1, CUSTOM_MAX_GHOSTS, dir);
+        return 1;
+    }
+    if (menu_is_vs_ghost_2p()) {
+        if (sel_line == 1 && Game.custom.ghost_count >= 1) {
+            return 0;
+        }
+        ai_idx = sel_line - 2;
+        if (ai_idx < menu_ai_ghost_count()) {
+            Game.custom.ghost_strategies[ai_idx] = menu_cycle_value(
+                Game.custom.ghost_strategies[ai_idx], 0, GHOST_STRATEGY_COUNT - 1, dir);
+            return 1;
+        }
+        return 0;
+    }
+    if (sel_line > 0 && sel_line <= Game.custom.ghost_count) {
+        Game.custom.ghost_strategies[sel_line - 1] = menu_cycle_value(
+            Game.custom.ghost_strategies[sel_line - 1], 0, GHOST_STRATEGY_COUNT - 1, dir);
+        return 1;
+    }
+    return 0;
+}
+
+static uint32_t menu_step_line_up(uint32_t sel_line, uint32_t max_lines, uint32_t (*skip_line)(uint32_t)) {
+    if (sel_line > 0) {
+        sel_line--;
+        while (sel_line > 0 && skip_line(sel_line) != 0) {
+            sel_line--;
+        }
+        if (skip_line(sel_line) != 0) {
+            sel_line = 0;
+        }
+    } else {
+        sel_line = max_lines - 1;
+        while (sel_line > 0 && skip_line(sel_line) != 0) {
+            sel_line--;
+        }
+    }
+    return sel_line;
+}
+
+static uint32_t menu_step_line_down(uint32_t sel_line, uint32_t max_lines, uint32_t (*skip_line)(uint32_t)) {
+    sel_line++;
+    if (sel_line >= max_lines) {
+        sel_line = 0;
+    }
+    while (skip_line(sel_line) != 0) {
+        sel_line++;
+        if (sel_line >= max_lines) {
+            sel_line = 0;
+            break;
+        }
+    }
+    return sel_line;
+}
+
+static void menu_draw_custom_players_speed(uint32_t sel_line) {
+    char buf[32];
+    uint32_t color;
+
+    gui_clear_screen();
+    UB_Font_DrawString(55, 5, "PLAYERS & SPEED", &Arial_7x10, FONT_COL, BACKGROUND_COL);
+    UB_Font_DrawString(200, 5, "1/2", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+
+    color = (sel_line == 0) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 40, "Players:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%uP", (unsigned int)Game.custom.player_count);
+    UB_Font_DrawString(85, 40, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    if (Game.custom.player_count == CUSTOM_PLAYER_2) {
+        color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
+        UB_Font_DrawString(10, 68, "2P Mode:", &Arial_7x10, color, BACKGROUND_COL);
+        sprintf(buf, "%s", (Game.custom.two_player_mode == CUSTOM_2P_COOP) ? "Co-op" : "Vs Ghost");
+        UB_Font_DrawString(85, 68, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    } else {
+        UB_Font_DrawString(10, 68, "2P Mode: N/A", &Arial_7x10, FONT_COL3, BACKGROUND_COL);
+    }
+
+    color = (sel_line == 2) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 96, "Pacman Spd:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", menu_speed_name(Game.custom.player_speed_idx));
+    UB_Font_DrawString(95, 96, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    color = (sel_line == 3) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 124, "Ghost Spd:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", menu_speed_name(Game.custom.ghost_speed_idx));
+    UB_Font_DrawString(95, 124, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    sprintf(buf, "Map: %s", menu_map_name(Game.custom.map_id));
+    UB_Font_DrawString(10, 220, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+
+    menu_draw_footer_buttons("Next", 180);
+}
+
+static uint32_t menu_run_custom_players_speed(void) {
+    uint32_t sel_line = 0;
+
+    menu_draw_custom_players_speed(sel_line);
 
     while (1) {
-        max_lines = menu_wizard_max_lines();
-
-        // Hard buttons controls
         if (UB_Button_OnClick(BTN_UP)) {
-            if (sel_line > 0) {
-                sel_line--;
-                if (sel_line == 1 && Game.custom.player_count == CUSTOM_PLAYER_1) {
-                    sel_line = 0;
-                }
-            } else {
-                sel_line = max_lines - 1;
-            }
-            menu_draw_wizard(sel_line, 0);
+            sel_line = menu_step_line_up(sel_line, menu_players_speed_max_lines(), menu_players_speed_skip_line);
+            menu_draw_custom_players_speed(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN)) {
-            sel_line++;
-            if (sel_line == 1 && Game.custom.player_count == CUSTOM_PLAYER_1) {
-                sel_line = 2;
-            }
-            if (sel_line >= max_lines) {
-                sel_line = 0;
-            }
-            menu_draw_wizard(sel_line, 0);
+            sel_line = menu_step_line_down(sel_line, menu_players_speed_max_lines(), menu_players_speed_skip_line);
+            menu_draw_custom_players_speed(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
-        if (UB_Button_OnClick(BTN_LEFT) || UB_Button_OnClick(BTN_RIGHT)) {
-            // Simulate touch on selected line to cycle value
-            uint16_t simulated_y = 35;
-            if (sel_line == 0) simulated_y = 35;
-            else if (sel_line == 1) simulated_y = 55;
-            else if (sel_line == 2) simulated_y = 75;
-            else if (sel_line == 3) simulated_y = 95;
-            else if (sel_line == 4) simulated_y = 115;
-            else if (sel_line == 5) simulated_y = 145;
-            else if (sel_line == 6) simulated_y = 165;
-            else if (sel_line == 7) simulated_y = 185;
+        {
+            bool left_click = UB_Button_OnClick(BTN_LEFT);
+            bool right_click = UB_Button_OnClick(BTN_RIGHT);
 
-            if (menu_handle_value_tap(0, 0, 10, simulated_y)) {
-                menu_draw_wizard(sel_line, 0);
+            if (left_click || right_click) {
+                int32_t dir = right_click ? 1 : -1;
+
+                if (menu_adjust_players_speed(sel_line, dir) != 0) {
+                    menu_draw_custom_players_speed(sel_line);
+                    UB_Buzzer_Play_MenuClick();
+                }
+                UB_Systick_Pause_ms(150);
             }
-            UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
-            return 0; // Go back to map select
+            UB_Buzzer_Play_MenuClick();
+            return 0;
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
-            return 1; // Start game
+            UB_Buzzer_Play_MenuClick();
+            return 1;
+        }
+
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+static void menu_draw_custom_ghosts(uint32_t sel_line) {
+    char buf[32];
+    uint32_t color;
+    uint32_t y = 40;
+    uint32_t line = 0;
+    uint32_t i;
+
+    gui_clear_screen();
+    UB_Font_DrawString(65, 5, "GHOSTS SETUP", &Arial_7x10, FONT_COL, BACKGROUND_COL);
+    UB_Font_DrawString(200, 5, "2/2", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+
+    color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, y, "Ghosts:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%u", (unsigned int)Game.custom.ghost_count);
+    UB_Font_DrawString(85, y, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    line++;
+    y += 28;
+
+    if (menu_is_vs_ghost_2p() && Game.custom.ghost_count >= 1) {
+        color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
+        UB_Font_DrawString(10, y, "Human G:", &Arial_7x10, color, BACKGROUND_COL);
+        UB_Font_DrawString(85, y, "P2 Green", &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+        line++;
+        y += 28;
+        for (i = 0; i < menu_ai_ghost_count(); i++) {
+            color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
+            sprintf(buf, "AI%u Str:", (unsigned int)(i + 1));
+            UB_Font_DrawString(10, y, buf, &Arial_7x10, color, BACKGROUND_COL);
+            UB_Font_DrawString(85, y, bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            line++;
+            y += 28;
+        }
+    } else {
+        for (i = 0; i < Game.custom.ghost_count; i++) {
+            color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
+            sprintf(buf, "G%u Str:", (unsigned int)(i + 1));
+            UB_Font_DrawString(10, y, buf, &Arial_7x10, color, BACKGROUND_COL);
+            UB_Font_DrawString(85, y, bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            line++;
+            y += 28;
+        }
+    }
+
+    sprintf(buf, "Map: %s", menu_map_name(Game.custom.map_id));
+    UB_Font_DrawString(10, 220, buf, &Arial_7x10, FONT_COL2, BACKGROUND_COL);
+
+    menu_draw_footer_buttons("Start", 175);
+}
+
+static uint32_t menu_run_custom_ghosts(void) {
+    uint32_t sel_line = 0;
+
+    menu_draw_custom_ghosts(sel_line);
+
+    while (1) {
+        if (UB_Button_OnClick(BTN_UP)) {
+            sel_line = menu_step_line_up(sel_line, menu_ghosts_max_lines(), menu_ghosts_skip_line);
+            menu_draw_custom_ghosts(sel_line);
+            UB_Buzzer_Play_MenuClick();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN)) {
+            sel_line = menu_step_line_down(sel_line, menu_ghosts_max_lines(), menu_ghosts_skip_line);
+            menu_draw_custom_ghosts(sel_line);
+            UB_Buzzer_Play_MenuClick();
+            UB_Systick_Pause_ms(150);
+        }
+        {
+            bool left_click = UB_Button_OnClick(BTN_LEFT);
+            bool right_click = UB_Button_OnClick(BTN_RIGHT);
+
+            if (left_click || right_click) {
+                int32_t dir = right_click ? 1 : -1;
+
+                if (menu_adjust_ghosts(sel_line, dir) != 0) {
+                    if (sel_line >= menu_ghosts_max_lines()) {
+                        sel_line = menu_ghosts_max_lines() - 1;
+                    }
+                    menu_draw_custom_ghosts(sel_line);
+                    UB_Buzzer_Play_MenuClick();
+                }
+                UB_Systick_Pause_ms(150);
+            }
+        }
+        if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
+            return 0;
+        }
+        if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
+            return 1;
         }
 
         UB_Systick_Pause_ms(30);
@@ -496,17 +594,21 @@ static uint32_t menu_run_custom_map_select(void) {
         if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_LEFT)) {
             Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, -1);
             menu_draw_custom_map_select();
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_DOWN) || UB_Button_OnClick(BTN_RIGHT)) {
             Game.custom.map_id = menu_cycle_value(Game.custom.map_id, 0, MAZE_MAP_COUNT - 1, 1);
             menu_draw_custom_map_select();
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
             return 0; // Go back to main menu
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             return 1; // Go to step 2
         }
 
@@ -526,15 +628,21 @@ static void menu_draw_campaign_wizard(uint32_t sel_line) {
 
     // 1. Map
     color = (sel_line == 0) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 50, "Map:", &Arial_7x10, color, BACKGROUND_COL);
+    UB_Font_DrawString(10, 30, "Map:", &Arial_7x10, color, BACKGROUND_COL);
     sprintf(buf, "%s", menu_map_name(Game.campaign_map_id));
-    UB_Font_DrawString(75, 50, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    UB_Font_DrawString(75, 30, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
     // 2. Difficulty
     color = (sel_line == 1) ? MENUE_COL_ON : MENUE_COL_OFF;
-    UB_Font_DrawString(10, 80, "Difficulty:", &Arial_7x10, color, BACKGROUND_COL);
+    UB_Font_DrawString(10, 55, "Difficulty:", &Arial_7x10, color, BACKGROUND_COL);
     sprintf(buf, "%u", (unsigned int)Game.campaign_difficulty);
-    UB_Font_DrawString(90, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+    UB_Font_DrawString(90, 55, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+
+    // 3. Play Mode (Solo / Co-op)
+    color = (sel_line == 2) ? MENUE_COL_ON : MENUE_COL_OFF;
+    UB_Font_DrawString(10, 80, "Mode:", &Arial_7x10, color, BACKGROUND_COL);
+    sprintf(buf, "%s", Game.campaign_coop ? "Pacman Co-op" : "Solo");
+    UB_Font_DrawString(75, 80, buf, &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
 
     UB_Font_DrawString(10, 105, "Map Preview:", &Arial_7x10, FONT_COL2, BACKGROUND_COL);
     maze_draw_preview(Game.campaign_map_id, MENU_CAMPAIGN_PREVIEW_X, MENU_CAMPAIGN_PREVIEW_Y, MENU_CAMPAIGN_PREVIEW_CELL);
@@ -554,13 +662,18 @@ static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
         return 0;
     }
     // Map
-    if (ty >= 46 && ty <= 64) {
+    if (ty >= 26 && ty <= 44) {
         Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
         return 1;
     }
     // Difficulty
-    if (ty >= 76 && ty <= 94) {
+    if (ty >= 51 && ty <= 69) {
         Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+        return 1;
+    }
+    // Mode
+    if (ty >= 76 && ty <= 94) {
+        Game.campaign_coop = Game.campaign_coop ? 0 : 1;
         return 1;
     }
     return 0;
@@ -573,34 +686,91 @@ static uint32_t menu_run_campaign_wizard(void) {
 
     while (1) {
         // Hard buttons
-        if (UB_Button_OnClick(BTN_UP) || UB_Button_OnClick(BTN_DOWN)) {
-            sel_line = 1 - sel_line;
+        if (UB_Button_OnClick(BTN_UP)) {
+            sel_line = menu_cycle_value(sel_line, 0, 2, -1);
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
+            UB_Systick_Pause_ms(150);
+        }
+        if (UB_Button_OnClick(BTN_DOWN)) {
+            sel_line = menu_cycle_value(sel_line, 0, 2, 1);
+            menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_LEFT)) {
             if (sel_line == 0) {
-                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
+            } else if (sel_line == 1) {
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
             } else {
-                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
+                Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_RIGHT)) {
             if (sel_line == 0) {
-                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
+            } else if (sel_line == 1) {
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
             } else {
-                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+                Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
             menu_draw_campaign_wizard(sel_line);
+            UB_Buzzer_Play_MenuClick();
             UB_Systick_Pause_ms(150);
         }
         if (UB_Button_OnClick(BTN_BACK)) {
+            UB_Buzzer_Play_MenuClick();
             return 0; // Back to main menu
         }
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
             return 1; // Start
+        }
+        UB_Systick_Pause_ms(30);
+    }
+}
+
+static void menu_draw_highscore_view(void) {
+    uint32_t idx;
+    char buf[64];
+    
+    gui_clear_screen();
+    
+    // Draw Title
+    UB_Font_DrawString(81, 15, "HIGH SCORES", &Arial_7x10, RGB_COL_YELLOW, BACKGROUND_COL);
+    
+    // Draw divider line
+    UB_Graphic2D_DrawFullRectDMA(10, 35, 220, 2, RGB_COL_BLUE);
+    
+    // Draw scores for each map
+    for (idx = 0; idx < MAZE_MAP_COUNT; idx++) {
+        const char *name = menu_map_name(idx);
+        uint32_t score = Game.campaign_high_scores[idx];
+        sprintf(buf, "%s: %u", name, (unsigned int)score);
+        
+        uint16_t len = strlen(buf) * 7;
+        uint16_t x = (240 - len) / 2;
+        uint16_t y = 55 + idx * 25;
+        UB_Font_DrawString(x, y, buf, &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    }
+    
+    // Draw prompt instruction at the bottom
+    UB_Font_DrawString(29, 275, "[Back] / [Center] to Return", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+}
+
+static void menu_run_highscore_view(void) {
+    menu_draw_highscore_view();
+    UB_Systick_Pause_ms(200); // Debounce hard button click
+    
+    while (1) {
+        if (UB_Button_OnClick(BTN_BACK) || UB_Button_OnClick(BTN_CENTER)) {
+            UB_Buzzer_Play_MenuClick();
+            UB_Systick_Pause_ms(150);
+            return;
         }
         UB_Systick_Pause_ms(30);
     }

@@ -106,24 +106,12 @@ bool UB_Button_OnPressed(BUTTON_NAME_t btn_name)
 //--------------------------------------------------------------
 bool UB_Button_OnClick(BUTTON_NAME_t btn_name)
 {
-  uint8_t wert;
-  static uint8_t old_wert[BUTTON_ANZ] = {Bit_SET, Bit_SET, Bit_SET, Bit_SET, Bit_RESET, Bit_SET};
+  static uint8_t old_pressed[BUTTON_ANZ] = {0};
+  bool pressed = (BUTTON[btn_name].BUTTON_AKT == Bit_SET);
+  bool clicked = (pressed && (old_pressed[btn_name] == 0));
 
-  wert = GPIO_ReadInputDataBit(BUTTON[btn_name].BUTTON_PORT, BUTTON[btn_name].BUTTON_PIN);
-
-  if (btn_name == BTN_CENTER) {
-    // Active HIGH (pressed = Bit_SET)
-    bool pressed = (wert == Bit_SET);
-    bool old_pressed = (old_wert[btn_name] == Bit_SET);
-    old_wert[btn_name] = wert;
-    return (pressed && !old_pressed);
-  } else {
-    // Active LOW (pressed = Bit_RESET)
-    bool pressed = (wert == Bit_RESET);
-    bool old_pressed = (old_wert[btn_name] == Bit_RESET);
-    old_wert[btn_name] = wert;
-    return (pressed && !old_pressed);
-  }
+  old_pressed[btn_name] = pressed ? 1 : 0;
+  return clicked;
 }
 #endif
 
@@ -223,7 +211,14 @@ void UB_BUTTON_TIM_ISR_HANDLER(void)
   //   Pin HIGH (released) -> BUTTON_AKT = Bit_RESET
   for(btn_name=0;btn_name<BUTTON_ANZ;btn_name++) {
     wert=GPIO_ReadInputDataBit(BUTTON[btn_name].BUTTON_PORT, BUTTON[btn_name].BUTTON_PIN);
-    if(wert == Bit_RESET) {
+    if (btn_name == BTN_CENTER) {
+      // Active HIGH (pressed = Bit_SET)
+      if (wert == Bit_SET) {
+        BUTTON[btn_name].BUTTON_AKT = Bit_SET;
+      } else {
+        BUTTON[btn_name].BUTTON_AKT = Bit_RESET;
+      }
+    } else if (wert == Bit_RESET) {
       BUTTON[btn_name].BUTTON_AKT = Bit_SET;   // pressed
     } else {
       BUTTON[btn_name].BUTTON_AKT = Bit_RESET; // released
