@@ -17,6 +17,7 @@ volatile uint32_t buzzer_sequence_timer = 0;
 #define BUZZER_WAKA_LONG_MS        30
 #define BUZZER_WAKA_GAP_MS         58
 
+
 #define BUZZER_ENABLE_MENU_CLICK   1
 #define BUZZER_ENABLE_EAT_DOT      1
 #define BUZZER_ENABLE_EAT_ENERGY   1
