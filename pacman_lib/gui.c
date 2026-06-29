@@ -1009,6 +1009,8 @@ void gui_wait_interaction(void) {
     
     while (1) {
         if (UB_Button_OnClick(BTN_CENTER)) {
+            UB_Systick_Pause_ms(200); // Debounce before menu reads buttons
+            UB_Button_OnClick(BTN_CENTER); // Consume press so menu does not auto-select
             break;
         }
         UB_Systick_Pause_ms(30);
