@@ -13,10 +13,13 @@ volatile uint32_t buzzer_sequence_timer = 0;
 
 // Bật/tắt từng loại âm thanh (countdown + win luôn bật)
 #define BUZZER_ENABLE_MENU_CLICK   1
-#define BUZZER_ENABLE_EAT_DOT      1
+#define BUZZER_ENABLE_EAT_DOT      0
 #define BUZZER_ENABLE_EAT_ENERGY   1
 #define BUZZER_ENABLE_DIE          1
 #define BUZZER_ENABLE_LOST         0
+
+static void UB_Buzzer_StopAll(void);
+static volatile uint32_t buzzer_menu_cooldown_ms = 0;
 
 void UB_Buzzer_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -58,6 +61,7 @@ void UB_Buzzer_Init(void) {
 
     // 5. Start TIM3
     TIM_Cmd(TIM3, ENABLE);
+    UB_Buzzer_StopAll();
 }
 
 void UB_Buzzer_SetTone(uint32_t freq) {
@@ -87,18 +91,36 @@ static void UB_Buzzer_StopAll(void) {
     UB_Buzzer_Timer_ms = 0;
     buzzer_sequence_step = 0;
     buzzer_sequence_timer = 0;
+    buzzer_menu_cooldown_ms = 0;
     UB_Buzzer_Off();
 }
 
+void UB_Buzzer_Stop(void) {
+    UB_Buzzer_StopAll();
+}
+
+void UB_Buzzer_TickMenuCooldown(void) {
+    if (buzzer_menu_cooldown_ms > 0) {
+        buzzer_menu_cooldown_ms--;
+    }
+}
+
 void UB_Buzzer_PlayTone(uint32_t freq, uint32_t duration_ms) {
+    UB_Buzzer_StopAll();
     UB_Buzzer_On(freq);
     UB_Systick_Pause_ms(duration_ms);
     UB_Buzzer_Off();
 }
 
 void UB_Buzzer_PlayToneNonBlocking(uint32_t freq, uint32_t duration_ms) {
+    if (duration_ms == 0) {
+        return;
+    }
     if (buzzer_sequence_timer > 0) {
-        return; // Đang chạy nhạc chết, bỏ qua các âm thanh ngắn khác
+        return;
+    }
+    if (UB_Buzzer_Timer_ms > 0) {
+        return;
     }
     UB_Buzzer_On(freq);
     UB_Buzzer_Timer_ms = duration_ms;
@@ -129,6 +151,7 @@ static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) 
         total_ms += notes[i].duration_ms;
     }
 
+    UB_Buzzer_StopAll();
     return total_ms;
 }
 
@@ -138,10 +161,15 @@ static uint32_t UB_Buzzer_PlayMelody(const BuzzerNote_t *notes, uint32_t count) 
 
 void UB_Buzzer_Play_MenuClick(void) {
 #if BUZZER_ENABLE_MENU_CLICK
-    if (buzzer_sequence_timer > 0) {
+    if (buzzer_menu_cooldown_ms > 0) {
         return;
     }
-    UB_Buzzer_PlayToneNonBlocking(880, 40);
+    if (UB_Buzzer_Timer_ms > 0 || buzzer_sequence_timer > 0) {
+        return;
+    }
+    UB_Buzzer_On(880);
+    UB_Buzzer_Timer_ms = 40;
+    buzzer_menu_cooldown_ms = 200;
 #endif
 }
 
@@ -149,11 +177,8 @@ void UB_Buzzer_Play_EatDot(void) {
 #if BUZZER_ENABLE_EAT_DOT
     static uint8_t waka_high = 0;
 
-    if (buzzer_sequence_timer > 0 || UB_Buzzer_Timer_ms > 0) {
-        return;
-    }
     waka_high ^= 1;
-    UB_Buzzer_PlayToneNonBlocking(waka_high ? 440 : 330, 35);
+    UB_Buzzer_PlayToneNonBlocking(waka_high ? 440 : 330, 25);
 #endif
 }
 
@@ -161,7 +186,7 @@ void UB_Buzzer_Play_EatEnergizer(void) {
 #if BUZZER_ENABLE_EAT_ENERGY
     UB_Buzzer_StopAll();
     UB_Buzzer_On(988);
-    UB_Buzzer_Timer_ms = 60;
+    UB_Buzzer_Timer_ms = 80;
 #endif
 }
 

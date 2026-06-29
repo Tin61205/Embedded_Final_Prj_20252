@@ -15,6 +15,8 @@
 #define BUZZER_GPIO_AF         GPIO_AF_TIM3
 
 void UB_Buzzer_Init(void);
+void UB_Buzzer_Stop(void);
+void UB_Buzzer_TickMenuCooldown(void);
 void UB_Buzzer_SetTone(uint32_t freq);
 void UB_Buzzer_On(uint32_t freq);
 void UB_Buzzer_Off(void);

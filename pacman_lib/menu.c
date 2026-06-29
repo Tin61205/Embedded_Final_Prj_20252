@@ -59,6 +59,7 @@ uint32_t menu_start(void) {
     uint32_t srand_init = 0;
     uint32_t i;
 
+    UB_Buzzer_Stop();
     GUI.refresh_value = GUI_REFRESH_VALUE;
     GUI.refresh_buttons = GUI_REFRESH_VALUE;
 

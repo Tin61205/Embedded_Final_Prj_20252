@@ -129,7 +129,10 @@ void SysTick_Handler(void)
   extern void UB_Buzzer_On(uint32_t freq);
   extern volatile uint32_t buzzer_sequence_step;
   extern volatile uint32_t buzzer_sequence_timer;
-  
+  extern void UB_Buzzer_TickMenuCooldown(void);
+
+  UB_Buzzer_TickMenuCooldown();
+
   if (UB_Buzzer_Timer_ms != 0) {
     UB_Buzzer_Timer_ms--;
     if (UB_Buzzer_Timer_ms == 0) {
@@ -157,6 +160,7 @@ void SysTick_Handler(void)
       } else {
         UB_Buzzer_Off();
         buzzer_sequence_step = 0;
+        buzzer_sequence_timer = 0;
       }
     }
   }
