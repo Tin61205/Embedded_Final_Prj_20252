@@ -27,7 +27,7 @@ Các ngoại vi **gắn sẵn trên board** (không cần nối thêm): LCD, SDR
 | **Nút BACK (PC1)** | Khuyến nghị | Có — hàn lên header | Quay lại menu chính / tạm dừng game |
 | **Nút CENTER (PA0)** | Có | Không — có sẵn trên kit | Xác nhận / Start |
 | **Joystick analog 2** (KY-023) | Tùy chọn | Có — hàn lên header | Player 2 điều khiển Pacman ở chế độ Co-op (PA1/PA2) |
-| **Còi chíp Passive Buzzer** | Khuyến nghị | Có — hàn lên header | Phát âm thanh menu click, ăn chấm, nhạc thắng/thua (PC9) |
+| **Còi chíp Active Buzzer** | Khuyến nghị | Có — hàn lên header | Phát âm thanh menu click, ăn chấm, nhạc thắng/thua (PC9, còi chủ động TMB12A05) |
 | **UART (PA9/PA10)** | Tùy chọn | Có — USB-TTL | Debug serial 115200 baud |
 
 > **Lưu ý:** Game hỗ trợ **2 joystick analog** độc lập cho cả Player 1 và Player 2. Các **nút hướng GPIO** giờ chỉ được dùng độc quyền để di chuyển trong menu.
@@ -141,29 +141,31 @@ Khi vào trận, sơ đồ điều khiển được cố định như sau:
 2. **Player 2**: Điều khiển Pacman xanh bằng Joystick 2 (PA1/PA2) (nếu ở chế độ Co-op).
    *Các nút bấm hướng vật lý không còn tác dụng di chuyển nhân vật trong trận để tránh xung đột chân LCD.*
 
-### 3.7. Còi chíp Passive Buzzer (Còi chíp thụ động)
+### 3.7. Còi chíp Active Buzzer TMB12A05 (Còi chíp chủ động)
 
-Sử dụng còi chíp thụ động để phát âm thanh waka, nhạc thắng/thua. Còi được phát âm thanh qua bộ phát xung **TIM3_CH4** ở chân **PC9**.
+Sử dụng còi chíp chủ động TMB12A05 (Active Buzzer, hỗ trợ điều khiển ở mức thấp - Active Low) để phát âm thanh waka, nhạc thắng/thua. Còi được phát âm thanh qua chân **PC9** (sử dụng chân I/O để bật/tắt còi).
 
 #### 3.7.1. Sơ đồ đấu dây
 
 ```text
-              Passive Buzzer                 STM32F429 Discovery
+              Active Buzzer TMB12A05         STM32F429 Discovery
               ┌─────────────┐                ┌─────────────────────┐
-              │ VCC / Signal┼────────────────┤ PC9 (TIM3_CH4)      │
+              │ I/O / Signal┼────────────────┤ PC9                 │
               │ GND ────────┼────────────────┤ GND                 │
-              │ VCC (nếu 3p)┼────────────────┤ 3.3V / 5V (tùy còi) │
+              │ VCC (3 chân)┼────────────────┤ 3.3V (Nguồn kit)    │
               └─────────────┘                └─────────────────────┘
 ```
 *Ghi chú:* 
-- Nếu còi có 2 chân: Cắm 1 chân vào PC9, chân còn lại vào GND.
-- Nếu còi có 3 chân (Module): Chân Signal nối PC9, VCC nối 3.3V hoặc 5V, GND nối GND.
+- Chân Signal/I/O nối PC9.
+- Chân VCC nối nguồn 3.3V của kit (không nên đấu 5V để tránh nhiễu/kêu liên tục).
+- Chân GND nối GND.
+- Còi TMB12A05 được cấu hình trong phần mềm chạy ở mức logic thấp (Active Low), tức là khi chân PC9 ở mức LOW thì còi kêu, HIGH thì còi tắt.
 
 #### 3.7.2. Vị trí cấu hình phần mềm
 
 ```text
-ub_lib/stm32_ub_buzzer.c    ← khởi tạo GPIO PC9 + TIM3 CH4 PWM + bài hát
-ub_lib/stm32_ub_buzzer.h    ← định nghĩa chân và nguyên mẫu bài hát
+ub_lib/stm32_ub_buzzer.c    ← khởi tạo GPIO PC9 + logic điều khiển bật/tắt + giai điệu
+ub_lib/stm32_ub_buzzer.h    ← định nghĩa chân, BUZZER_ACTIVE_LOW = 1
 ub_lib/stm32_ub_systick.c   ← đếm lùi thời gian ngắt còi phi chặn luồng
 ```
 
@@ -247,7 +249,7 @@ Nút DOWN của Player 1 ban đầu dùng chân PC4, nhưng hiện tại đã đ
 |---|---|
 | PC12 | LCD / SDRAM |
 | PC14, PC15 | Thạch anh 32.768 kHz (LSE) |
-| PC9 | Còi chíp Passive Buzzer (TIM3_CH4) |
+| PC9 | Còi chíp Active Buzzer TMB12A05 |
 | PA1, PA2 | Joystick analog 2 (Player 2) |
 | PA5, PA7 | Joystick analog 1 (Player 1) |
 | PA8 | Chân trống |
@@ -341,9 +343,9 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 
 - [ ] VRx → **PA1**, VRy → **PA2**, VCC → **3.3V**, GND → **GND**
 
-**Còi chíp Passive Buzzer:**
+**Còi chíp Active Buzzer TMB12A05:**
 
-- [ ] Chân Signal/VCC ──→ **PC9**, Chân GND ──→ **GND** (VCC ──→ 3.3V nếu còi 3 chân)
+- [ ] Chân Signal/I/O ──→ **PC9**, Chân GND ──→ **GND**, Chân VCC ──→ **3.3V**
 
 ### Bước 3 — Kiểm tra không short
 
@@ -403,7 +405,7 @@ Khi bật nguồn, `main()` gọi `pacman_hw_init()` theo thứ tự:
 │  [Joystick 2]──PA1/PA2──► Player 2 (trong ván chơi)         │
 │  [Nút BACK PC1]──────────► Tạm dừng / Quay lại Menu          │
 │  [Nút User PA0]──────────► Start / Xác nhận                 │
-│  [Passive Buzzer]──PC9──► Âm thanh waka, nhạc thắng/thua    │
+│  [Active Buzzer]──PC9──► Âm thanh waka, nhạc thắng/thua      │
 │  [LCD ILI9341]──SPI+LTDC──► Hiển thị game                   │
 │  [USART1 PA9/10]─────────► Debug (tùy chọn)                 │
 └─────────────────────────────────────────────────────────────┘
