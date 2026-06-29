@@ -239,9 +239,10 @@ static void menu_draw_main(uint32_t sel) {
 }
 
 static uint32_t menu_run_main(void) {
-    uint32_t sel = 0;
+    uint32_t sel = (Game.play_type == GAME_PLAY_CUSTOM) ? 1 : 0;
 
     menu_draw_main(sel);
+    gui_drain_center_button();
 
     while (1) {
         if (UB_Button_OnClick(BTN_UP)) {
@@ -683,6 +684,7 @@ static uint32_t menu_run_campaign_wizard(void) {
     uint32_t sel_line = 0;
 
     menu_draw_campaign_wizard(sel_line);
+    gui_drain_center_button();
 
     while (1) {
         // Hard buttons

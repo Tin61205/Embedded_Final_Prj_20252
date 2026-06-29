@@ -139,6 +139,7 @@ void gui_debug_uart(char *ptr);
 void gui_show_countdown_text(const char *text, uint8_t scale);
 void gui_show_win_screen(uint32_t score);
 void gui_show_lost_screen(uint32_t score);
+void gui_drain_center_button(void);
 uint32_t gui_run_pause_menu(void);
 void gui_resume_from_pause(uint32_t joy);
 

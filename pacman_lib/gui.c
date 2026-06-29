@@ -647,52 +647,52 @@ void gui_draw_gui(uint32_t joy) {
 
     if (GUI.refresh_value > 0) {
         GUI.refresh_value--;
+    }
 
-        if (Game.player2_active != 0) {
-            if (Game.play_type == GAME_PLAY_CAMPAIGN) {
-                sprintf(buf, "L: %d", (int)(Player.level));
-                UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
-            }
+    if (Game.player2_active != 0) {
+        if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+            sprintf(buf, "L: %d", (int)(Player.level));
+            UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        }
 
-            sprintf(buf, "S: %d", (int)(Player.score));
-            UB_Font_DrawString(92, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        sprintf(buf, "S: %d", (int)(Player.score));
+        UB_Font_DrawString(92, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
 
-            sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
-            UB_Font_DrawString(90, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
+        UB_Font_DrawString(90, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+    } else {
+        if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+            sprintf(buf, "level : %d", (int)(Player.level));
+            UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+        }
+
+        sprintf(buf, "score : %d", (int)(Player.score));
+        UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+
+        sprintf(buf, "lives : %d", (int)(Player.lives));
+        UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+    }
+
+    if (Player.status == PLAYER_STATUS_WIN) {
+        if (Game.play_type == GAME_PLAY_CUSTOM) {
+            UB_Font_DrawString(10, 305, "you win!", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         } else {
-            if (Game.play_type == GAME_PLAY_CAMPAIGN) {
-                sprintf(buf, "level : %d", (int)(Player.level));
-                UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
-            }
-
-            sprintf(buf, "score : %d", (int)(Player.score));
-            UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
-
-            sprintf(buf, "lives : %d", (int)(Player.lives));
-            UB_Font_DrawString(10, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         }
-
-        if (Player.status == PLAYER_STATUS_WIN) {
-            if (Game.play_type == GAME_PLAY_CUSTOM) {
-                UB_Font_DrawString(10, 305, "you win!", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
+        UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+    } else if (Player.status == PLAYER_STATUS_DEAD) {
+        if (Player.lives >= 1) {
+            UB_Font_DrawString(10, 305, "P1 respawn", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+        } else if (Game.player2_active == 0) {
+            if (Player.lives >= 2) {
+                UB_Font_DrawString(10, 305, "player lose", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
             } else {
-                UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+                UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
             }
-        } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
-            UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-        } else if (Player.status == PLAYER_STATUS_DEAD) {
-            if (Player.lives >= 1) {
-                UB_Font_DrawString(10, 305, "P1 respawn", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-            } else if (Game.player2_active == 0) {
-                if (Player.lives >= 2) {
-                    UB_Font_DrawString(10, 305, "player lose", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-                } else {
-                    UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
-                }
-            }
-        } else if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD && Player2.lives == 0) {
-            UB_Font_DrawString(10, 305, "P2 out", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         }
+    } else if (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_DEAD && Player2.lives == 0) {
+        UB_Font_DrawString(10, 305, "P2 out", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
     }
 
     // In thông tin debug joystick lên màn hình
@@ -1001,6 +1001,14 @@ void gui_show_countdown_text(const char *text, uint8_t scale) {
     gui_draw_string_scale(x, y, (char *)text, &Arial_7x10, FONT_COL2, BACKGROUND_COL, scale);
 }
 
+void gui_drain_center_button(void) {
+    while (UB_Button_OnPressed(BTN_CENTER)) {
+        UB_Systick_Pause_ms(30);
+    }
+    UB_Systick_Pause_ms(200);
+    while (UB_Button_OnClick(BTN_CENTER)) {}
+}
+
 void gui_wait_interaction(void) {
     UB_Systick_Pause_ms(500); // Prevent accidental double clicks
     
@@ -1009,12 +1017,12 @@ void gui_wait_interaction(void) {
     
     while (1) {
         if (UB_Button_OnClick(BTN_CENTER)) {
-            UB_Systick_Pause_ms(200); // Debounce before menu reads buttons
-            UB_Button_OnClick(BTN_CENTER); // Consume press so menu does not auto-select
             break;
         }
         UB_Systick_Pause_ms(30);
     }
+
+    gui_drain_center_button();
 }
 
 
