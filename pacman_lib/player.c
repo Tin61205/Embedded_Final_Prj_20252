@@ -315,6 +315,9 @@ static void player_entity_check_event(Player_t *p) {
         Pinky.dot_cnt++;
         Inky.dot_cnt++;
         Clyde.dot_cnt++;
+        if (bot_is_human_ghost_active() != 0) {
+            HumanGhost.dot_cnt++;
+        }
     }
 
     if (Player.point_dots >= Maze.point_dots) {

@@ -145,6 +145,30 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     xp = ghost->xp;
     yp = ghost->yp;
 
+    if (ghost->move == MOVE_STOP && ghost->port == PORT_DONE &&
+        ghost->delta_x == 0 && ghost->delta_y == 0) {
+        if (joy == GUI_JOY_UP && bot_ghost_can_turn(xp, yp, MOVE_UP) != 0) {
+            ghost->move = MOVE_UP;
+            ghost->next_move = MOVE_UP;
+            return;
+        }
+        if (joy == GUI_JOY_RIGHT && bot_ghost_can_turn(xp, yp, MOVE_RIGHT) != 0) {
+            ghost->move = MOVE_RIGHT;
+            ghost->next_move = MOVE_RIGHT;
+            return;
+        }
+        if (joy == GUI_JOY_DOWN && bot_ghost_can_turn(xp, yp, MOVE_DOWN) != 0) {
+            ghost->move = MOVE_DOWN;
+            ghost->next_move = MOVE_DOWN;
+            return;
+        }
+        if (joy == GUI_JOY_LEFT && bot_ghost_can_turn(xp, yp, MOVE_LEFT) != 0) {
+            ghost->move = MOVE_LEFT;
+            ghost->next_move = MOVE_LEFT;
+            return;
+        }
+    }
+
     if ((ghost->move == MOVE_LEFT || ghost->move == MOVE_RIGHT) &&
         (ghost->port == PORT_DONE) && (ghost->delta_y == 0)) {
         if (ABS(ghost->delta_x) <= PLAYER_TURN_ALIGN) {

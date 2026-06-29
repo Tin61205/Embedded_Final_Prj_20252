@@ -14,6 +14,7 @@
 static uint16_t joystick_adc_read(uint8_t channel);
 static uint16_t joystick_adc_read_avg(uint8_t channel, uint8_t samples);
 static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx, int32_t cy);
+static uint32_t joystick_process_dir_joy2(uint16_t raw_x, uint16_t raw_y);
 
 uint16_t debug_joy1_x = 0;
 uint16_t debug_joy1_y = 0;
@@ -105,7 +106,45 @@ uint32_t UB_Joystick2_ReadDirection(void) {
     uint16_t raw_y = joystick_adc_read_avg(JOY2_ADC_Y_CHANNEL, JOY_ADC_READ_SAMPLES);
     debug_joy2_x = raw_x;
     debug_joy2_y = raw_y;
-    return joystick_process_dir(raw_x, raw_y, joy2_center_x, joy2_center_y);
+    return joystick_process_dir_joy2(raw_x, raw_y);
+}
+
+static uint32_t joystick_process_dir_joy2(uint16_t raw_x, uint16_t raw_y) {
+    uint32_t dir_x = JOY_DIR_NONE;
+    uint32_t dir_y = JOY_DIR_NONE;
+    int32_t dev_x = 0;
+    int32_t dev_y = 0;
+
+    if (raw_x < 4) {
+        dir_x = JOY_DIR_LEFT;
+        dev_x = 9 - raw_x;
+    } else if (raw_x > 80) {
+        dir_x = JOY_DIR_RIGHT;
+        dev_x = raw_x - 9;
+    }
+
+    if (raw_y < 4) {
+        dir_y = JOY_DIR_UP;
+        dev_y = 9 - raw_y;
+    } else if (raw_y > 80) {
+        dir_y = JOY_DIR_DOWN;
+        dev_y = raw_y - 9;
+    }
+
+    if (dir_x != JOY_DIR_NONE && dir_y != JOY_DIR_NONE) {
+        if (dev_x >= dev_y) {
+            return dir_x;
+        }
+        return dir_y;
+    }
+    if (dir_x != JOY_DIR_NONE) {
+        return dir_x;
+    }
+    if (dir_y != JOY_DIR_NONE) {
+        return dir_y;
+    }
+
+    return JOY_DIR_NONE;
 }
 
 static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx, int32_t cy) {

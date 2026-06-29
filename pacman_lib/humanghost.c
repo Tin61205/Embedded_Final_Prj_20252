@@ -10,19 +10,11 @@ void humanghost_change_skin(uint32_t direction);
 void humanghost_calc_next_move(void);
 
 void humanghost_move(void) {
-    if (HumanGhost.dot_cnt < HUMAN_GHOST_DOT_CNT_MAX) {
-        return;
-    }
-
     if (HumanGhost.move == MOVE_STOP && HumanGhost.status == GHOST_STATUS_ALIVE) {
         bot_ghost_unstick(&HumanGhost);
     }
     if (HumanGhost.move == MOVE_STOP) {
         return;
-    }
-
-    if (HumanGhost.status == GHOST_STATUS_ALIVE) {
-        bot_apply_player_ghost_input(&HumanGhost, Game.player2_joy);
     }
 
     if (HumanGhost.move == MOVE_UP) {

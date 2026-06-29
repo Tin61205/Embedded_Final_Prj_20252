@@ -548,8 +548,13 @@ uint32_t pacman_play(void) {
             // Player 2 controls via Joystick 2 in gameplay
             if (Game.player2_active != 0 || bot_is_2p_vs_ghost() != 0) {
                 Game.player2_joy = gui_check_joystick2();
-                if (bot_is_2p_vs_ghost() != 0 && Game.player2_joy == GUI_JOY_NONE) {
-                    Game.player2_joy = gui_check_button();
+                if (bot_is_2p_vs_ghost() != 0) {
+                    if (Game.player2_joy == GUI_JOY_NONE) {
+                        Game.player2_joy = gui_check_button();
+                    }
+                    if (HumanGhost.status == GHOST_STATUS_ALIVE) {
+                        bot_apply_player_ghost_input(&HumanGhost, Game.player2_joy);
+                    }
                 }
             } else {
                 Game.player2_joy = GUI_JOY_NONE;
@@ -716,6 +721,9 @@ uint32_t pacman_play(void) {
 
         if (allow_ghost_move != 0 && (movement & MOVE_HUMAN_GHOST) != 0 &&
             (Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) {
+            if (HumanGhost.status == GHOST_STATUS_ALIVE) {
+                bot_apply_player_ghost_input(&HumanGhost, Game.player2_joy);
+            }
             humanghost_move();
         }
         }
