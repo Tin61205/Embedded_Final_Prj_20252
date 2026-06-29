@@ -310,19 +310,20 @@ static void player_entity_check_event(Player_t *p) {
     }
 
     if (Game.collision == BOOL_TRUE) {
-        if (Blinky.status == GHOST_STATUS_ALIVE && Blinky.xp == xp && Blinky.yp == yp) {
+        if (bot_ghost_can_harm_pacman(&Blinky, GHOST_BLINKY) != 0 && Blinky.xp == xp && Blinky.yp == yp) {
             player_entity_handle_ghost_hit(p, &Blinky);
         }
-        if (Pinky.status == GHOST_STATUS_ALIVE && Pinky.xp == xp && Pinky.yp == yp) {
+        if (bot_ghost_can_harm_pacman(&Pinky, GHOST_PINKY) != 0 && Pinky.xp == xp && Pinky.yp == yp) {
             player_entity_handle_ghost_hit(p, &Pinky);
         }
-        if (Inky.status == GHOST_STATUS_ALIVE && Inky.xp == xp && Inky.yp == yp) {
+        if (bot_ghost_can_harm_pacman(&Inky, GHOST_INKY) != 0 && Inky.xp == xp && Inky.yp == yp) {
             player_entity_handle_ghost_hit(p, &Inky);
         }
-        if (Clyde.status == GHOST_STATUS_ALIVE && Clyde.xp == xp && Clyde.yp == yp) {
+        if (bot_ghost_can_harm_pacman(&Clyde, GHOST_CLYDE) != 0 && Clyde.xp == xp && Clyde.yp == yp) {
             player_entity_handle_ghost_hit(p, &Clyde);
         }
-        if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE &&
+        if (bot_is_human_ghost_active() != 0 &&
+            bot_ghost_can_harm_pacman(&HumanGhost, GHOST_HUMAN) != 0 &&
             HumanGhost.xp == xp && HumanGhost.yp == yp) {
             player_entity_handle_ghost_hit(p, &HumanGhost);
         }
@@ -548,7 +549,8 @@ static void player_check_entity_collision(Player_t *p) {
 
     for (i = 0; i < 4; i++) {
         Ghost_t *g = ghosts[i];
-        if ((Game.ghost_active_mask & active_ghost_mask[i]) != 0 && g->status == GHOST_STATUS_ALIVE) {
+        if ((Game.ghost_active_mask & active_ghost_mask[i]) != 0 &&
+            bot_ghost_can_harm_pacman(g, (uint32_t)i) != 0) {
             // Chỉ tính va chạm nếu khoảng cách tọa độ logic tối đa là 1 ô
             if (ABS((int32_t)p->xp - (int32_t)g->xp) > 1 || ABS((int32_t)p->yp - (int32_t)g->yp) > 1) {
                 continue;
@@ -565,7 +567,8 @@ static void player_check_entity_collision(Player_t *p) {
         }
     }
 
-    if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE &&
+    if (bot_is_human_ghost_active() != 0 &&
+        bot_ghost_can_harm_pacman(&HumanGhost, GHOST_HUMAN) != 0 &&
         (Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) {
         Ghost_t *g = &HumanGhost;
         if (ABS((int32_t)p->xp - (int32_t)g->xp) > 1 || ABS((int32_t)p->yp - (int32_t)g->yp) > 1) {

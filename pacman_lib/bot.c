@@ -407,7 +407,19 @@ void bot_team_win_pacman(void) {
 }
 
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
-    if (Game.collision == BOOL_FALSE || ghost->status != GHOST_STATUS_ALIVE) {
+    uint32_t ghost_id = GHOST_BLINKY;
+
+    if (ghost == &Pinky) {
+        ghost_id = GHOST_PINKY;
+    } else if (ghost == &Inky) {
+        ghost_id = GHOST_INKY;
+    } else if (ghost == &Clyde) {
+        ghost_id = GHOST_CLYDE;
+    } else if (ghost == &HumanGhost) {
+        ghost_id = GHOST_HUMAN;
+    }
+
+    if (Game.collision == BOOL_FALSE || bot_ghost_can_harm_pacman(ghost, ghost_id) == 0) {
         return;
     }
 
@@ -625,6 +637,20 @@ void bot_release_ghosts_on_pacman_death(void) {
     }
 }
 
+uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
+    if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE) {
+        return 0;
+    }
+    if (ghost->dot_cnt < bot_ghost_dot_cnt_max(ghost_id)) {
+        return 0;
+    }
+    if (Maze.Room[ghost->xp][ghost->yp].special == ROOM_SPEC_GATE &&
+        (ghost->xp != GHOST_HOUSE_EXIT_X || ghost->yp != GHOST_HOUSE_EXIT_Y)) {
+        return 0;
+    }
+    return 1;
+}
+
 uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
     Room_t *room;
 
@@ -634,6 +660,10 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
 
     room = &Maze.Room[x][y];
     if (room->typ == ROOM_TYP_PATH) {
+        if (for_ghost == 0 && room->special == ROOM_SPEC_GATE &&
+            (x != GHOST_HOUSE_EXIT_X || y != GHOST_HOUSE_EXIT_Y)) {
+            return 0;
+        }
         return 1;
     }
     if (room->special == ROOM_SPEC_PORTAL) {
