@@ -260,24 +260,23 @@ void UB_Buzzer_Play_Die(void) {
 }
 
 static const BuzzerNote_t countdown_ready[] = {
-    { 0, 80 }, { 0, 80 }, { 0, 80 },
+    { 0, 60 }, { 0, 60 },
 };
 
 static const BuzzerNote_t countdown_3[] = {
-    { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 80 }, { 0, 160 }, { 0, 160 },
+    { 0, 150 },
 };
 
 static const BuzzerNote_t countdown_2[] = {
-    { 0, 80 }, { 0, 80 }, { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 80 }, { 0, 80 },
+    { 0, 150 },
 };
 
 static const BuzzerNote_t countdown_1[] = {
-    { 0, 240 }, { 0, 80 }, { 0, 80 }, { 0, 160 }, { 0, 160 },
+    { 0, 150 },
 };
 
 static const BuzzerNote_t countdown_go[] = {
-    { 0, 160 }, { 0, 80 }, { 0, 320 }, { 0, 160 }, { 0, 320 },
-    { 0, 160 }, { 0, 160 }, { 0, 80 },
+    { 0, 400 },
 };
 
 uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step) {
@@ -303,11 +302,7 @@ uint32_t UB_Buzzer_Play_Countdown(BuzzerCountdownStep_t step) {
 }
 
 static const BuzzerNote_t win_melody[] = {
-    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
-    { 0, 300 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
-    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 },
-    { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 100 }, { 0, 300 }, { 0, 100 },
-    { 0, 400 }, { 0, 100 }, { 0, 200 }, { 0, 200 }, { 0, 100 }, { 0, 100 },
+    { 0, 120 }, { 0, 120 }, { 0, 120 }, { 0, 500 },
 };
 
 void UB_Buzzer_Play_Win(void) {
