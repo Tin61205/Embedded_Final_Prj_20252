@@ -45,10 +45,10 @@ void UB_Joystick_Init(void) {
         while (delay--);
     }
 
-    // Set sample time for channels 1, 2, 5, 7 to 144 cycles
-    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x3F << 3)) | ((uint32_t)0x06 << 3) | ((uint32_t)0x06 << 6);
-    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 15)) | ((uint32_t)0x06 << 15);
-    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 21)) | ((uint32_t)0x06 << 21);
+    // Set sample time for channels 1, 2, 5, 7 to 480 cycles (0x07) to reduce crosstalk
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x3F << 3)) | ((uint32_t)0x07 << 3) | ((uint32_t)0x07 << 6);
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 15)) | ((uint32_t)0x07 << 15);
+    ADC1->SMPR2 = (ADC1->SMPR2 & ~((uint32_t)0x07 << 21)) | ((uint32_t)0x07 << 21);
     ADC1->SQR1 = 0;
 
     joystick_adc_read(JOY1_ADC_X_CHANNEL);
@@ -72,6 +72,12 @@ void UB_Joystick_Init(void) {
         joy1_center_y = sum1_y / JOY_ADC_CALIB_SAMPLES;
         joy2_center_x = sum2_x / JOY_ADC_CALIB_SAMPLES;
         joy2_center_y = sum2_y / JOY_ADC_CALIB_SAMPLES;
+
+        // Giới hạn an toàn (Safe bounds) cho hiệu chuẩn trung tâm (nếu lệch quá thì đưa về 2048)
+        if (joy1_center_x < 1500 || joy1_center_x > 2600) joy1_center_x = JOY_ADC_CENTER;
+        if (joy1_center_y < 1500 || joy1_center_y > 2600) joy1_center_y = JOY_ADC_CENTER;
+        if (joy2_center_x < 1500 || joy2_center_x > 2600) joy2_center_x = JOY_ADC_CENTER;
+        if (joy2_center_y < 1500 || joy2_center_y > 2600) joy2_center_y = JOY_ADC_CENTER;
     }
 }
 
@@ -161,6 +167,11 @@ static uint32_t joystick_process_dir(uint16_t raw_x, uint16_t raw_y, int32_t cx,
 
 static uint16_t joystick_adc_read(uint8_t channel) {
     ADC1->SQR3 = (uint32_t)(channel & 0x1F);
+    
+    // Thêm trễ ngắn để tụ lấy mẫu và bộ trộn kênh ADC ổn định
+    volatile uint32_t delay = 100;
+    while (delay--);
+
     ADC1->SR = (uint32_t)~ADC_SR_EOC; // Clear EOC flag
     ADC1->CR2 |= ADC_CR2_SWSTART;
     while ((ADC1->SR & ADC_SR_EOC) == 0) {
