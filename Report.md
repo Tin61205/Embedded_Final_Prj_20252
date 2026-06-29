@@ -314,3 +314,56 @@ Dự án đã triển khai thành công trò chơi Pacman hoàn chỉnh trên ki
 
 ### 8. Kết luận
 Dự án đã hoàn thành đầy đủ yêu cầu: đồ họa mượt, AI Ghost đa dạng, Campaign 10 level, Custom linh hoạt, **hỗ trợ 2 người dùng 2 joystick**, **High Score**, và **hệ thống âm thanh** phong phú trên nền tảng nhúng hạn chế tài nguyên.
+
+---
+
+# 4. AI-assisted disclaimer
+
+Nhóm chúng em khẳng định **CÓ** sử dụng các công cụ trí tuệ nhân tạo (AI) để hỗ trợ trong quá trình nghiên cứu, lập kế hoạch, triển khai mã nguồn và thiết kế sơ đồ báo cáo cho dự án "Game Pacman trên kit STM32F429 Discovery". 
+
+Cụ thể, chúng em đã kết hợp sử dụng hai công cụ chính:
+*   **Codex (Trợ lý thiết kế & lập kế hoạch):** Sử dụng mô hình ngôn ngữ lớn có năng lực suy luận cao, kết hợp với các kỹ năng chuyên biệt để phỏng vấn nhóm, từ đó hỗ trợ xây dựng tài liệu đặc tả kỹ thuật (Specification) và lập kế hoạch thực hiện chi tiết (Implementation Plan).
+*   **Antigravity (Trợ lý lập trình cặp - Pair Programmer):** Tích hợp trực tiếp trong môi trường phát triển cục bộ, sử dụng mô hình có tốc độ phản hồi nhanh để thực thi các kế hoạch được chuyển giao từ Codex, hỗ trợ sinh mã nguồn (Code Generation), rà soát lỗi (Code Review) và gỡ lỗi (Debugging).
+
+Dưới đây là trình bày chi tiết về quy trình phối hợp, các kỹ thuật prompt chính và các công cụ/skills AI đã được áp dụng trong dự án.
+
+## 4.1. Quy trình phối hợp và vai trò của AI
+Mô hình AI được tích hợp như một cộng sự hỗ trợ trong 4 giai đoạn chính của đồ án:
+1. **Giai đoạn lên ý tưởng thiết kế trò chơi (Game Concept & Logic Design):** Nhóm chúng em chủ động đề xuất toàn bộ ý tưởng kịch bản, luồng vận hành của game (như thiết lập game Pacman hỗ trợ 2 người chơi Co-op hoặc đối kháng Vs Ghost, tích hợp chế độ Chiến dịch 10 cấp độ khó tăng tiến, lưu điểm số cao High Score) và lựa chọn thuật toán di chuyển Euclid cho các Ghost để tối ưu hiệu năng. Nhóm đã sử dụng skill `brainstorming` của AI để truyền đạt và cụ thể hóa các ý tưởng này, giúp AI hiểu rõ các tính năng mong muốn và cấu trúc tổng thể của sản phẩm để hỗ trợ lập trình chính xác trong các giai đoạn sau.
+2. **Giai đoạn phân tích và cấu hình phần cứng:** Nhóm chúng em chủ động nghiên cứu sơ đồ chân của kit phát triển STM32F429 Discovery, tự xác định và lựa chọn các chân GPIO thích hợp để kết nối ngoại vi (Buzzer, 2 Joystick Analog, 6 nút bấm phụ trợ), đồng thời ghi nhận thông tin này vào file tài liệu chung (`GUIDE.md`). File này được cung cấp cho AI làm tài liệu tham chiếu (Reference) để AI hiểu rõ sơ đồ phần cứng của nhóm trước khi hỗ trợ viết code hoặc gỡ lỗi ngoại vi.
+3. **Giai đoạn triển khai mã nguồn và gỡ lỗi (Coding & Debugging):** Trợ lý lập trình Antigravity hỗ trợ viết khung mã nguồn (boilerplate code) cho việc cấu hình ngoại vi qua thư viện SPL (đọc ADC cho Joystick, xuất xung PWM điều khiển Buzzer) và tối ưu hóa logic đường đi của các Ghost theo thuật toán mà nhóm đã đề xuất.
+4. **Giai đoạn soạn thảo báo cáo:** AI không tham gia vào việc viết nội dung báo cáo chính, mà chỉ hỗ trợ chuyển đổi các ý tưởng thiết kế kiến trúc phần cứng và phần mềm của nhóm thành các sơ đồ trực quan sử dụng cú pháp **Mermaid** để đưa vào báo cáo, giúp tăng tính trực quan và dễ hiểu cho người đọc.
+
+---
+
+## 4.2. Chi tiết kỹ thuật Prompting áp dụng
+
+Chúng em đã áp dụng các kỹ thuật Prompting nâng cao để đảm bảo AI đưa ra mã nguồn chính xác, tối ưu hóa tài nguyên phần cứng và bám sát kiến trúc hệ thống:
+
+### Kỹ thuật 1: Role-playing & Context Provisioning (Đóng vai trò & Cung cấp ngữ cảnh)
+Chúng em thiết lập vai trò cho AI là một *Chuyên gia Lập trình Nhúng và Thiết kế Game trên STM32 (Cortex-M4)*, đồng thời cung cấp đầy đủ thông tin về phần cứng hiện có (sử dụng thư viện SPL, màn hình ILI9341 LTDC, RAM ngoài SDRAM).
+*   **Mục đích:** Giúp AI sinh ra code C chuẩn cho STM32, không bị nhầm lẫn sang các hệ sinh thái khác (như Arduino hay STM32CubeHAL).
+*   **Ví dụ Prompt thực tế:**
+    > *"Bạn là một chuyên gia lập trình nhúng STM32 lâu năm, sử dụng Standard Peripheral Library (SPL). Nhóm chúng tôi đang phát triển game Pacman trên kit STM32F429 Discovery. Chúng tôi đã tự quyết định kết nối phần cứng và ghi nhận trong file GUIDE.md như sau: Joystick 1 sử dụng chân PA5 (VRx) và PA7 (VRy) kết nối với ADC1, còi Passive Buzzer sử dụng chân PC9 kết nối với TIM3_CH4. Hãy viết hàm khởi tạo ADC1 cho 2 trục của Joystick 1 để đọc dữ liệu Analog bằng thư viện SPL, cấu hình đúng kênh ADC tương ứng với chân PA5 và PA7."*
+
+### Kỹ thuật 2: Few-Shot Prompting (Cung cấp ví dụ mẫu)
+Khi cần AI sinh mã nguồn cho các thuật toán AI của Ghost (như Blinky, Pinky, Inky, Clyde) dựa trên vị trí của Pacman, chúng em cung cấp cấu trúc struct tọa độ và cấu trúc dữ liệu bản đồ dạng mảng 2D trước, sau đó yêu cầu AI viết các hàm di chuyển tương ứng.
+*   **Mục đích:** Đảm bảo code AI sinh ra khớp hoàn toàn với cấu trúc dữ liệu (`maze.c`, `bot.h`) hiện tại của dự án mà không cần viết lại toàn bộ mã nguồn.
+*   **Ví dụ Prompt thực tế:**
+    > *"Dưới đây là struct tọa độ và thông tin Ghost của tôi: `typedef struct { int x, y; Direction dir; State state; } Ghost;`. Bản đồ được định nghĩa dưới dạng mảng 2D `uint8_t maze[31][28]`. Hãy viết hàm `pinky_update_target(Ghost* pinky, Player* player)` để xác định ô mục tiêu đón đầu trước mặt Pacman 4 ô theo hướng di chuyển của Pacman. Lưu ý xử lý trường hợp Pacman đi lên (theo đúng luật game Pacman gốc là lùi lên và sang trái 4 ô hoặc chỉ lên 4 ô)."*
+
+### Kỹ thuật 3: Chain-of-Thought & Debugging Prompt (Suy nghĩ tuần tự & Gỡ lỗi)
+Khi gặp các lỗi logic phức tạp như Pacman di chuyển bị giật lag, đè lên tường tại các ngã rẽ khi dùng Joystick, hoặc âm thanh còi bị nghẽn làm đứng game, chúng em yêu cầu AI phân tích nguyên nhân từng bước thay vì chỉ đưa ra đoạn code sửa ngay lập tức.
+*   **Mục đích:** Giúp nhóm hiểu rõ bản chất vấn đề (do cơ chế ngắt, tốc độ lấy mẫu ADC quá nhanh hay do xung đột Timer) và chọn giải pháp tối ưu.
+*   **Ví dụ Prompt thực tế:**
+    > *"Khi tôi xoay Joystick, Pacman phản hồi không mượt và đôi khi đi đè lên cạnh tường một chút trước khi rẽ. Hiện tại tôi đọc ADC của Joystick trong vòng lặp game chính (main loop). Hãy phân tích các nguyên nhân gây ra lỗi này theo từng bước (về tần suất đọc ADC, thuật toán căn lề ô lưới Grid, và cơ chế va chạm). Sau đó đề xuất giải pháp tối ưu nhất."*
+
+---
+
+## 4.3. Các công cụ và Skill AI đã sử dụng
+Trong quá trình phát triển thông qua giao diện lập trình tích hợp trợ lý AI, các công cụ và Skill chuyên biệt sau đã được áp dụng:
+1.  **Skill `brainstorming`:** Sử dụng trong giai đoạn đầu dự án hoặc khi phát triển một tính năng mới. AI đóng vai trò phỏng vấn, chủ động đặt ra rất nhiều câu hỏi chi tiết về mục tiêu thiết kế nhằm giúp nhóm làm rõ và hệ thống hóa ý tưởng của mình. Sau khi nhóm cung cấp đầy đủ phản hồi, AI sẽ tổng hợp thông tin để soạn thảo tài liệu đặc tả kỹ thuật (Specification) chuẩn hóa (như file `GUIDE.md` hoặc `DESCRIPTION.md`), làm cơ sở vững chắc cho các giai đoạn lập trình tiếp theo.
+    *   *Minh họa thực tế:* Khi nhóm chúng em đề xuất ý tưởng phát triển chế độ chơi 2 người (Co-op và đối kháng Ghost), AI đã chủ động đặt ra hàng loạt câu hỏi phỏng vấn để làm rõ yêu cầu như: Nhóm sẽ phân bổ 2 Joystick Analog vào các kênh ADC cụ thể nào? Khi Player 2 điều khiển Ghost Blinky thì AI của Blinky có chạy song song không hay bị vô hiệu hóa hoàn toàn? Cách thức phân chia màn hình và hiển thị số mạng của hai người chơi như thế nào? Dựa trên câu trả lời của nhóm, AI đã hỗ trợ thiết lập các đặc tả logic và cấu trúc dữ liệu cho chế độ 2 Player trong tài liệu tham chiếu.
+2.  **Skill `executing-plans`:** Dùng để chuyển hóa các mục tiêu lớn của đồ án thành một kế hoạch hành động tuần tự và cụ thể thông qua file `task.md`. AI sẽ tự động phân tích và chia nhỏ toàn bộ quá trình thực hiện thành các bước nhỏ hơn (Sub-tasks) và viết vào file `task.md`. Trong suốt quá trình thực thi, AI sẽ tự động cập nhật trạng thái của từng tác vụ (như `[ ]` chưa làm, `[/]` đang làm, và `[x]` đã hoàn thành). Ở mỗi checkpoint, AI sẽ rà soát mã nguồn xem đã đúng yêu cầu thiết kế chưa, có phát sinh lỗi biên dịch nào không rồi mới đánh dấu hoàn thành và chuyển sang tác vụ kế tiếp. Điều này giúp nhóm kiểm soát tiến độ vô cùng chặt chẽ, không bị sót việc và đảm bảo tính đồng bộ cao giữa phần cứng và phần mềm.
+    *   *Minh họa thực tế:* AI đã hỗ trợ chia nhỏ tiến trình thành một checklist chi tiết: lập trình driver Joystick -> lập trình driver còi Buzzer -> tích hợp logic menu điều hướng -> tích hợp High Score và kiểm thử va chạm. Ở mỗi bước hoàn thành (ví dụ sau khi viết xong driver Joystick), AI sẽ yêu cầu nhóm kiểm tra độc lập tín hiệu ADC trả về trước khi tích hợp vào logic di chuyển của Pacman.
+3.  **Công cụ `codegraph`:** Công cụ này giúp AI phân tích mối quan hệ cuộc gọi (Call Graph), sự phụ thuộc giữa các hàm, biến và file trong mã nguồn mà không cần đọc từng dòng code. Điều này giúp AI nắm bắt nhanh kiến trúc tổng thể của codebase, định vị chính xác tệp tin/hàm cần sửa đổi để thực hiện yêu cầu mà không bị lạc hướng. Đồng thời, do không cần nạp toàn bộ mã nguồn vào cửa sổ ngữ cảnh (Context Window), công cụ giúp tiết kiệm đáng kể lượng token tiêu thụ, từ đó kéo dài thời gian làm việc với AI trong cùng một phiên mà không bị quá tải bộ nhớ.
