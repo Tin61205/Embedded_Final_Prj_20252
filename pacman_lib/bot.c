@@ -400,7 +400,7 @@ uint32_t bot_coop_is_game_over(void) {
 
 void bot_team_win_pacman(void) {
     Player.status = PLAYER_STATUS_WIN;
-    if (bot_is_2p_coop()) {
+    if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE) {
         Player2.status = PLAYER_STATUS_WIN;
     }
     GUI.refresh_value = GUI_REFRESH_VALUE;
@@ -522,14 +522,9 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
 
-    if (Game.play_type == GAME_PLAY_CUSTOM) {
-        if (ghost_id == GHOST_HUMAN) {
-            hx = HumanGhost_Spawn_X;
-            hy = HumanGhost_Spawn_Y;
-        } else {
-            hx = Ghost_Spawn_X[ghost_id];
-            hy = Ghost_Spawn_Y[ghost_id];
-        }
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
+        hx = HumanGhost_Spawn_X;
+        hy = HumanGhost_Spawn_Y;
         if (ghost->xp != hx || ghost->yp != hy) {
             return;
         }
@@ -548,11 +543,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->skin = bot_ghost_skin_for_dir(init_dir);
         ghost->move = init_dir;
         ghost->next_move = init_dir;
-        if (ghost_id == GHOST_HUMAN) {
-            ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
-        } else {
-            ghost->dot_cnt = bot_ghost_dot_cnt_max(ghost_id);
-        }
+        ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
         return;
     }
 
@@ -890,14 +881,9 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
-    if (Game.play_type == GAME_PLAY_CUSTOM) {
-        if (ghost == GHOST_HUMAN) {
-            txp = HumanGhost_Spawn_X;
-            typ = HumanGhost_Spawn_Y;
-        } else {
-            txp = Ghost_Spawn_X[ghost];
-            typ = Ghost_Spawn_Y[ghost];
-        }
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost == GHOST_HUMAN) {
+        txp = HumanGhost_Spawn_X;
+        typ = HumanGhost_Spawn_Y;
     } else if (ghost == GHOST_BLINKY) {
         txp = BLINKY_HOME_X;
         typ = BLINKY_HOME_Y;

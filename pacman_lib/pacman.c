@@ -274,11 +274,11 @@ void pacman_start(void) {
                     if (Player.score > Game.campaign_high_scores[Game.campaign_map_id]) {
                         Game.campaign_high_scores[Game.campaign_map_id] = Player.score;
                     }
+                    if (Game.campaign_difficulty < 10) {
+                        Game.campaign_difficulty++;
+                    }
                 }
                 gui_show_win_screen(Player.score);
-                if (Game.campaign_difficulty < 10) {
-                    Game.campaign_difficulty++;
-                }
                 Player.score = 0;
             } else {
                 if (Game.player2_active != 0 && bot_is_2p_coop()) {

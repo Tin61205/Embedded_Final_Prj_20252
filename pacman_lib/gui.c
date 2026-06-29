@@ -649,8 +649,10 @@ void gui_draw_gui(uint32_t joy) {
         GUI.refresh_value--;
 
         if (Game.player2_active != 0) {
-            sprintf(buf, "L: %d", (int)(Player.level));
-            UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                sprintf(buf, "L: %d", (int)(Player.level));
+                UB_Font_DrawString(92, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            }
 
             sprintf(buf, "S: %d", (int)(Player.score));
             UB_Font_DrawString(92, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
@@ -658,8 +660,10 @@ void gui_draw_gui(uint32_t joy) {
             sprintf(buf, "P1:%d P2:%d", (int)(Player.lives), (int)(Player2.lives));
             UB_Font_DrawString(90, 290, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         } else {
-            sprintf(buf, "level : %d", (int)(Player.level));
-            UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                sprintf(buf, "level : %d", (int)(Player.level));
+                UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
+            }
 
             sprintf(buf, "score : %d", (int)(Player.score));
             UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
@@ -669,7 +673,11 @@ void gui_draw_gui(uint32_t joy) {
         }
 
         if (Player.status == PLAYER_STATUS_WIN) {
-            UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            if (Game.play_type == GAME_PLAY_CUSTOM) {
+                UB_Font_DrawString(10, 305, "you win!", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            } else {
+                UB_Font_DrawString(10, 305, "level complete", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
+            }
         } else if (Game.player2_active != 0 && bot_coop_is_game_over() != 0) {
             UB_Font_DrawString(10, 305, "GAME OVER", & Arial_7x10, FONT_COL2, BACKGROUND_COL);
         } else if (Player.status == PLAYER_STATUS_DEAD) {
@@ -1102,10 +1110,11 @@ void gui_show_win_screen(uint32_t score) {
     uint16_t score_w = strlen(buf) * 7 * 2;
     gui_draw_string_scale((240 - score_w) / 2, 200, buf, &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK, 2);
     
-    // Level
-    sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
-    uint16_t lvl_w = strlen(buf) * 7 * 2;
-    gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK, 2);
+    if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+        sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
+        uint16_t lvl_w = strlen(buf) * 7 * 2;
+        gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_CYAN, RGB_COL_BLACK, 2);
+    }
     
     // Interaction instructions
     UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_YELLOW, RGB_COL_BLACK);
@@ -1143,10 +1152,11 @@ void gui_show_lost_screen(uint32_t score) {
     uint16_t score_w = strlen(buf) * 7 * 2;
     gui_draw_string_scale((240 - score_w) / 2, 200, buf, &Arial_7x10, RGB_COL_WHITE, RGB_COL_BLACK, 2);
     
-    // Level
-    sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
-    uint16_t lvl_w = strlen(buf) * 7 * 2;
-    gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_GREY, RGB_COL_BLACK, 2);
+    if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+        sprintf(buf, "LEVEL: %u", (unsigned int)Player.level);
+        uint16_t lvl_w = strlen(buf) * 7 * 2;
+        gui_draw_string_scale((240 - lvl_w) / 2, 230, buf, &Arial_7x10, RGB_COL_GREY, RGB_COL_BLACK, 2);
+    }
     
     // Interaction instructions
     UB_Font_DrawString((240 - strlen("PRESS CENTER BTN TO CONTINUE") * 7) / 2, 280, "PRESS CENTER BTN TO CONTINUE", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK);
