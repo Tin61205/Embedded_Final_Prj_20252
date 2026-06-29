@@ -141,17 +141,17 @@ void SysTick_Handler(void)
     if (buzzer_sequence_timer == 0) {
       buzzer_sequence_step++;
       if (buzzer_sequence_step == 1) {
-        UB_Buzzer_On(1200);
-        buzzer_sequence_timer = 100;
+        UB_Buzzer_On(698);
+        buzzer_sequence_timer = 120;
       } else if (buzzer_sequence_step == 2) {
-        UB_Buzzer_On(900);
-        buzzer_sequence_timer = 100;
+        UB_Buzzer_On(523);
+        buzzer_sequence_timer = 120;
       } else if (buzzer_sequence_step == 3) {
-        UB_Buzzer_On(600);
-        buzzer_sequence_timer = 100;
+        UB_Buzzer_On(392);
+        buzzer_sequence_timer = 120;
       } else if (buzzer_sequence_step == 4) {
-        UB_Buzzer_On(300);
-        buzzer_sequence_timer = 150;
+        UB_Buzzer_On(262);
+        buzzer_sequence_timer = 200;
       } else {
         UB_Buzzer_Off();
         buzzer_sequence_step = 0;
