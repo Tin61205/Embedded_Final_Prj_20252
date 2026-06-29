@@ -640,26 +640,18 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
     }
 
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
-        hx = HumanGhost_Spawn_X;
-        hy = HumanGhost_Spawn_Y;
+        hx = 14;
+        hy = 14;
         if (ghost->xp != hx || ghost->yp != hy) {
             return;
         }
 
-        init_dir = bot_calc_move_by_strategy(ghost_id, ghost->strategy, hx, hy, MOVE_STOP);
-        if (init_dir == MOVE_STOP) {
-            init_dir = bot_calc_only_exit(hx, hy);
-        }
-        if (init_dir == MOVE_STOP) {
-            init_dir = bot_calc_move_random(hx, hy, MOVE_STOP);
-        }
-
         ghost->status = GHOST_STATUS_ALIVE;
-        ghost->delta_x = 0;
-        ghost->delta_y = 0;
-        ghost->skin = bot_ghost_skin_for_dir(init_dir);
-        ghost->move = init_dir;
-        ghost->next_move = init_dir;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
         ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
         return;
     }
@@ -999,8 +991,8 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
     uint32_t txp, typ;
 
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost == GHOST_HUMAN) {
-        txp = HumanGhost_Spawn_X;
-        typ = HumanGhost_Spawn_Y;
+        txp = 14;
+        typ = 14;
     } else if (ghost == GHOST_BLINKY) {
         txp = BLINKY_HOME_X;
         typ = BLINKY_HOME_Y;

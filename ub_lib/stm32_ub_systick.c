@@ -187,6 +187,10 @@ void SysTick_Handler(void)
     if(Clyde_Systic_Timer_ms!=0) {
       Clyde_Systic_Timer_ms--;
     }
+
+    if(HumanGhost_Systic_Timer_ms!=0) {
+      HumanGhost_Systic_Timer_ms--;
+    }
     
     // Đếm ngược timer hiệu ứng cho Player 1
     if (Player_Dying_Timer_ms != 0) {

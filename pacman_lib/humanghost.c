@@ -11,22 +11,25 @@ void humanghost_calc_next_move(void);
 
 static void humanghost_advance_cell(void) {
     humanghost_check_event();
-    if (bot_is_human_ghost_active() != 0) {
+    if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
         uint32_t dir = bot_calc_move_player_ghost(
             HumanGhost.xp, HumanGhost.yp, HumanGhost.move, Game.player2_joy);
-        if (dir != MOVE_STOP) {
-            HumanGhost.move = dir;
-        } else if (HumanGhost.next_move != MOVE_STOP) {
-            HumanGhost.move = HumanGhost.next_move;
-        }
-        HumanGhost.next_move = HumanGhost.move;
+        HumanGhost.move = dir;
+        HumanGhost.next_move = dir;
     } else {
         HumanGhost.move = HumanGhost.next_move;
     }
     humanghost_calc_next_move();
 }
 
+static uint32_t last_moving_dir = MOVE_LEFT;
+
 void humanghost_move(void) {
+    if (HumanGhost.move != MOVE_STOP) {
+        last_moving_dir = HumanGhost.move;
+    }
+    humanghost_change_skin(last_moving_dir);
+
     if (HumanGhost.move == MOVE_STOP && HumanGhost.status == GHOST_STATUS_ALIVE) {
         if (bot_is_human_ghost_active() == 0) {
             bot_ghost_unstick(&HumanGhost);
@@ -38,7 +41,6 @@ void humanghost_move(void) {
 
     if (HumanGhost.move == MOVE_UP) {
         HumanGhost.delta_y--;
-        humanghost_change_skin(MOVE_UP);
         if (ABS(HumanGhost.delta_y) >= ROOM_HEIGHT) {
             HumanGhost.delta_y = 0;
             if (HumanGhost.port == PORT_DONE) {
@@ -57,7 +59,6 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_RIGHT) {
         HumanGhost.delta_x++;
-        humanghost_change_skin(MOVE_RIGHT);
         if (ABS(HumanGhost.delta_x) >= ROOM_WIDTH) {
             HumanGhost.delta_x = 0;
             if (HumanGhost.port == PORT_DONE) {
@@ -76,7 +77,6 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_DOWN) {
         HumanGhost.delta_y++;
-        humanghost_change_skin(MOVE_DOWN);
         if (ABS(HumanGhost.delta_y) >= ROOM_HEIGHT) {
             HumanGhost.delta_y = 0;
             if (HumanGhost.port == PORT_DONE) {
@@ -95,7 +95,6 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_LEFT) {
         HumanGhost.delta_x--;
-        humanghost_change_skin(MOVE_LEFT);
         if (ABS(HumanGhost.delta_x) >= ROOM_WIDTH) {
             HumanGhost.delta_x = 0;
             if (HumanGhost.port == PORT_DONE) {
@@ -173,6 +172,11 @@ void humanghost_calc_next_move(void) {
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) door_cnt++;
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) door_cnt++;
 
+    if ((HumanGhost.status == GHOST_STATUS_DEAD) && (Maze.Room[xp][yp].special == ROOM_SPEC_GATE)) {
+        // when dead and on a gate ignore the door count
+        door_cnt = 2;
+    }
+
     if (door_cnt == 0) {
         HumanGhost.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
@@ -188,7 +192,16 @@ void humanghost_calc_next_move(void) {
         }
 
         if (HumanGhost.status == GHOST_STATUS_DEAD) {
-            HumanGhost.next_move = bot_calc_move_home(GHOST_HUMAN, xp, yp, HumanGhost.move);
+            // dead (return to home)
+            if (Maze.Room[xp][yp].special == ROOM_SPEC_GATE) {
+                // found entry gate
+                if ((Maze.Room[xp][yp].door & ROOM_BGATE_U) != 0) HumanGhost.next_move = MOVE_UP;
+                if ((Maze.Room[xp][yp].door & ROOM_BGATE_R) != 0) HumanGhost.next_move = MOVE_RIGHT;
+                if ((Maze.Room[xp][yp].door & ROOM_BGATE_D) != 0) HumanGhost.next_move = MOVE_DOWN;
+                if ((Maze.Room[xp][yp].door & ROOM_BGATE_L) != 0) HumanGhost.next_move = MOVE_LEFT;
+            } else {
+                HumanGhost.next_move = bot_calc_move_home(GHOST_HUMAN, xp, yp, HumanGhost.move);
+            }
             return;
         }
 

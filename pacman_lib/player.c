@@ -279,6 +279,13 @@ static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
         }
     } else {
         ghost->status = GHOST_STATUS_DEAD;
+        if (ghost->move == MOVE_STOP) {
+            if (bot_is_walkable(ghost->xp, ghost->yp - 1, 1)) ghost->move = MOVE_UP;
+            else if (bot_is_walkable(ghost->xp + 1, ghost->yp, 1)) ghost->move = MOVE_RIGHT;
+            else if (bot_is_walkable(ghost->xp, ghost->yp + 1, 1)) ghost->move = MOVE_DOWN;
+            else ghost->move = MOVE_LEFT;
+            ghost->next_move = ghost->move;
+        }
         Player.score += Game.frightened_points;
         Game.frightened_points += Game.frightened_points;
         GUI.refresh_value = GUI_REFRESH_VALUE;

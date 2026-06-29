@@ -718,9 +718,9 @@ static uint32_t menu_run_campaign_wizard(void) {
         }
         if (UB_Button_OnClick(BTN_LEFT)) {
             if (sel_line == 0) {
-                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
             } else if (sel_line == 1) {
-                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
             } else {
                 Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
@@ -730,9 +730,9 @@ static uint32_t menu_run_campaign_wizard(void) {
         }
         if (UB_Button_OnClick(BTN_RIGHT)) {
             if (sel_line == 0) {
-                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, -1);
+                Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
             } else if (sel_line == 1) {
-                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, -1);
+                Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
             } else {
                 Game.campaign_coop = Game.campaign_coop ? 0 : 1;
             }
