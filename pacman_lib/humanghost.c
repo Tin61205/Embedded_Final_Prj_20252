@@ -158,7 +158,11 @@ void humanghost_calc_next_move(void) {
     uint32_t yp = HumanGhost.yp;
 
     if (HumanGhost.move == MOVE_STOP) {
-        HumanGhost.next_move = MOVE_STOP;
+        if (HumanGhost.status == GHOST_STATUS_DEAD) {
+            HumanGhost.next_move = bot_calc_move_home(GHOST_HUMAN, xp, yp, HumanGhost.move);
+        } else {
+            HumanGhost.next_move = MOVE_STOP;
+        }
         return;
     }
 
