@@ -5,6 +5,10 @@
 
 #include <stdlib.h>
 
+// Flag: khi = 1, bot_is_walkable sẽ cấm đi vào ô portal
+// Dùng khi ghost Dead tìm đường về nhà để tránh bị vòng lặp qua portal
+static uint32_t bot_avoid_portal = 0;
+
 #include <stdio.h>
 
 #include "stm32_ub_buzzer.h"
@@ -633,7 +637,6 @@ void bot_ghost_unstick(Ghost_t *ghost) {
 void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
     uint32_t hx;
     uint32_t hy;
-    uint32_t init_dir;
 
     if (ghost->status != GHOST_STATUS_DEAD) {
         return;
@@ -647,8 +650,8 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         }
 
         ghost->status = GHOST_STATUS_ALIVE;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->delta_x = 0; // Reset to 0 so joystick controls work and avoid getting stuck
+        ghost->delta_y = 0; // Reset to 0
         ghost->skin = GHOST_SKIN_UP1;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
@@ -767,6 +770,14 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
         return 0;
     }
 
+    // Tránh đi vào các rãnh cụt dưới nhà ma (x=12, x=15 từ y=17 đến y=21)
+    // khi ghost đang ở trạng thái dead tìm đường về nhà.
+    if (bot_avoid_portal != 0) {
+        if ((x == 12 || x == 15) && (y >= 17 && y <= 21)) {
+            return 0;
+        }
+    }
+
     room = &Maze.Room[x][y];
     if (room->typ == ROOM_TYP_PATH) {
         if (for_ghost == 0 && room->special == ROOM_SPEC_GATE &&
@@ -776,6 +787,10 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
         return 1;
     }
     if (room->special == ROOM_SPEC_PORTAL) {
+        // Nếu đang tìm đường về nhà (dead), cấm đi vào portal
+        if (bot_avoid_portal != 0) {
+            return 0;
+        }
         return 1;
     }
     if (for_ghost != 0) {
@@ -1007,7 +1022,10 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
         typ = CLYDE_HOME_Y;
     }
 
+    // Bật cờ tránh portal khi ghost Dead tìm đường về nhà
+    bot_avoid_portal = 1;
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
+    bot_avoid_portal = 0;
 
     return (ret_wert);
 }

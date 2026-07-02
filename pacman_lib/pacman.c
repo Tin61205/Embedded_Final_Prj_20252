@@ -277,10 +277,11 @@ void pacman_start(void) {
                     if (Game.campaign_difficulty < 10) {
                         Game.campaign_difficulty++;
                     }
-                }
-                gui_show_win_screen(Player.score);
-                Player.score = 0;
-                if (Game.play_type == GAME_PLAY_CUSTOM) {
+                    gui_show_win_screen(Player.score);
+                    // Do not reset Player.score to 0 in campaign mode to accumulate score across levels
+                } else {
+                    gui_show_win_screen(Player.score);
+                    Player.score = 0;
                     check = GAME_OVER;
                 }
             } else {

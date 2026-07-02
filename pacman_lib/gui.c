@@ -32,6 +32,40 @@ void gui_draw_humanghost(void);
 static void gui_draw_hud_line(uint16_t y, const char *text, uint32_t color);
 static void gui_draw_status_line(uint16_t y, const char *text);
 
+// Helper function to clear portal areas on both sides of the screen.
+// This is critical to erase ghost/residual trails left in double-buffering mode
+// when any entity suddenly teleports from one side of the screen to the other.
+static void gui_clear_portal_area_if_needed(uint32_t xp, uint32_t yp) {
+    if ((yp >= 13 && yp <= 15) && (xp <= 2 || xp >= 25)) {
+        Image2LCD_t koord;
+        uint32_t x, y, s;
+        koord.w = ROOM_WIDTH;
+        koord.h = ROOM_HEIGHT;
+        // Clear left portal area (x = 0..2, y = 13..15)
+        for (y = 13; y <= 15; y++) {
+            for (x = 0; x <= 2; x++) {
+                koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
+                koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
+                s = Maze.Room[x][y].skin;
+                koord.source_xp = Room_Skin[s].xp;
+                koord.source_yp = Room_Skin[s].yp;
+                UB_Graphic2D_DrawImageRect(koord);
+            }
+        }
+        // Clear right portal area (x = 25..27, y = 13..15)
+        for (y = 13; y <= 15; y++) {
+            for (x = 25; x <= 27; x++) {
+                koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
+                koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
+                s = Maze.Room[x][y].skin;
+                koord.source_xp = Room_Skin[s].xp;
+                koord.source_yp = Room_Skin[s].yp;
+                UB_Graphic2D_DrawImageRect(koord);
+            }
+        }
+    }
+}
+
 //--------------------------------------------------------------
 // clear screen
 //--------------------------------------------------------------
@@ -218,6 +252,7 @@ void gui_clear_player(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 void gui_draw_player2(void) {
@@ -312,6 +347,7 @@ void gui_clear_player2(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 static void gui_draw_ghost_sprite(Image2LCD_t koord, Skin_t *skin_table, uint32_t skin_idx,
@@ -389,6 +425,7 @@ void gui_clear_blinky(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 //--------------------------------------------------------------
@@ -452,6 +489,7 @@ void gui_clear_pinky(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 //--------------------------------------------------------------
@@ -515,6 +553,7 @@ void gui_clear_inky(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 //--------------------------------------------------------------
@@ -578,6 +617,7 @@ void gui_clear_clyde(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 //--------------------------------------------------------------
@@ -639,6 +679,7 @@ void gui_clear_humanghost(void) {
             UB_Graphic2D_DrawImageRect(koord);
         }
     }
+    gui_clear_portal_area_if_needed(xp, yp);
 }
 
 static uint32_t gui_is_2p_layout(void) {
@@ -729,7 +770,6 @@ void gui_draw_gui(uint32_t joy) {
     // In thông tin debug joystick lên màn hình
     {
         extern uint16_t debug_joy1_x, debug_joy1_y, debug_joy2_x, debug_joy2_y;
-        extern int32_t joy1_center_x, joy1_center_y, joy2_center_x, joy2_center_y;
         char dbg_buf[32];
         
         // Joystick 1: Giá trị thô
