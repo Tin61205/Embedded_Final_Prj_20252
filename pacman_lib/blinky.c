@@ -43,10 +43,13 @@ void blinky_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void blinky_move(void) {
-    if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
+    if (Blinky.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Blinky, GHOST_BLINKY);
+    }
+    if (Blinky.status == GHOST_STATUS_ALIVE && Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
 
-    if (Blinky.move == MOVE_STOP && Blinky.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Blinky);
+    if (Blinky.move == MOVE_STOP) {
+        bot_ghost_unstick(&Blinky, GHOST_BLINKY);
     }
     if (Blinky.move == MOVE_STOP) return;
 
@@ -291,48 +294,31 @@ void blinky_calc_next_move(void) {
         door_cnt = 2;
     }
 
+    if (door_cnt > 1 && Blinky.new_mode == 1) {
+        Blinky.new_mode = 0;
+        if (Blinky.move == MOVE_UP) Blinky.next_move = MOVE_DOWN;
+        if (Blinky.move == MOVE_RIGHT) Blinky.next_move = MOVE_LEFT;
+        if (Blinky.move == MOVE_DOWN) Blinky.next_move = MOVE_UP;
+        if (Blinky.move == MOVE_LEFT) Blinky.next_move = MOVE_RIGHT;
+        return;
+    }
+
+    if (Blinky.status == GHOST_STATUS_DEAD) {
+        Blinky.next_move = bot_calc_move_dead(GHOST_BLINKY, xp, yp, Blinky.move);
+        return;
+    }
+
     // choose a way
     if (door_cnt == 0) {
         Blinky.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         Blinky.next_move = bot_calc_only_exit(xp, yp);
     } else {
-        // more than one possible way
-        if (Blinky.new_mode == 1) {
-            // mode has changed
-            Blinky.new_mode = 0;
-            // revers direction
-            if (Blinky.move == MOVE_UP) Blinky.next_move = MOVE_DOWN;
-            if (Blinky.move == MOVE_RIGHT) Blinky.next_move = MOVE_LEFT;
-            if (Blinky.move == MOVE_DOWN) Blinky.next_move = MOVE_UP;
-            if (Blinky.move == MOVE_LEFT) Blinky.next_move = MOVE_RIGHT;
-            return;
-        }
-
-        if (Blinky.status == GHOST_STATUS_DEAD) {
-            // dead (return to home)
-            if (Maze.Room[xp][yp].special == ROOM_SPEC_GATE) {
-                // found entry gate
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_U) != 0) Blinky.next_move = MOVE_UP;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_R) != 0) Blinky.next_move = MOVE_RIGHT;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_D) != 0) Blinky.next_move = MOVE_DOWN;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_L) != 0) Blinky.next_move = MOVE_LEFT;
-            } else {
-                Blinky.next_move = bot_calc_move_home(GHOST_BLINKY, xp, yp, Blinky.move);
-            }
-            return;
-        }
-
         if (Game.frightened == BOOL_TRUE) {
             Blinky.next_move = bot_calc_move_random(xp, yp, Blinky.move);
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
-        } else {
-            // scatter
-            Blinky.next_move = bot_calc_move_scatter(GHOST_BLINKY, xp, yp, Blinky.move);
-        }
+        Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
     }
 }

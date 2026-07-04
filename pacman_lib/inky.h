@@ -28,7 +28,7 @@
 
 //--------------------------------------------------------------
 #define INKY_FRIGHTENED_BUF 30 // slow down bot
-#define INKY_DOT_CNT_MAX 10
+#define INKY_DOT_CNT_MAX 0
 
 //--------------------------------------------------------------
 #define INKY_SCATTER_X ROOM_CNT_X - 1

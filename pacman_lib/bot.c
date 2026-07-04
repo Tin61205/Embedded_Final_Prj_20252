@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "stm32_ub_buzzer.h"
 #include "gui.h"
@@ -30,6 +31,7 @@ static uint32_t Ghost_Spawn_X[4];
 static uint32_t Ghost_Spawn_Y[4];
 static uint32_t HumanGhost_Spawn_X;
 static uint32_t HumanGhost_Spawn_Y;
+static uint32_t bot_avoid_portal = 0;
 
 static uint32_t bot_ghost_skin_for_dir(uint32_t dir);
 static uint32_t bot_ghost_dot_cnt_max(uint32_t ghost_id);
@@ -541,7 +543,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
         } else {
-            ghost->status = GHOST_STATUS_DEAD;
+            bot_ghost_instant_revive(ghost, ghost_id);
             Player.score += Game.frightened_points;
             Game.frightened_points += Game.frightened_points;
         }
@@ -553,7 +555,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
         } else {
-            ghost->status = GHOST_STATUS_DEAD;
+            bot_ghost_instant_revive(ghost, ghost_id);
             Player.score += Game.frightened_points;
             Game.frightened_points += Game.frightened_points;
         }
@@ -619,21 +621,38 @@ void bot_ghost_validate_position(Ghost_t *ghost) {
     }
 }
 
-void bot_ghost_unstick(Ghost_t *ghost) {
-    if (ghost->status != GHOST_STATUS_ALIVE || ghost->move != MOVE_STOP) {
+void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
+    if (ghost->move != MOVE_STOP) {
         return;
     }
-    if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+    if (ghost->status == GHOST_STATUS_ALIVE) {
+        if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            return;
+        }
+        ghost->next_move = bot_calc_move_by_strategy(ghost_id, ghost->strategy, ghost->xp, ghost->yp, MOVE_STOP);
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_only_exit(ghost->xp, ghost->yp);
+        }
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+        }
+        ghost->move = ghost->next_move;
         return;
     }
-    ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
-    ghost->move = ghost->next_move;
+    if (ghost->status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(ghost, ghost_id);
+        if (ghost->status == GHOST_STATUS_ALIVE) {
+            return;
+        }
+        ghost->next_move = bot_calc_move_dead(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
+        ghost->move = ghost->next_move;
+        bot_ghost_try_revive(ghost, ghost_id);
+    }
 }
 
 void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
     uint32_t hx;
     uint32_t hy;
-    uint32_t init_dir;
 
     if (ghost->status != GHOST_STATUS_DEAD) {
         return;
@@ -647,8 +666,8 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         }
 
         ghost->status = GHOST_STATUS_ALIVE;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
         ghost->skin = GHOST_SKIN_UP1;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
@@ -666,7 +685,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->skin = GHOST_SKIN_UP1;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = BLINKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else if (ghost_id == GHOST_PINKY) {
         hx = PINKY_HOME_X;
         hy = PINKY_HOME_Y;
@@ -679,7 +698,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = PINKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else if (ghost_id == GHOST_INKY) {
         hx = INKY_HOME_X;
         hy = INKY_HOME_Y;
@@ -692,7 +711,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_RIGHT;
         ghost->next_move = MOVE_RIGHT;
-        ghost->dot_cnt = INKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else {
         hx = CLYDE_HOME_X;
         hy = CLYDE_HOME_Y;
@@ -705,7 +724,82 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
+        ghost->dot_cnt = 0;
+    }
+}
+
+void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
+        uint32_t sx = HumanGhost_Spawn_X;
+        uint32_t sy = HumanGhost_Spawn_Y;
+        uint32_t init_dir;
+
+        ghost->xp = sx;
+        ghost->yp = sy;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
+
+        init_dir = bot_calc_only_exit(sx, sy);
+        if (init_dir == MOVE_STOP) {
+            init_dir = bot_calc_move_random(sx, sy, MOVE_STOP);
+        }
+        if (init_dir == MOVE_STOP) {
+            init_dir = MOVE_LEFT;
+        }
+
+        ghost->skin = bot_ghost_skin_for_dir(init_dir);
+        ghost->move = init_dir;
+        ghost->next_move = init_dir;
+        ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
+        return;
+    }
+
+    if (ghost_id == GHOST_BLINKY) {
+        ghost->xp = BLINKY_HOME_X;
+        ghost->yp = BLINKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
+        ghost->dot_cnt = BLINKY_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
+    } else if (ghost_id == GHOST_PINKY) {
+        ghost->xp = PINKY_HOME_X;
+        ghost->yp = PINKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
+        ghost->dot_cnt = PINKY_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
+    } else if (ghost_id == GHOST_INKY) {
+        ghost->xp = INKY_HOME_X;
+        ghost->yp = INKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_RIGHT1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_RIGHT;
+        ghost->next_move = MOVE_RIGHT;
+        ghost->dot_cnt = INKY_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
+    } else {
+        ghost->xp = CLYDE_HOME_X;
+        ghost->yp = CLYDE_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_LEFT1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_LEFT;
+        ghost->next_move = MOVE_LEFT;
         ghost->dot_cnt = CLYDE_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
     }
 }
 
@@ -713,27 +807,27 @@ void bot_release_ghosts_on_pacman_death(void) {
     if ((Game.ghost_active_mask & MOVE_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
         Blinky.new_mode = 0;
         Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Blinky);
+        bot_ghost_unstick(&Blinky, GHOST_BLINKY);
     }
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0 && Pinky.status == GHOST_STATUS_ALIVE) {
         Pinky.new_mode = 0;
         Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Pinky);
+        bot_ghost_unstick(&Pinky, GHOST_PINKY);
     }
     if ((Game.ghost_active_mask & MOVE_INKY) != 0 && Inky.status == GHOST_STATUS_ALIVE) {
         Inky.new_mode = 0;
         Inky.dot_cnt = INKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Inky);
+        bot_ghost_unstick(&Inky, GHOST_INKY);
     }
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0 && Clyde.status == GHOST_STATUS_ALIVE) {
         Clyde.new_mode = 0;
         Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
-        bot_ghost_unstick(&Clyde);
+        bot_ghost_unstick(&Clyde, GHOST_CLYDE);
     }
     if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
         HumanGhost.new_mode = 0;
         HumanGhost.dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
-        bot_ghost_unstick(&HumanGhost);
+        bot_ghost_unstick(&HumanGhost, GHOST_HUMAN);
     }
 }
 
@@ -765,6 +859,16 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
 
     if (x >= ROOM_CNT_X || y >= ROOM_CNT_Y) {
         return 0;
+    }
+
+    if (bot_avoid_portal != 0 && Maze.Room[x][y].special == ROOM_SPEC_PORTAL) {
+        return 0;
+    }
+
+    if (bot_avoid_portal != 0 && Maze_selected_map == MAZE_MAP_CLASSIC) {
+        if ((x == 12 || x == 15) && (y >= 16) && (y <= 19)) {
+            return 0;
+        }
     }
 
     room = &Maze.Room[x][y];
@@ -973,43 +1077,224 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
         // player is far away (more than 8 Rooms) -> chase him directly
         ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
     } else {
-        // player is nearby -> move to scatter point
+        // player is nearby -> shy flee to home corner
         ret_wert = bot_calc_move_scatter(ghost, xp, yp, akt_dir);
     }
 
     return (ret_wert);
 }
 
+static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty) {
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
+        *tx = 14;
+        *ty = 14;
+        return;
+    }
+    if (ghost_id == GHOST_BLINKY) {
+        *tx = BLINKY_HOME_X;
+        *ty = BLINKY_HOME_Y;
+    } else if (ghost_id == GHOST_PINKY) {
+        *tx = PINKY_HOME_X;
+        *ty = PINKY_HOME_Y;
+    } else if (ghost_id == GHOST_INKY) {
+        *tx = INKY_HOME_X;
+        *ty = INKY_HOME_Y;
+    } else if (ghost_id == GHOST_CLYDE) {
+        *tx = CLYDE_HOME_X;
+        *ty = CLYDE_HOME_Y;
+    } else {
+        *tx = GHOST_HOUSE_EXIT_X;
+        *ty = GHOST_HOUSE_EXIT_Y;
+    }
+}
+
+static uint32_t bot_bfs_can_traverse(uint32_t cx, uint32_t cy,
+                                     uint32_t nx, uint32_t ny,
+                                     uint32_t dir) {
+    uint32_t out_door;
+    uint32_t in_door;
+
+    switch (dir) {
+        case MOVE_UP:
+            out_door = ROOM_DOOR_U;
+            in_door = ROOM_DOOR_D;
+            break;
+        case MOVE_RIGHT:
+            out_door = ROOM_DOOR_R;
+            in_door = ROOM_DOOR_L;
+            break;
+        case MOVE_DOWN:
+            out_door = ROOM_DOOR_D;
+            in_door = ROOM_DOOR_U;
+            break;
+        case MOVE_LEFT:
+            out_door = ROOM_DOOR_L;
+            in_door = ROOM_DOOR_R;
+            break;
+        default:
+            return 0;
+    }
+
+    if (((Maze.Room[cx][cy].door & out_door) == 0) &&
+        ((Maze.Room[nx][ny].door & in_door) == 0)) {
+        if (Maze.Room[cx][cy].typ == ROOM_TYP_PATH &&
+            Maze.Room[nx][ny].typ == ROOM_TYP_PATH) {
+            return bot_is_walkable(nx, ny, 1);
+        }
+        return 0;
+    }
+
+    return bot_is_walkable(nx, ny, 1);
+}
+
+static uint32_t bot_calc_move_bfs_home(uint32_t x1, uint32_t y1,
+                                       uint32_t x2, uint32_t y2) {
+    static uint8_t visited[ROOM_CNT_X][ROOM_CNT_Y];
+    static uint8_t first_move_arr[ROOM_CNT_X][ROOM_CNT_Y];
+    static uint8_t q_x[ROOM_CNT_X * ROOM_CNT_Y];
+    static uint8_t q_y[ROOM_CNT_X * ROOM_CNT_Y];
+    uint32_t q_head;
+    uint32_t q_tail;
+    uint32_t cx;
+    uint32_t cy;
+    uint32_t nx;
+    uint32_t ny;
+    uint32_t fm;
+
+    if (x1 == x2 && y1 == y2) {
+        return MOVE_STOP;
+    }
+    if (x1 >= ROOM_CNT_X || y1 >= ROOM_CNT_Y) {
+        return MOVE_STOP;
+    }
+    if (x2 >= ROOM_CNT_X || y2 >= ROOM_CNT_Y) {
+        return MOVE_STOP;
+    }
+
+    memset(visited, 0, sizeof(visited));
+    q_head = 0;
+    q_tail = 0;
+    visited[x1][y1] = 1;
+    first_move_arr[x1][y1] = (uint8_t)MOVE_STOP;
+    q_x[q_tail] = (uint8_t)x1;
+    q_y[q_tail] = (uint8_t)y1;
+    q_tail++;
+
+    while (q_head < q_tail) {
+        cx = q_x[q_head];
+        cy = q_y[q_head];
+        fm = first_move_arr[cx][cy];
+        q_head++;
+
+        if (cx == x2 && cy == y2) {
+            return fm;
+        }
+
+        if (cy > 0) {
+            nx = cx;
+            ny = cy - 1;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_UP) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_UP : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
+            }
+        }
+        if (cx < ROOM_CNT_X - 1) {
+            nx = cx + 1;
+            ny = cy;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_RIGHT) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_RIGHT : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
+            }
+        }
+        if (cy < ROOM_CNT_Y - 1) {
+            nx = cx;
+            ny = cy + 1;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_DOWN) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_DOWN : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
+            }
+        }
+        if (cx > 0) {
+            nx = cx - 1;
+            ny = cy;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_LEFT) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_LEFT : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
+            }
+        }
+    }
+
+    return MOVE_STOP;
+}
+
 //--------------------------------------------------------------
-// bot strategy : home
-//                 move to the room with the shortest distance
-//                 to the home position
-//                 (but don't go backwards to avoid toggling)
+// bot strategy : home (dead ghost)
+// BFS shortest path; avoid portal loops while returning home.
 //--------------------------------------------------------------
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
-    uint32_t txp, typ;
+    uint32_t txp;
+    uint32_t typ;
 
-    if (Game.play_type == GAME_PLAY_CUSTOM && ghost == GHOST_HUMAN) {
-        txp = 14;
-        typ = 14;
-    } else if (ghost == GHOST_BLINKY) {
-        txp = BLINKY_HOME_X;
-        typ = BLINKY_HOME_Y;
-    } else if (ghost == GHOST_PINKY) {
-        txp = PINKY_HOME_X;
-        typ = PINKY_HOME_Y;
-    } else if (ghost == GHOST_INKY) {
-        txp = INKY_HOME_X;
-        typ = INKY_HOME_Y;
-    } else {
-        txp = CLYDE_HOME_X;
-        typ = CLYDE_HOME_Y;
+    bot_ghost_home_target(ghost, &txp, &typ);
+
+    bot_avoid_portal = 1;
+    ret_wert = bot_calc_move_bfs_home(xp, yp, txp, typ);
+    bot_avoid_portal = 0;
+
+    if (ret_wert != MOVE_STOP) {
+        return ret_wert;
     }
 
+    bot_avoid_portal = 1;
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
+    bot_avoid_portal = 0;
 
-    return (ret_wert);
+    return ret_wert;
+}
+
+uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+    Room_t *room = &Maze.Room[xp][yp];
+    uint32_t move;
+
+    if (room->special == ROOM_SPEC_GATE) {
+        if ((room->door & (ROOM_BGATE_U | ROOM_PGATE_U | ROOM_IGATE_U | ROOM_CGATE_U)) != 0) {
+            return MOVE_UP;
+        }
+        if ((room->door & (ROOM_BGATE_R | ROOM_PGATE_R | ROOM_IGATE_R | ROOM_CGATE_R)) != 0) {
+            return MOVE_RIGHT;
+        }
+        if ((room->door & (ROOM_BGATE_D | ROOM_PGATE_D | ROOM_IGATE_D | ROOM_CGATE_D)) != 0) {
+            return MOVE_DOWN;
+        }
+        if ((room->door & (ROOM_BGATE_L | ROOM_PGATE_L | ROOM_IGATE_L | ROOM_CGATE_L)) != 0) {
+            return MOVE_LEFT;
+        }
+    }
+
+    move = bot_calc_move_home(ghost_id, xp, yp, MOVE_STOP);
+    if (move != MOVE_STOP) {
+        return move;
+    }
+
+    move = bot_calc_only_exit(xp, yp);
+    if (move != MOVE_STOP) {
+        return move;
+    }
+
+    return MOVE_STOP;
 }
 
 //--------------------------------------------------------------

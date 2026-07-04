@@ -66,7 +66,7 @@ extern GUI_t GUI;
 #define  GHOST_COLOR_TRICKY RGB_COL_CYAN
 #define  GHOST_COLOR_SHY   RGB_COL_YELLOW
 #define  GHOST_COLOR_DRUNK RGB_COL_WHITE
-#define  GHOST_COLOR_LAZY  RGB_COL_GREY
+#define  GHOST_COLOR_LAZY  0x8410  // dark grey — distinct from drunk white (0xFFFF)
 #define  GHOST_COLOR_RANDOM RGB_COL_BLUE
 
 

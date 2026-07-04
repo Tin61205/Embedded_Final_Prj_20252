@@ -29,7 +29,7 @@
 
 //--------------------------------------------------------------
 #define  CLYDE_FRIGHTENED_BUF  30  // slow down bot
-#define  CLYDE_DOT_CNT_MAX     20
+#define  CLYDE_DOT_CNT_MAX     0
 
 
 //--------------------------------------------------------------

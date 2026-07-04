@@ -30,10 +30,8 @@ void humanghost_move(void) {
     }
     humanghost_change_skin(last_moving_dir);
 
-    if (HumanGhost.move == MOVE_STOP && HumanGhost.status == GHOST_STATUS_ALIVE) {
-        if (bot_is_human_ghost_active() == 0) {
-            bot_ghost_unstick(&HumanGhost);
-        }
+    if (HumanGhost.move == MOVE_STOP) {
+        bot_ghost_unstick(&HumanGhost, GHOST_HUMAN);
     }
     if (HumanGhost.move == MOVE_STOP) {
         return;
@@ -177,34 +175,25 @@ void humanghost_calc_next_move(void) {
         door_cnt = 2;
     }
 
+    if (door_cnt > 1 && HumanGhost.new_mode == 1) {
+        HumanGhost.new_mode = 0;
+        if (HumanGhost.move == MOVE_UP) HumanGhost.next_move = MOVE_DOWN;
+        if (HumanGhost.move == MOVE_RIGHT) HumanGhost.next_move = MOVE_LEFT;
+        if (HumanGhost.move == MOVE_DOWN) HumanGhost.next_move = MOVE_UP;
+        if (HumanGhost.move == MOVE_LEFT) HumanGhost.next_move = MOVE_RIGHT;
+        return;
+    }
+
+    if (HumanGhost.status == GHOST_STATUS_DEAD) {
+        HumanGhost.next_move = bot_calc_move_dead(GHOST_HUMAN, xp, yp, HumanGhost.move);
+        return;
+    }
+
     if (door_cnt == 0) {
         HumanGhost.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         HumanGhost.next_move = bot_calc_only_exit(xp, yp);
     } else {
-        if (HumanGhost.new_mode == 1) {
-            HumanGhost.new_mode = 0;
-            if (HumanGhost.move == MOVE_UP) HumanGhost.next_move = MOVE_DOWN;
-            if (HumanGhost.move == MOVE_RIGHT) HumanGhost.next_move = MOVE_LEFT;
-            if (HumanGhost.move == MOVE_DOWN) HumanGhost.next_move = MOVE_UP;
-            if (HumanGhost.move == MOVE_LEFT) HumanGhost.next_move = MOVE_RIGHT;
-            return;
-        }
-
-        if (HumanGhost.status == GHOST_STATUS_DEAD) {
-            // dead (return to home)
-            if (Maze.Room[xp][yp].special == ROOM_SPEC_GATE) {
-                // found entry gate
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_U) != 0) HumanGhost.next_move = MOVE_UP;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_R) != 0) HumanGhost.next_move = MOVE_RIGHT;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_D) != 0) HumanGhost.next_move = MOVE_DOWN;
-                if ((Maze.Room[xp][yp].door & ROOM_BGATE_L) != 0) HumanGhost.next_move = MOVE_LEFT;
-            } else {
-                HumanGhost.next_move = bot_calc_move_home(GHOST_HUMAN, xp, yp, HumanGhost.move);
-            }
-            return;
-        }
-
         HumanGhost.next_move = bot_calc_move_player_ghost(xp, yp, HumanGhost.move, Game.player2_joy);
     }
 }

@@ -65,8 +65,8 @@ all: main-build
 main-build: prj_cki.elf secondary-outputs
 
 # Tool invocations
-prj_cki.elf prj_cki.map: $(OBJS) $(USER_OBJS) F:\git_nhung_prj\Embedded_Final_Prj_20252\STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "prj_cki.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"F:\git_nhung_prj\Embedded_Final_Prj_20252\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="prj_cki.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+prj_cki.elf prj_cki.map: $(OBJS) $(USER_OBJS) d:\Embedded_Final_Prj_20252\STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "prj_cki.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"d:\Embedded_Final_Prj_20252\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="prj_cki.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

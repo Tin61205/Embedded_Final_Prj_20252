@@ -46,10 +46,13 @@ void clyde_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void clyde_move(void) {
-    if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
+    if (Clyde.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Clyde, GHOST_CLYDE);
+    }
+    if (Clyde.status == GHOST_STATUS_ALIVE && Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
 
-    if (Clyde.move == MOVE_STOP && Clyde.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Clyde);
+    if (Clyde.move == MOVE_STOP) {
+        bot_ghost_unstick(&Clyde, GHOST_CLYDE);
     }
     if (Clyde.move == MOVE_STOP) return;
 
@@ -295,49 +298,32 @@ void clyde_calc_next_move(void) {
         door_cnt = 2;
     }
 
+    if (door_cnt > 1 && Clyde.new_mode == 1) {
+        Clyde.new_mode = 0;
+        if (Clyde.move == MOVE_UP) Clyde.next_move = MOVE_DOWN;
+        if (Clyde.move == MOVE_RIGHT) Clyde.next_move = MOVE_LEFT;
+        if (Clyde.move == MOVE_DOWN) Clyde.next_move = MOVE_UP;
+        if (Clyde.move == MOVE_LEFT) Clyde.next_move = MOVE_RIGHT;
+        return;
+    }
+
+    if (Clyde.status == GHOST_STATUS_DEAD) {
+        Clyde.next_move = bot_calc_move_dead(GHOST_CLYDE, xp, yp, Clyde.move);
+        return;
+    }
+
     // choose a way
     if (door_cnt == 0) {
         Clyde.next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         Clyde.next_move = bot_calc_only_exit(xp, yp);
     } else {
-        // more than one possible way
-        if (Clyde.new_mode == 1) {
-            // mode has changed
-            Clyde.new_mode = 0;
-            // revers direction
-            if (Clyde.move == MOVE_UP) Clyde.next_move = MOVE_DOWN;
-            if (Clyde.move == MOVE_RIGHT) Clyde.next_move = MOVE_LEFT;
-            if (Clyde.move == MOVE_DOWN) Clyde.next_move = MOVE_UP;
-            if (Clyde.move == MOVE_LEFT) Clyde.next_move = MOVE_RIGHT;
-            return;
-        }
-
-        if (Clyde.status == GHOST_STATUS_DEAD) {
-            // dead (return to home)
-            if (Maze.Room[xp][yp].special == ROOM_SPEC_GATE) {
-                // found entry gate
-                if ((Maze.Room[xp][yp].door & ROOM_CGATE_U) != 0) Clyde.next_move = MOVE_UP;
-                if ((Maze.Room[xp][yp].door & ROOM_CGATE_R) != 0) Clyde.next_move = MOVE_RIGHT;
-                if ((Maze.Room[xp][yp].door & ROOM_CGATE_D) != 0) Clyde.next_move = MOVE_DOWN;
-                if ((Maze.Room[xp][yp].door & ROOM_CGATE_L) != 0) Clyde.next_move = MOVE_LEFT;
-            } else {
-                Clyde.next_move = bot_calc_move_home(GHOST_CLYDE, xp, yp, Clyde.move);
-            }
-            return;
-        }
-
         if (Game.frightened == BOOL_TRUE) {
             // frightened (make a random move)
             Clyde.next_move = bot_calc_move_random(xp, yp, Clyde.move);
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
-        } else {
-            // scatter
-            Clyde.next_move = bot_calc_move_scatter(GHOST_CLYDE, xp, yp, Clyde.move);
-        }
+        Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
     }
 }
