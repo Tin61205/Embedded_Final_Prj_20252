@@ -327,11 +327,6 @@ void pinky_calc_next_move(void) {
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Pinky.next_move = bot_calc_move_by_strategy(GHOST_PINKY, Pinky.strategy, xp, yp, Pinky.move);
-        } else {
-            // scatter
-            Pinky.next_move = bot_calc_move_scatter(GHOST_PINKY, xp, yp, Pinky.move);
-        }
+        Pinky.next_move = bot_calc_move_by_strategy(GHOST_PINKY, Pinky.strategy, xp, yp, Pinky.move);
     }
 }

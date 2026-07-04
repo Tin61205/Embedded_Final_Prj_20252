@@ -377,13 +377,8 @@ void pacman_init(uint32_t mode) {
         Game.collision = BOOL_TRUE;
         Game.controller = GAME_CONTROL_4BUTTON;
     }
-    if (Game.play_type == GAME_PLAY_CUSTOM) {
-        Game.mode = GAME_MODE_CHASE;
-        Game.mode_timer = GAME_CHASE_TIME;
-    } else {
-        Game.mode = GAME_MODE_SCATTER;
-        Game.mode_timer = GAME_SCATTER_TIME;
-    }
+    Game.mode = GAME_MODE_CHASE;
+    Game.mode_timer = GAME_CHASE_TIME;
     Game.frightened = BOOL_FALSE;
     Game.frightened_timer = GAME_FRIGHTENED_TIME;
     Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
@@ -759,29 +754,12 @@ uint32_t pacman_play(void) {
 //--------------------------------------------------------------
 void pacman_dec_mode_timer(void) {
     if (Game.frightened == BOOL_FALSE) {
-        Game.mode_timer--;
-        if (Game.mode_timer == 0) {
-            GUI.refresh_value = GUI_REFRESH_VALUE;
-            if (Game.mode == GAME_MODE_SCATTER) {
-                Game.mode = GAME_MODE_CHASE;
-                Game.mode_timer = GAME_CHASE_TIME;
-            } else {
-                Game.mode = GAME_MODE_SCATTER;
-                Game.mode_timer = GAME_SCATTER_TIME;
-            }
-            if (Blinky.status == GHOST_STATUS_ALIVE) Blinky.new_mode = 1;
-            if (Pinky.status == GHOST_STATUS_ALIVE) Pinky.new_mode = 1;
-            if (Inky.status == GHOST_STATUS_ALIVE) Inky.new_mode = 1;
-            if (Clyde.status == GHOST_STATUS_ALIVE) Clyde.new_mode = 1;
-            if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
-                HumanGhost.new_mode = 1;
-            }
-        }
-    } else {
-        Game.frightened_timer--;
-        if (Game.frightened_timer == 0) {
-            Game.frightened = BOOL_FALSE;
-            Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
-        }
+        return;
+    }
+
+    Game.frightened_timer--;
+    if (Game.frightened_timer == 0) {
+        Game.frightened = BOOL_FALSE;
+        Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
     }
 }

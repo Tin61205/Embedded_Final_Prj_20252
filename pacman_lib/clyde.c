@@ -333,11 +333,6 @@ void clyde_calc_next_move(void) {
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
-        } else {
-            // scatter
-            Clyde.next_move = bot_calc_move_scatter(GHOST_CLYDE, xp, yp, Clyde.move);
-        }
+        Clyde.next_move = bot_calc_move_by_strategy(GHOST_CLYDE, Clyde.strategy, xp, yp, Clyde.move);
     }
 }

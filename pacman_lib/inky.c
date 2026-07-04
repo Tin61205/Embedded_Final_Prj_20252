@@ -333,11 +333,6 @@ void inky_calc_next_move(void) {
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Inky.next_move = bot_calc_move_by_strategy(GHOST_INKY, Inky.strategy, xp, yp, Inky.move);
-        } else {
-            // scatter
-            Inky.next_move = bot_calc_move_scatter(GHOST_INKY, xp, yp, Inky.move);
-        }
+        Inky.next_move = bot_calc_move_by_strategy(GHOST_INKY, Inky.strategy, xp, yp, Inky.move);
     }
 }

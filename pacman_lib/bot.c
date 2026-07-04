@@ -627,7 +627,13 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
         if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
             return;
         }
-        ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+        ghost->next_move = bot_calc_move_by_strategy(ghost_id, ghost->strategy, ghost->xp, ghost->yp, MOVE_STOP);
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_only_exit(ghost->xp, ghost->yp);
+        }
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+        }
         ghost->move = ghost->next_move;
         return;
     }
@@ -986,7 +992,7 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
         // player is far away (more than 8 Rooms) -> chase him directly
         ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
     } else {
-        // player is nearby -> move to scatter point
+        // player is nearby -> shy flee to home corner
         ret_wert = bot_calc_move_scatter(ghost, xp, yp, akt_dir);
     }
 

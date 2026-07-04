@@ -328,11 +328,6 @@ void blinky_calc_next_move(void) {
             return;
         }
 
-        if (Game.mode == GAME_MODE_CHASE) {
-            Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
-        } else {
-            // scatter
-            Blinky.next_move = bot_calc_move_scatter(GHOST_BLINKY, xp, yp, Blinky.move);
-        }
+        Blinky.next_move = bot_calc_move_by_strategy(GHOST_BLINKY, Blinky.strategy, xp, yp, Blinky.move);
     }
 }
