@@ -990,22 +990,8 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
-    if (Game.play_type == GAME_PLAY_CUSTOM && ghost == GHOST_HUMAN) {
-        txp = 14;
-        typ = 14;
-    } else if (ghost == GHOST_BLINKY) {
-        txp = BLINKY_HOME_X;
-        typ = BLINKY_HOME_Y;
-    } else if (ghost == GHOST_PINKY) {
-        txp = PINKY_HOME_X;
-        typ = PINKY_HOME_Y;
-    } else if (ghost == GHOST_INKY) {
-        txp = INKY_HOME_X;
-        typ = INKY_HOME_Y;
-    } else {
-        txp = CLYDE_HOME_X;
-        typ = CLYDE_HOME_Y;
-    }
+    txp = GHOST_HOUSE_EXIT_X;
+    typ = GHOST_HOUSE_EXIT_Y;
 
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
 
