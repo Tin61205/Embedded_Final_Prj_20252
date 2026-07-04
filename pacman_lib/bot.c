@@ -647,8 +647,8 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         }
 
         ghost->status = GHOST_STATUS_ALIVE;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
         ghost->skin = GHOST_SKIN_UP1;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
