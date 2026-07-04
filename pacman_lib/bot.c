@@ -31,6 +31,7 @@ static uint32_t Ghost_Spawn_X[4];
 static uint32_t Ghost_Spawn_Y[4];
 static uint32_t HumanGhost_Spawn_X;
 static uint32_t HumanGhost_Spawn_Y;
+static uint32_t bot_avoid_portal = 0;
 
 static uint32_t bot_ghost_skin_for_dir(uint32_t dir);
 static uint32_t bot_ghost_dot_cnt_max(uint32_t ghost_id);
@@ -647,7 +648,6 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
 void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
     uint32_t hx;
     uint32_t hy;
-    uint32_t init_dir;
 
     if (ghost->status != GHOST_STATUS_DEAD) {
         return;
@@ -779,6 +779,16 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
 
     if (x >= ROOM_CNT_X || y >= ROOM_CNT_Y) {
         return 0;
+    }
+
+    if (bot_avoid_portal != 0 && Maze.Room[x][y].special == ROOM_SPEC_PORTAL) {
+        return 0;
+    }
+
+    if (bot_avoid_portal != 0 && Maze_selected_map == MAZE_MAP_CLASSIC) {
+        if ((x == 12 || x == 15) && (y >= 16) && (y <= 19)) {
+            return 0;
+        }
     }
 
     room = &Maze.Room[x][y];
@@ -994,95 +1004,6 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
     return (ret_wert);
 }
 
-static uint8_t bot_bfs_visited[ROOM_CNT_X][ROOM_CNT_Y];
-static uint8_t bot_bfs_first_step[ROOM_CNT_X][ROOM_CNT_Y];
-static uint16_t bot_bfs_qx[ROOM_CNT_X * ROOM_CNT_Y];
-static uint16_t bot_bfs_qy[ROOM_CNT_X * ROOM_CNT_Y];
-
-static uint32_t bot_ghost_neighbor(uint32_t x, uint32_t y, uint32_t dir, uint32_t *nx, uint32_t *ny) {
-    if (dir == MOVE_UP) {
-        if ((y == 0) || ((Maze.Room[x][y].door & ROOM_DOOR_U) == 0) || !bot_is_walkable(x, y - 1, 1)) {
-            return 0;
-        }
-        *nx = x;
-        *ny = y - 1;
-        return 1;
-    }
-    if (dir == MOVE_RIGHT) {
-        if ((x >= ROOM_CNT_X - 1) || ((Maze.Room[x][y].door & ROOM_DOOR_R) == 0) || !bot_is_walkable(x + 1, y, 1)) {
-            return 0;
-        }
-        *nx = x + 1;
-        *ny = y;
-        return 1;
-    }
-    if (dir == MOVE_DOWN) {
-        if ((y >= ROOM_CNT_Y - 1) || ((Maze.Room[x][y].door & ROOM_DOOR_D) == 0) || !bot_is_walkable(x, y + 1, 1)) {
-            return 0;
-        }
-        *nx = x;
-        *ny = y + 1;
-        return 1;
-    }
-    if (dir == MOVE_LEFT) {
-        if ((x == 0) || ((Maze.Room[x][y].door & ROOM_DOOR_L) == 0) || !bot_is_walkable(x - 1, y, 1)) {
-            return 0;
-        }
-        *nx = x - 1;
-        *ny = y;
-        return 1;
-    }
-    return 0;
-}
-
-static uint32_t bot_dead_can_step(uint32_t x, uint32_t y, uint32_t dir, uint32_t *nx, uint32_t *ny) {
-    uint32_t cx, cy;
-
-    if (bot_ghost_neighbor(x, y, dir, nx, ny) != 0) {
-        return 1;
-    }
-
-    cx = x;
-    cy = y;
-    if (dir == MOVE_UP) {
-        if (cy == 0) {
-            return 0;
-        }
-        cy--;
-    } else if (dir == MOVE_RIGHT) {
-        if (cx >= ROOM_CNT_X - 1) {
-            return 0;
-        }
-        cx++;
-    } else if (dir == MOVE_DOWN) {
-        if (cy >= ROOM_CNT_Y - 1) {
-            return 0;
-        }
-        cy++;
-    } else if (dir == MOVE_LEFT) {
-        if (cx == 0) {
-            return 0;
-        }
-        cx--;
-    } else {
-        return 0;
-    }
-
-    *nx = cx;
-    *ny = cy;
-
-    if (!bot_is_walkable(x, y, 1) || !bot_is_walkable(cx, cy, 1)) {
-        return 0;
-    }
-
-    // Inner rounded corners: neighboring PATH cells connect even if door bits are missing.
-    if (Maze.Room[x][y].typ == ROOM_TYP_PATH && Maze.Room[cx][cy].typ == ROOM_TYP_PATH) {
-        return 1;
-    }
-
-    return 0;
-}
-
 static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty) {
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
         *tx = 14;
@@ -1107,54 +1028,131 @@ static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty)
     }
 }
 
-static uint32_t bot_bfs_next_move(uint32_t sx, uint32_t sy, uint32_t tx, uint32_t ty) {
-    uint32_t head = 0;
-    uint32_t tail = 0;
-    uint32_t x, y, nx, ny, i;
-    static const uint32_t dirs[4] = { MOVE_UP, MOVE_LEFT, MOVE_DOWN, MOVE_RIGHT };
+static uint32_t bot_bfs_can_traverse(uint32_t cx, uint32_t cy,
+                                     uint32_t nx, uint32_t ny,
+                                     uint32_t dir) {
+    uint32_t out_door;
+    uint32_t in_door;
 
-    if (!bot_is_walkable(sx, sy, 1) || !bot_is_walkable(tx, ty, 1)) {
+    switch (dir) {
+        case MOVE_UP:
+            out_door = ROOM_DOOR_U;
+            in_door = ROOM_DOOR_D;
+            break;
+        case MOVE_RIGHT:
+            out_door = ROOM_DOOR_R;
+            in_door = ROOM_DOOR_L;
+            break;
+        case MOVE_DOWN:
+            out_door = ROOM_DOOR_D;
+            in_door = ROOM_DOOR_U;
+            break;
+        case MOVE_LEFT:
+            out_door = ROOM_DOOR_L;
+            in_door = ROOM_DOOR_R;
+            break;
+        default:
+            return 0;
+    }
+
+    if (((Maze.Room[cx][cy].door & out_door) == 0) &&
+        ((Maze.Room[nx][ny].door & in_door) == 0)) {
+        if (Maze.Room[cx][cy].typ == ROOM_TYP_PATH &&
+            Maze.Room[nx][ny].typ == ROOM_TYP_PATH) {
+            return bot_is_walkable(nx, ny, 1);
+        }
+        return 0;
+    }
+
+    return bot_is_walkable(nx, ny, 1);
+}
+
+static uint32_t bot_calc_move_bfs_home(uint32_t x1, uint32_t y1,
+                                       uint32_t x2, uint32_t y2) {
+    static uint8_t visited[ROOM_CNT_X][ROOM_CNT_Y];
+    static uint8_t first_move_arr[ROOM_CNT_X][ROOM_CNT_Y];
+    static uint8_t q_x[ROOM_CNT_X * ROOM_CNT_Y];
+    static uint8_t q_y[ROOM_CNT_X * ROOM_CNT_Y];
+    uint32_t q_head;
+    uint32_t q_tail;
+    uint32_t cx;
+    uint32_t cy;
+    uint32_t nx;
+    uint32_t ny;
+    uint32_t fm;
+
+    if (x1 == x2 && y1 == y2) {
         return MOVE_STOP;
     }
-    if (sx == tx && sy == ty) {
+    if (x1 >= ROOM_CNT_X || y1 >= ROOM_CNT_Y) {
+        return MOVE_STOP;
+    }
+    if (x2 >= ROOM_CNT_X || y2 >= ROOM_CNT_Y) {
         return MOVE_STOP;
     }
 
-    memset(bot_bfs_visited, 0, sizeof(bot_bfs_visited));
-    memset(bot_bfs_first_step, 0, sizeof(bot_bfs_first_step));
+    memset(visited, 0, sizeof(visited));
+    q_head = 0;
+    q_tail = 0;
+    visited[x1][y1] = 1;
+    first_move_arr[x1][y1] = (uint8_t)MOVE_STOP;
+    q_x[q_tail] = (uint8_t)x1;
+    q_y[q_tail] = (uint8_t)y1;
+    q_tail++;
 
-    bot_bfs_visited[sx][sy] = 1;
-    bot_bfs_qx[tail] = (uint16_t)sx;
-    bot_bfs_qy[tail] = (uint16_t)sy;
-    tail++;
+    while (q_head < q_tail) {
+        cx = q_x[q_head];
+        cy = q_y[q_head];
+        fm = first_move_arr[cx][cy];
+        q_head++;
 
-    while (head < tail) {
-        x = bot_bfs_qx[head];
-        y = bot_bfs_qy[head];
-        head++;
+        if (cx == x2 && cy == y2) {
+            return fm;
+        }
 
-        for (i = 0; i < 4; i++) {
-            if (bot_dead_can_step(x, y, dirs[i], &nx, &ny) == 0) {
-                continue;
+        if (cy > 0) {
+            nx = cx;
+            ny = cy - 1;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_UP) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_UP : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
             }
-            if (bot_bfs_visited[nx][ny] != 0) {
-                continue;
+        }
+        if (cx < ROOM_CNT_X - 1) {
+            nx = cx + 1;
+            ny = cy;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_RIGHT) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_RIGHT : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
             }
-
-            bot_bfs_visited[nx][ny] = 1;
-            if (x == sx && y == sy) {
-                bot_bfs_first_step[nx][ny] = (uint8_t)dirs[i];
-            } else {
-                bot_bfs_first_step[nx][ny] = bot_bfs_first_step[x][y];
+        }
+        if (cy < ROOM_CNT_Y - 1) {
+            nx = cx;
+            ny = cy + 1;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_DOWN) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_DOWN : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
             }
-
-            if (nx == tx && ny == ty) {
-                return (uint32_t)bot_bfs_first_step[nx][ny];
+        }
+        if (cx > 0) {
+            nx = cx - 1;
+            ny = cy;
+            if (visited[nx][ny] == 0 && bot_bfs_can_traverse(cx, cy, nx, ny, MOVE_LEFT) != 0) {
+                visited[nx][ny] = 1;
+                first_move_arr[nx][ny] = (fm == MOVE_STOP) ? (uint8_t)MOVE_LEFT : (uint8_t)fm;
+                q_x[q_tail] = (uint8_t)nx;
+                q_y[q_tail] = (uint8_t)ny;
+                q_tail++;
             }
-
-            bot_bfs_qx[tail] = (uint16_t)nx;
-            bot_bfs_qy[tail] = (uint16_t)ny;
-            tail++;
         }
     }
 
@@ -1163,29 +1161,33 @@ static uint32_t bot_bfs_next_move(uint32_t sx, uint32_t sy, uint32_t tx, uint32_
 
 //--------------------------------------------------------------
 // bot strategy : home (dead ghost)
-// BFS shortest path to per-ghost home tile
+// BFS shortest path; avoid portal loops while returning home.
 //--------------------------------------------------------------
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
-    uint32_t txp, typ;
-    uint32_t ret_wert;
-
-    (void)akt_dir;
+    uint32_t ret_wert = MOVE_STOP;
+    uint32_t txp;
+    uint32_t typ;
 
     bot_ghost_home_target(ghost, &txp, &typ);
-    ret_wert = bot_bfs_next_move(xp, yp, txp, typ);
+
+    bot_avoid_portal = 1;
+    ret_wert = bot_calc_move_bfs_home(xp, yp, txp, typ);
+    bot_avoid_portal = 0;
+
     if (ret_wert != MOVE_STOP) {
         return ret_wert;
     }
 
-    return bot_calc_move(xp, yp, txp, typ, MOVE_STOP);
+    bot_avoid_portal = 1;
+    ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
+    bot_avoid_portal = 0;
+
+    return ret_wert;
 }
 
 uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     Room_t *room = &Maze.Room[xp][yp];
     uint32_t move;
-    uint32_t tx, ty, i;
-    uint32_t nx, ny;
-    static const uint32_t dirs[4] = { MOVE_UP, MOVE_LEFT, MOVE_DOWN, MOVE_RIGHT };
 
     if (room->special == ROOM_SPEC_GATE) {
         if ((room->door & (ROOM_BGATE_U | ROOM_PGATE_U | ROOM_IGATE_U | ROOM_CGATE_U)) != 0) {
@@ -1202,7 +1204,6 @@ uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_
         }
     }
 
-    (void)akt_dir;
     move = bot_calc_move_home(ghost_id, xp, yp, MOVE_STOP);
     if (move != MOVE_STOP) {
         return move;
@@ -1213,17 +1214,7 @@ uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_
         return move;
     }
 
-    bot_ghost_home_target(ghost_id, &tx, &ty);
-    for (i = 0; i < 4; i++) {
-        if (bot_dead_can_step(xp, yp, dirs[i], &nx, &ny) == 0) {
-            continue;
-        }
-        if (bot_bfs_next_move(nx, ny, tx, ty) != MOVE_STOP) {
-            return dirs[i];
-        }
-    }
-
-    return bot_calc_move(xp, yp, tx, ty, MOVE_STOP);
+    return MOVE_STOP;
 }
 
 //--------------------------------------------------------------
