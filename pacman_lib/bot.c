@@ -619,15 +619,28 @@ void bot_ghost_validate_position(Ghost_t *ghost) {
     }
 }
 
-void bot_ghost_unstick(Ghost_t *ghost) {
-    if (ghost->status != GHOST_STATUS_ALIVE || ghost->move != MOVE_STOP) {
+void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
+    if (ghost->move != MOVE_STOP) {
         return;
     }
-    if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+    if (ghost->status == GHOST_STATUS_ALIVE) {
+        if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            return;
+        }
+        ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+        ghost->move = ghost->next_move;
         return;
     }
-    ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
-    ghost->move = ghost->next_move;
+    if (ghost->status == GHOST_STATUS_DEAD) {
+        ghost->next_move = bot_calc_move_home(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_only_exit(ghost->xp, ghost->yp);
+        }
+        if (ghost->next_move == MOVE_STOP) {
+            ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
+        }
+        ghost->move = ghost->next_move;
+    }
 }
 
 void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
@@ -713,27 +726,27 @@ void bot_release_ghosts_on_pacman_death(void) {
     if ((Game.ghost_active_mask & MOVE_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
         Blinky.new_mode = 0;
         Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Blinky);
+        bot_ghost_unstick(&Blinky, GHOST_BLINKY);
     }
     if ((Game.ghost_active_mask & MOVE_PINKY) != 0 && Pinky.status == GHOST_STATUS_ALIVE) {
         Pinky.new_mode = 0;
         Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Pinky);
+        bot_ghost_unstick(&Pinky, GHOST_PINKY);
     }
     if ((Game.ghost_active_mask & MOVE_INKY) != 0 && Inky.status == GHOST_STATUS_ALIVE) {
         Inky.new_mode = 0;
         Inky.dot_cnt = INKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Inky);
+        bot_ghost_unstick(&Inky, GHOST_INKY);
     }
     if ((Game.ghost_active_mask & MOVE_CLYDE) != 0 && Clyde.status == GHOST_STATUS_ALIVE) {
         Clyde.new_mode = 0;
         Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
-        bot_ghost_unstick(&Clyde);
+        bot_ghost_unstick(&Clyde, GHOST_CLYDE);
     }
     if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
         HumanGhost.new_mode = 0;
         HumanGhost.dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
-        bot_ghost_unstick(&HumanGhost);
+        bot_ghost_unstick(&HumanGhost, GHOST_HUMAN);
     }
 }
 
@@ -990,10 +1003,14 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
+    (void)ghost;
+    (void)akt_dir;
+
     txp = GHOST_HOUSE_EXIT_X;
     typ = GHOST_HOUSE_EXIT_Y;
 
-    ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
+    // Allow U-turns so dead ghosts can exit 1-cell grooves on the way home.
+    ret_wert = bot_calc_move(xp, yp, txp, typ, MOVE_STOP);
 
     return (ret_wert);
 }

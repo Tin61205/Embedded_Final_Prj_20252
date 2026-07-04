@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "bot.h"
 #include "maze.h"
@@ -48,7 +49,6 @@ static void menu_draw_custom_map_select(void);
 static uint32_t menu_run_custom_map_select(void);
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir);
 static void menu_draw_campaign_wizard(uint32_t sel_line);
-static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty);
 static uint32_t menu_run_campaign_wizard(void);
 static void menu_draw_highscore_view(void);
 static void menu_run_highscore_view(void);
@@ -59,7 +59,6 @@ static void menu_run_highscore_view(void);
 uint32_t menu_start(void) {
     uint32_t result;
     uint32_t srand_init = 0;
-    uint32_t i;
 
     UB_Buzzer_Stop();
     GUI.refresh_value = GUI_REFRESH_VALUE;
@@ -152,7 +151,7 @@ static void menu_draw_footer_buttons(const char *next_label, uint16_t next_x) {
     UB_Graphic2D_DrawRectDMA(10, 275, 70, 25, RGB_COL_BLUE);
     UB_Font_DrawString(25, 282, "Back", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
     UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
-    UB_Font_DrawString(next_x, 282, next_label, &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
+    UB_Font_DrawString(next_x, 282, (char *)next_label, &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
 }
 
 static void menu_custom_defaults(void) {
@@ -502,7 +501,7 @@ static void menu_draw_custom_ghosts(uint32_t sel_line) {
             color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
             sprintf(buf, "AI%u Str:", (unsigned int)(i + 1));
             UB_Font_DrawString(10, y, buf, &Arial_7x10, color, BACKGROUND_COL);
-            UB_Font_DrawString(85, y, bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(85, y, (char *)bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
             line++;
             y += 28;
         }
@@ -511,7 +510,7 @@ static void menu_draw_custom_ghosts(uint32_t sel_line) {
             color = (sel_line == line) ? MENUE_COL_ON : MENUE_COL_OFF;
             sprintf(buf, "G%u Str:", (unsigned int)(i + 1));
             UB_Font_DrawString(10, y, buf, &Arial_7x10, color, BACKGROUND_COL);
-            UB_Font_DrawString(85, y, bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
+            UB_Font_DrawString(85, y, (char *)bot_strategy_name(Game.custom.ghost_strategies[i]), &Arial_7x10, MENUE_COL_VALUE, BACKGROUND_COL);
             line++;
             y += 28;
         }
@@ -672,28 +671,6 @@ static void menu_draw_campaign_wizard(uint32_t sel_line) {
     UB_Graphic2D_DrawRectDMA(160, 275, 70, 25, RGB_COL_RED);
     UB_Font_DrawString(175, 282, "Start", &Arial_7x10, RGB_COL_WHITE, BACKGROUND_COL);
     menu_present_frame();
-}
-
-static uint32_t menu_handle_campaign_value_tap(uint16_t tx, uint16_t ty) {
-    if (tx > 115) {
-        return 0;
-    }
-    // Map
-    if (ty >= 26 && ty <= 44) {
-        Game.campaign_map_id = menu_cycle_value(Game.campaign_map_id, 0, MAZE_MAP_COUNT - 1, 1);
-        return 1;
-    }
-    // Difficulty
-    if (ty >= 51 && ty <= 69) {
-        Game.campaign_difficulty = menu_cycle_value(Game.campaign_difficulty, 1, 10, 1);
-        return 1;
-    }
-    // Mode
-    if (ty >= 76 && ty <= 94) {
-        Game.campaign_coop = Game.campaign_coop ? 0 : 1;
-        return 1;
-    }
-    return 0;
 }
 
 static uint32_t menu_run_campaign_wizard(void) {

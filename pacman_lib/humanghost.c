@@ -30,10 +30,8 @@ void humanghost_move(void) {
     }
     humanghost_change_skin(last_moving_dir);
 
-    if (HumanGhost.move == MOVE_STOP && HumanGhost.status == GHOST_STATUS_ALIVE) {
-        if (bot_is_human_ghost_active() == 0) {
-            bot_ghost_unstick(&HumanGhost);
-        }
+    if (HumanGhost.move == MOVE_STOP) {
+        bot_ghost_unstick(&HumanGhost, GHOST_HUMAN);
     }
     if (HumanGhost.move == MOVE_STOP) {
         return;

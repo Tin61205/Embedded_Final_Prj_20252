@@ -48,8 +48,8 @@ void clyde_init(uint32_t mode) {
 void clyde_move(void) {
     if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
 
-    if (Clyde.move == MOVE_STOP && Clyde.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Clyde);
+    if (Clyde.move == MOVE_STOP) {
+        bot_ghost_unstick(&Clyde, GHOST_CLYDE);
     }
     if (Clyde.move == MOVE_STOP) return;
 

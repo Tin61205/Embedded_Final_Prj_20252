@@ -48,8 +48,8 @@ void inky_init(uint32_t mode) {
 void inky_move(void) {
     if (Inky.dot_cnt < INKY_DOT_CNT_MAX) return;
 
-    if (Inky.move == MOVE_STOP && Inky.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Inky);
+    if (Inky.move == MOVE_STOP) {
+        bot_ghost_unstick(&Inky, GHOST_INKY);
     }
     if (Inky.move == MOVE_STOP) return;
 

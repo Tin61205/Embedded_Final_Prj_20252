@@ -45,8 +45,8 @@ void blinky_init(uint32_t mode) {
 void blinky_move(void) {
     if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
 
-    if (Blinky.move == MOVE_STOP && Blinky.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Blinky);
+    if (Blinky.move == MOVE_STOP) {
+        bot_ghost_unstick(&Blinky, GHOST_BLINKY);
     }
     if (Blinky.move == MOVE_STOP) return;
 

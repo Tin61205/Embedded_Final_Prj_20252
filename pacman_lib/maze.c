@@ -18,6 +18,7 @@ void maze_make_rooms_map3(void);
 void maze_make_rooms_map4(void);
 void maze_make_rooms_map5(void);
 void maze_make_rooms_map6(void);
+static void maze_make_home_connectors(void);
 void maze_set_skin(void);
 void maze_count_dots(void);
 void maze_place_energy_dots(void);
@@ -175,6 +176,23 @@ void maze_make_rooms_classic(void) {
 }
 
 //--------------------------------------------------------------
+// ghost-house links without long 1-cell vertical grooves
+//--------------------------------------------------------------
+static void maze_make_home_connectors(void) {
+    maze_generate_digpath_h(9, 11, 10, ROOM_POINTS_NONE);
+    maze_generate_digpath_v(9, 11, 10, ROOM_POINTS_NONE);
+    maze_generate_digpath_v(18, 11, 10, ROOM_POINTS_NONE);
+    maze_generate_digpath_v(12, 1, 5, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 1, 5, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(12, 8, 4, ROOM_POINTS_NONE);
+    maze_generate_digpath_v(15, 8, 4, ROOM_POINTS_NONE);
+    maze_generate_digpath_v(12, 20, 4, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_v(15, 20, 4, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
+    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
+}
+
+//--------------------------------------------------------------
 // simplified open map layout
 //--------------------------------------------------------------
 void maze_make_rooms_open(void) {
@@ -201,20 +219,12 @@ void maze_make_rooms_open(void) {
     maze_generate_digpath_h(12, 23, 4, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(1, 25, 26, ROOM_POINTS_NORMAL);
 
-    // 3. Dig horizontal connections on the sides of home base
-    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
-
-    // 4. Dig vertical paths connecting the horizontal paths
+    // 3. Dig vertical paths connecting the horizontal paths
     maze_generate_digpath_v(6, 1, 29, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(21, 1, 29, ROOM_POINTS_NORMAL);
-    
-    // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
-    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
+
+    // 4. Ghost-house connectors (classic style, no long grooves)
+    maze_make_home_connectors();
 
     // 5. Set all dug rooms (having doors) to PATH
     room.typ = ROOM_TYP_PATH;
@@ -468,31 +478,17 @@ void maze_make_rooms_map3(void) {
     maze_generate_digpath_h(3, 5, 8, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(3, 5, 20, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(3, 25, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(10, 5, 6, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(10, 20, 6, ROOM_POINTS_NORMAL);
-
     // Right Spiral (Symmetric)
     maze_generate_digpath_h(17, 5, 8, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(24, 5, 20, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(17, 25, 8, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(17, 5, 6, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(17, 20, 6, ROOM_POINTS_NORMAL);
 
     // 3. Connectors
     maze_generate_digpath_h(3, 9, 22, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(3, 21, 22, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(12, 23, 4, ROOM_POINTS_NORMAL);
 
-    // 2 side paths for home base
-    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
-
-    // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
-    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
+    maze_make_home_connectors();
 
     // 4. Set PATH rooms
     room.typ = ROOM_TYP_PATH;
@@ -557,16 +553,7 @@ void maze_make_rooms_map4(void) {
     maze_generate_digpath_v(7, 1, 29, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(20, 1, 29, ROOM_POINTS_NORMAL);
 
-    // 2 side paths for home base
-    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
-
-    // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
-    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
+    maze_make_home_connectors();
 
     // 3. Set PATH rooms
     room.typ = ROOM_TYP_PATH;
@@ -631,21 +618,12 @@ void maze_make_rooms_map5(void) {
     maze_generate_digpath_v(19, 1, 29, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(23, 1, 29, ROOM_POINTS_NORMAL);
 
-    // Vertical connections above and below home base
-    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
-    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
-
     // 3. Dig horizontal cross sections
     maze_generate_digpath_h(1, 8, 26, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(1, 22, 26, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(12, 23, 4, ROOM_POINTS_NORMAL);
 
-    // 2 side paths for home base
-    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
+    maze_make_home_connectors();
 
     // 4. Set PATH rooms
     room.typ = ROOM_TYP_PATH;
@@ -709,22 +687,11 @@ void maze_make_rooms_map6(void) {
     maze_generate_digpath_v(6, 1, 29, ROOM_POINTS_NORMAL);
     maze_generate_digpath_v(21, 1, 29, ROOM_POINTS_NORMAL);
     
-    // Vertical connections above home base
-    maze_generate_digpath_v(12, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 1, 11, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(12, 11, 4, ROOM_POINTS_NONE);
-
     // 3. Dig lower half
     maze_generate_digpath_h(1, 24, 26, ROOM_POINTS_NORMAL);
     maze_generate_digpath_h(12, 23, 4, ROOM_POINTS_NORMAL);
-    
-    // Vertical connections below home base
-    maze_generate_digpath_v(12, 20, 10, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_v(15, 20, 10, ROOM_POINTS_NORMAL);
 
-    // 2 side paths for home base
-    maze_generate_digpath_h(1, 14, 9, ROOM_POINTS_NORMAL);
-    maze_generate_digpath_h(18, 14, 9, ROOM_POINTS_NORMAL);
+    maze_make_home_connectors();
 
     // 4. Set PATH rooms
     room.typ = ROOM_TYP_PATH;

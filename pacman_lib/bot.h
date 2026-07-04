@@ -176,7 +176,7 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost);
 uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id);
 uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir);
 void bot_ghost_validate_position(Ghost_t *ghost);
-void bot_ghost_unstick(Ghost_t *ghost);
+void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id);
 void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id);
 uint32_t bot_ghost_can_turn(uint32_t xp, uint32_t yp, uint32_t dir);
 uint32_t bot_should_allow_ghost_move(void);

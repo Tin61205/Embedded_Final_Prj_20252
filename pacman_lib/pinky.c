@@ -42,8 +42,8 @@ void pinky_init(uint32_t mode) {
 void pinky_move(void) {
     if (Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
 
-    if (Pinky.move == MOVE_STOP && Pinky.status == GHOST_STATUS_ALIVE) {
-        bot_ghost_unstick(&Pinky);
+    if (Pinky.move == MOVE_STOP) {
+        bot_ghost_unstick(&Pinky, GHOST_PINKY);
     }
     if (Pinky.move == MOVE_STOP) return;
 
