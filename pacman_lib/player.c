@@ -36,9 +36,7 @@ void player2_init(uint32_t mode) {
 
 static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, uint32_t mode, uint32_t owns_meta) {
     if (mode == GAME_PLAYER_WIN && p->lives == 0) {
-        p->status = PLAYER_STATUS_DEAD;
-        p->akt_speed_ms = Player.akt_speed_ms;
-        return;
+        p->lives = 1;
     }
 
     p->status = PLAYER_STATUS_ALIVE;
@@ -272,14 +270,17 @@ static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
             }
         }
     } else {
-        ghost->status = GHOST_STATUS_DEAD;
-        if (ghost->move == MOVE_STOP) {
-            if (bot_is_walkable(ghost->xp, ghost->yp - 1, 1)) ghost->move = MOVE_UP;
-            else if (bot_is_walkable(ghost->xp + 1, ghost->yp, 1)) ghost->move = MOVE_RIGHT;
-            else if (bot_is_walkable(ghost->xp, ghost->yp + 1, 1)) ghost->move = MOVE_DOWN;
-            else ghost->move = MOVE_LEFT;
-            ghost->next_move = ghost->move;
+        uint32_t ghost_id = GHOST_BLINKY;
+        if (ghost == &Pinky) {
+            ghost_id = GHOST_PINKY;
+        } else if (ghost == &Inky) {
+            ghost_id = GHOST_INKY;
+        } else if (ghost == &Clyde) {
+            ghost_id = GHOST_CLYDE;
+        } else if (ghost == &HumanGhost) {
+            ghost_id = GHOST_HUMAN;
         }
+        bot_ghost_instant_revive(ghost, ghost_id);
         Player.score += Game.frightened_points;
         Game.frightened_points += Game.frightened_points;
         GUI.refresh_value = GUI_REFRESH_VALUE;

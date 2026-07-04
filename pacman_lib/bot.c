@@ -543,7 +543,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
         } else {
-            ghost->status = GHOST_STATUS_DEAD;
+            bot_ghost_instant_revive(ghost, ghost_id);
             Player.score += Game.frightened_points;
             Game.frightened_points += Game.frightened_points;
         }
@@ -555,7 +555,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
         } else {
-            ghost->status = GHOST_STATUS_DEAD;
+            bot_ghost_instant_revive(ghost, ghost_id);
             Player.score += Game.frightened_points;
             Game.frightened_points += Game.frightened_points;
         }
@@ -725,6 +725,68 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
         ghost->dot_cnt = 0;
+    }
+}
+
+void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
+        ghost->xp = 14;
+        ghost->yp = 14;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
+        ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
+        ghost->port = PORT_DONE;
+        return;
+    }
+
+    if (ghost_id == GHOST_BLINKY) {
+        ghost->xp = BLINKY_HOME_X;
+        ghost->yp = BLINKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
+        ghost->dot_cnt = 0;
+        ghost->port = PORT_DONE;
+    } else if (ghost_id == GHOST_PINKY) {
+        ghost->xp = PINKY_HOME_X;
+        ghost->yp = PINKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_UP1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_UP;
+        ghost->next_move = MOVE_UP;
+        ghost->dot_cnt = 0;
+        ghost->port = PORT_DONE;
+    } else if (ghost_id == GHOST_INKY) {
+        ghost->xp = INKY_HOME_X;
+        ghost->yp = INKY_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_RIGHT1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_RIGHT;
+        ghost->next_move = MOVE_RIGHT;
+        ghost->dot_cnt = 0;
+        ghost->port = PORT_DONE;
+    } else {
+        ghost->xp = CLYDE_HOME_X;
+        ghost->yp = CLYDE_HOME_Y;
+        ghost->status = GHOST_STATUS_ALIVE;
+        ghost->skin = GHOST_SKIN_LEFT1;
+        ghost->delta_x = GHOST_HOME_X_DIFF;
+        ghost->delta_y = GHOST_HOME_Y_DIFF;
+        ghost->move = MOVE_LEFT;
+        ghost->next_move = MOVE_LEFT;
+        ghost->dot_cnt = 0;
+        ghost->port = PORT_DONE;
     }
 }
 

@@ -3,7 +3,7 @@ pid: 59504
 cwd: "D:\Embedded_Final_Prj_20252"
 command: "Get-Command arm-none-eabi-gcc -ErrorAction SilentlyContinue | Format-List; Get-ChildItem -Path \"C:\\ST\",\"C:\\Program Files\",\"C:\\Program Files (x86)\" -Filter \"arm-none-eabi-gcc.exe\" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 3 FullName"
 started_at: 2026-07-04T07:45:44.664Z
-running_for_ms: 6365004  
+running_for_ms: 7045012  
 ---
 
 FullName                                                                                                               
