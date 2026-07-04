@@ -28,7 +28,7 @@
 
 //--------------------------------------------------------------
 #define PINKY_FRIGHTENED_BUF 30 // slow down bot
-#define PINKY_DOT_CNT_MAX 5
+#define PINKY_DOT_CNT_MAX 0
 
 //--------------------------------------------------------------
 #define PINKY_SCATTER_X 0

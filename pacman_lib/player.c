@@ -36,7 +36,13 @@ void player2_init(uint32_t mode) {
 
 static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, uint32_t mode, uint32_t owns_meta) {
     if (mode == GAME_PLAYER_WIN && p->lives == 0) {
-        p->lives = 1;
+        if (bot_is_2p_coop() != 0) {
+            p->lives = 1;
+        } else {
+            p->status = PLAYER_STATUS_DEAD;
+            p->akt_speed_ms = Player.akt_speed_ms;
+            return;
+        }
     }
 
     p->status = PLAYER_STATUS_ALIVE;

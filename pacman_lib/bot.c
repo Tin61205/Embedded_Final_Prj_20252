@@ -752,7 +752,7 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = 0;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = 0;
+        ghost->dot_cnt = BLINKY_DOT_CNT_MAX;
         ghost->port = PORT_DONE;
     } else if (ghost_id == GHOST_PINKY) {
         ghost->xp = PINKY_HOME_X;
@@ -763,7 +763,7 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = 0;
+        ghost->dot_cnt = PINKY_DOT_CNT_MAX;
         ghost->port = PORT_DONE;
     } else if (ghost_id == GHOST_INKY) {
         ghost->xp = INKY_HOME_X;
@@ -774,7 +774,7 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_RIGHT;
         ghost->next_move = MOVE_RIGHT;
-        ghost->dot_cnt = 0;
+        ghost->dot_cnt = INKY_DOT_CNT_MAX;
         ghost->port = PORT_DONE;
     } else {
         ghost->xp = CLYDE_HOME_X;
@@ -785,7 +785,7 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
-        ghost->dot_cnt = 0;
+        ghost->dot_cnt = CLYDE_DOT_CNT_MAX;
         ghost->port = PORT_DONE;
     }
 }
