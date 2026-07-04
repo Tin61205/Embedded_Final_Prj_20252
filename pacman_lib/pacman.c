@@ -256,6 +256,8 @@ void pacman_start(void) {
 
             if (check == GAME_EXIT) {
                 menu_start();
+                pacman_init(GAME_OVER);
+                player_init(GAME_OVER);
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
                     pacman_apply_custom_config(GAME_OVER);
                 } else {
@@ -279,7 +281,9 @@ void pacman_start(void) {
                     }
                 }
                 gui_show_win_screen(Player.score);
-                Player.score = 0;
+                if (Game.play_type != GAME_PLAY_CAMPAIGN) {
+                    Player.score = 0;
+                }
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
                     check = GAME_OVER;
                 }
