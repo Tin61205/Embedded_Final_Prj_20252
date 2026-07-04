@@ -46,7 +46,10 @@ void inky_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void inky_move(void) {
-    if (Inky.dot_cnt < INKY_DOT_CNT_MAX) return;
+    if (Inky.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Inky, GHOST_INKY);
+    }
+    if (Inky.status == GHOST_STATUS_ALIVE && Inky.dot_cnt < INKY_DOT_CNT_MAX) return;
 
     if (Inky.move == MOVE_STOP) {
         bot_ghost_unstick(&Inky, GHOST_INKY);

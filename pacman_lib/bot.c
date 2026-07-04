@@ -640,8 +640,13 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
     if (ghost->status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(ghost, ghost_id);
+        if (ghost->status == GHOST_STATUS_ALIVE) {
+            return;
+        }
         ghost->next_move = bot_calc_move_dead(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
         ghost->move = ghost->next_move;
+        bot_ghost_try_revive(ghost, ghost_id);
     }
 }
 
@@ -680,7 +685,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->skin = GHOST_SKIN_UP1;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = BLINKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else if (ghost_id == GHOST_PINKY) {
         hx = PINKY_HOME_X;
         hy = PINKY_HOME_Y;
@@ -693,7 +698,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = PINKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else if (ghost_id == GHOST_INKY) {
         hx = INKY_HOME_X;
         hy = INKY_HOME_Y;
@@ -706,7 +711,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_RIGHT;
         ghost->next_move = MOVE_RIGHT;
-        ghost->dot_cnt = INKY_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     } else {
         hx = CLYDE_HOME_X;
         hy = CLYDE_HOME_Y;
@@ -719,7 +724,7 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
-        ghost->dot_cnt = CLYDE_DOT_CNT_MAX;
+        ghost->dot_cnt = 0;
     }
 }
 

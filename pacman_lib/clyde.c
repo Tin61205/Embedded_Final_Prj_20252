@@ -46,7 +46,10 @@ void clyde_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void clyde_move(void) {
-    if (Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
+    if (Clyde.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Clyde, GHOST_CLYDE);
+    }
+    if (Clyde.status == GHOST_STATUS_ALIVE && Clyde.dot_cnt < CLYDE_DOT_CNT_MAX) return;
 
     if (Clyde.move == MOVE_STOP) {
         bot_ghost_unstick(&Clyde, GHOST_CLYDE);

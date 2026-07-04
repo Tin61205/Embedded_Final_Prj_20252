@@ -43,7 +43,10 @@ void blinky_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void blinky_move(void) {
-    if (Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
+    if (Blinky.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Blinky, GHOST_BLINKY);
+    }
+    if (Blinky.status == GHOST_STATUS_ALIVE && Blinky.dot_cnt < BLINKY_DOT_CNT_MAX) return;
 
     if (Blinky.move == MOVE_STOP) {
         bot_ghost_unstick(&Blinky, GHOST_BLINKY);

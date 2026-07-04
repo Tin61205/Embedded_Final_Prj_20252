@@ -40,7 +40,10 @@ void pinky_init(uint32_t mode) {
 // if bot enters a new room : look for the next movement
 //-------------------------------------------------------------- 
 void pinky_move(void) {
-    if (Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
+    if (Pinky.status == GHOST_STATUS_DEAD) {
+        bot_ghost_try_revive(&Pinky, GHOST_PINKY);
+    }
+    if (Pinky.status == GHOST_STATUS_ALIVE && Pinky.dot_cnt < PINKY_DOT_CNT_MAX) return;
 
     if (Pinky.move == MOVE_STOP) {
         bot_ghost_unstick(&Pinky, GHOST_PINKY);
