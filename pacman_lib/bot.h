@@ -154,6 +154,7 @@ uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
+uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_only_exit(uint32_t xp, uint32_t yp);
 void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms);
 const char* bot_strategy_name(uint32_t strategy);

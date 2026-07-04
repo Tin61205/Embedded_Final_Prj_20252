@@ -639,13 +639,7 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
     if (ghost->status == GHOST_STATUS_DEAD) {
-        ghost->next_move = bot_calc_move_home(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
-        if (ghost->next_move == MOVE_STOP) {
-            ghost->next_move = bot_calc_only_exit(ghost->xp, ghost->yp);
-        }
-        if (ghost->next_move == MOVE_STOP) {
-            ghost->next_move = bot_calc_move_random(ghost->xp, ghost->yp, MOVE_STOP);
-        }
+        ghost->next_move = bot_calc_move_dead(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
         ghost->move = ghost->next_move;
     }
 }
@@ -1041,6 +1035,54 @@ static uint32_t bot_ghost_neighbor(uint32_t x, uint32_t y, uint32_t dir, uint32_
     return 0;
 }
 
+static uint32_t bot_dead_can_step(uint32_t x, uint32_t y, uint32_t dir, uint32_t *nx, uint32_t *ny) {
+    uint32_t cx, cy;
+
+    if (bot_ghost_neighbor(x, y, dir, nx, ny) != 0) {
+        return 1;
+    }
+
+    cx = x;
+    cy = y;
+    if (dir == MOVE_UP) {
+        if (cy == 0) {
+            return 0;
+        }
+        cy--;
+    } else if (dir == MOVE_RIGHT) {
+        if (cx >= ROOM_CNT_X - 1) {
+            return 0;
+        }
+        cx++;
+    } else if (dir == MOVE_DOWN) {
+        if (cy >= ROOM_CNT_Y - 1) {
+            return 0;
+        }
+        cy++;
+    } else if (dir == MOVE_LEFT) {
+        if (cx == 0) {
+            return 0;
+        }
+        cx--;
+    } else {
+        return 0;
+    }
+
+    *nx = cx;
+    *ny = cy;
+
+    if (!bot_is_walkable(x, y, 1) || !bot_is_walkable(cx, cy, 1)) {
+        return 0;
+    }
+
+    // Inner rounded corners: neighboring PATH cells connect even if door bits are missing.
+    if (Maze.Room[x][y].typ == ROOM_TYP_PATH && Maze.Room[cx][cy].typ == ROOM_TYP_PATH) {
+        return 1;
+    }
+
+    return 0;
+}
+
 static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty) {
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
         *tx = 14;
@@ -1092,7 +1134,7 @@ static uint32_t bot_bfs_next_move(uint32_t sx, uint32_t sy, uint32_t tx, uint32_
         head++;
 
         for (i = 0; i < 4; i++) {
-            if (bot_ghost_neighbor(x, y, dirs[i], &nx, &ny) == 0) {
+            if (bot_dead_can_step(x, y, dirs[i], &nx, &ny) == 0) {
                 continue;
             }
             if (bot_bfs_visited[nx][ny] != 0) {
@@ -1136,6 +1178,52 @@ uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t a
     }
 
     return bot_calc_move(xp, yp, txp, typ, MOVE_STOP);
+}
+
+uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+    Room_t *room = &Maze.Room[xp][yp];
+    uint32_t move;
+    uint32_t tx, ty, i;
+    uint32_t nx, ny;
+    static const uint32_t dirs[4] = { MOVE_UP, MOVE_LEFT, MOVE_DOWN, MOVE_RIGHT };
+
+    if (room->special == ROOM_SPEC_GATE) {
+        if ((room->door & (ROOM_BGATE_U | ROOM_PGATE_U | ROOM_IGATE_U | ROOM_CGATE_U)) != 0) {
+            return MOVE_UP;
+        }
+        if ((room->door & (ROOM_BGATE_R | ROOM_PGATE_R | ROOM_IGATE_R | ROOM_CGATE_R)) != 0) {
+            return MOVE_RIGHT;
+        }
+        if ((room->door & (ROOM_BGATE_D | ROOM_PGATE_D | ROOM_IGATE_D | ROOM_CGATE_D)) != 0) {
+            return MOVE_DOWN;
+        }
+        if ((room->door & (ROOM_BGATE_L | ROOM_PGATE_L | ROOM_IGATE_L | ROOM_CGATE_L)) != 0) {
+            return MOVE_LEFT;
+        }
+    }
+
+    (void)akt_dir;
+    move = bot_calc_move_home(ghost_id, xp, yp, MOVE_STOP);
+    if (move != MOVE_STOP) {
+        return move;
+    }
+
+    move = bot_calc_only_exit(xp, yp);
+    if (move != MOVE_STOP) {
+        return move;
+    }
+
+    bot_ghost_home_target(ghost_id, &tx, &ty);
+    for (i = 0; i < 4; i++) {
+        if (bot_dead_can_step(xp, yp, dirs[i], &nx, &ny) == 0) {
+            continue;
+        }
+        if (bot_bfs_next_move(nx, ny, tx, ty) != MOVE_STOP) {
+            return dirs[i];
+        }
+    }
+
+    return bot_calc_move(xp, yp, tx, ty, MOVE_STOP);
 }
 
 //--------------------------------------------------------------
