@@ -730,14 +730,27 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
 
 void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
-        ghost->xp = 14;
-        ghost->yp = 14;
+        uint32_t sx = HumanGhost_Spawn_X;
+        uint32_t sy = HumanGhost_Spawn_Y;
+        uint32_t init_dir;
+
+        ghost->xp = sx;
+        ghost->yp = sy;
         ghost->status = GHOST_STATUS_ALIVE;
         ghost->delta_x = 0;
         ghost->delta_y = 0;
-        ghost->skin = GHOST_SKIN_UP1;
-        ghost->move = MOVE_UP;
-        ghost->next_move = MOVE_UP;
+
+        init_dir = bot_calc_only_exit(sx, sy);
+        if (init_dir == MOVE_STOP) {
+            init_dir = bot_calc_move_random(sx, sy, MOVE_STOP);
+        }
+        if (init_dir == MOVE_STOP) {
+            init_dir = MOVE_LEFT;
+        }
+
+        ghost->skin = bot_ghost_skin_for_dir(init_dir);
+        ghost->move = init_dir;
+        ghost->next_move = init_dir;
         ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
         ghost->port = PORT_DONE;
         return;
