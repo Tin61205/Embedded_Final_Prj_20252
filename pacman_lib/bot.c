@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "stm32_ub_buzzer.h"
 #include "gui.h"
@@ -999,26 +1000,142 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
     return (ret_wert);
 }
 
+static uint8_t bot_bfs_visited[ROOM_CNT_X][ROOM_CNT_Y];
+static uint8_t bot_bfs_first_step[ROOM_CNT_X][ROOM_CNT_Y];
+static uint16_t bot_bfs_qx[ROOM_CNT_X * ROOM_CNT_Y];
+static uint16_t bot_bfs_qy[ROOM_CNT_X * ROOM_CNT_Y];
+
+static uint32_t bot_ghost_neighbor(uint32_t x, uint32_t y, uint32_t dir, uint32_t *nx, uint32_t *ny) {
+    if (dir == MOVE_UP) {
+        if ((y == 0) || ((Maze.Room[x][y].door & ROOM_DOOR_U) == 0) || !bot_is_walkable(x, y - 1, 1)) {
+            return 0;
+        }
+        *nx = x;
+        *ny = y - 1;
+        return 1;
+    }
+    if (dir == MOVE_RIGHT) {
+        if ((x >= ROOM_CNT_X - 1) || ((Maze.Room[x][y].door & ROOM_DOOR_R) == 0) || !bot_is_walkable(x + 1, y, 1)) {
+            return 0;
+        }
+        *nx = x + 1;
+        *ny = y;
+        return 1;
+    }
+    if (dir == MOVE_DOWN) {
+        if ((y >= ROOM_CNT_Y - 1) || ((Maze.Room[x][y].door & ROOM_DOOR_D) == 0) || !bot_is_walkable(x, y + 1, 1)) {
+            return 0;
+        }
+        *nx = x;
+        *ny = y + 1;
+        return 1;
+    }
+    if (dir == MOVE_LEFT) {
+        if ((x == 0) || ((Maze.Room[x][y].door & ROOM_DOOR_L) == 0) || !bot_is_walkable(x - 1, y, 1)) {
+            return 0;
+        }
+        *nx = x - 1;
+        *ny = y;
+        return 1;
+    }
+    return 0;
+}
+
+static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty) {
+    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
+        *tx = 14;
+        *ty = 14;
+        return;
+    }
+    if (ghost_id == GHOST_BLINKY) {
+        *tx = BLINKY_HOME_X;
+        *ty = BLINKY_HOME_Y;
+    } else if (ghost_id == GHOST_PINKY) {
+        *tx = PINKY_HOME_X;
+        *ty = PINKY_HOME_Y;
+    } else if (ghost_id == GHOST_INKY) {
+        *tx = INKY_HOME_X;
+        *ty = INKY_HOME_Y;
+    } else if (ghost_id == GHOST_CLYDE) {
+        *tx = CLYDE_HOME_X;
+        *ty = CLYDE_HOME_Y;
+    } else {
+        *tx = GHOST_HOUSE_EXIT_X;
+        *ty = GHOST_HOUSE_EXIT_Y;
+    }
+}
+
+static uint32_t bot_bfs_next_move(uint32_t sx, uint32_t sy, uint32_t tx, uint32_t ty) {
+    uint32_t head = 0;
+    uint32_t tail = 0;
+    uint32_t x, y, nx, ny, i;
+    static const uint32_t dirs[4] = { MOVE_UP, MOVE_LEFT, MOVE_DOWN, MOVE_RIGHT };
+
+    if (!bot_is_walkable(sx, sy, 1) || !bot_is_walkable(tx, ty, 1)) {
+        return MOVE_STOP;
+    }
+    if (sx == tx && sy == ty) {
+        return MOVE_STOP;
+    }
+
+    memset(bot_bfs_visited, 0, sizeof(bot_bfs_visited));
+    memset(bot_bfs_first_step, 0, sizeof(bot_bfs_first_step));
+
+    bot_bfs_visited[sx][sy] = 1;
+    bot_bfs_qx[tail] = (uint16_t)sx;
+    bot_bfs_qy[tail] = (uint16_t)sy;
+    tail++;
+
+    while (head < tail) {
+        x = bot_bfs_qx[head];
+        y = bot_bfs_qy[head];
+        head++;
+
+        for (i = 0; i < 4; i++) {
+            if (bot_ghost_neighbor(x, y, dirs[i], &nx, &ny) == 0) {
+                continue;
+            }
+            if (bot_bfs_visited[nx][ny] != 0) {
+                continue;
+            }
+
+            bot_bfs_visited[nx][ny] = 1;
+            if (x == sx && y == sy) {
+                bot_bfs_first_step[nx][ny] = (uint8_t)dirs[i];
+            } else {
+                bot_bfs_first_step[nx][ny] = bot_bfs_first_step[x][y];
+            }
+
+            if (nx == tx && ny == ty) {
+                return (uint32_t)bot_bfs_first_step[nx][ny];
+            }
+
+            bot_bfs_qx[tail] = (uint16_t)nx;
+            bot_bfs_qy[tail] = (uint16_t)ny;
+            tail++;
+        }
+    }
+
+    return MOVE_STOP;
+}
+
 //--------------------------------------------------------------
-// bot strategy : home
-//                 move to the room with the shortest distance
-//                 to the home position
-//                 (but don't go backwards to avoid toggling)
+// bot strategy : home (dead ghost)
+// BFS shortest path to per-ghost home tile
 //--------------------------------------------------------------
 uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
-    uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
+    uint32_t ret_wert;
 
-    (void)ghost;
     (void)akt_dir;
 
-    txp = GHOST_HOUSE_EXIT_X;
-    typ = GHOST_HOUSE_EXIT_Y;
+    bot_ghost_home_target(ghost, &txp, &typ);
+    ret_wert = bot_bfs_next_move(xp, yp, txp, typ);
+    if (ret_wert != MOVE_STOP) {
+        return ret_wert;
+    }
 
-    // Allow U-turns so dead ghosts can exit 1-cell grooves on the way home.
-    ret_wert = bot_calc_move(xp, yp, txp, typ, MOVE_STOP);
-
-    return (ret_wert);
+    return bot_calc_move(xp, yp, txp, typ, MOVE_STOP);
 }
 
 //--------------------------------------------------------------
