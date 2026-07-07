@@ -255,6 +255,11 @@ void pacman_start(void) {
             check = pacman_play();
 
             if (check == GAME_EXIT) {
+                if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                    if (Player.score > Game.campaign_high_scores[Game.campaign_map_id]) {
+                        Game.campaign_high_scores[Game.campaign_map_id] = Player.score;
+                    }
+                }
                 menu_start();
                 pacman_init(GAME_OVER);
                 player_init(GAME_OVER);
