@@ -104,6 +104,10 @@ extern Player_t Player2;
 
 #define GHOST_STRATEGY_COUNT 7
 
+/* Custom mode exposes the 6 playable personalities (Random is internal only). */
+#define GHOST_STRATEGY_CUSTOM_MIN  GHOST_STRATEGY_BLINKY
+#define GHOST_STRATEGY_CUSTOM_MAX  GHOST_STRATEGY_LAZY
+
 #define GHOST_SPAWN_MIN_DIST 64
 
 /* Ghost-house exit tile on the main corridor (walkable by Pacman on all maps). */
