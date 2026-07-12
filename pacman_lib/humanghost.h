@@ -11,6 +11,10 @@
 
 #define HUMAN_GHOST_DOT_CNT_MAX 0
 #define HUMAN_GHOST_FRIGHTENED_BUF 30
+/* After Pacman eats the human-controlled ghost it revives immediately
+ * (spawn / same area). Without a short invuln window, pixel collision
+ * re-triggers every frame and the score explodes. */
+#define HUMAN_GHOST_EAT_INVULN_MS 1500
 
 void humanghost_move(void);
 

@@ -71,6 +71,7 @@ Level_t;
 #define GAME_POINTS_ENERGY 100
 
 //--------------------------------------------------------------
+/* Fixed points per ghost eaten while frightened (no chain doubling). */
 #define GAME_FRIGHTENED_START_POINTS 300
 
 //--------------------------------------------------------------

@@ -20,6 +20,7 @@ uint32_t  Player_Dying_Timer_ms = 0;
 uint32_t  Player_Invuln_Timer_ms = 0;
 uint32_t  Player2_Dying_Timer_ms = 0;
 uint32_t  Player2_Invuln_Timer_ms = 0;
+uint32_t  HumanGhost_Eat_Invuln_Timer_ms = 0;
 
 
 
@@ -56,6 +57,7 @@ void UB_Systick_Init(void) {
   Player_Invuln_Timer_ms=0;
   Player2_Dying_Timer_ms=0;
   Player2_Invuln_Timer_ms=0;
+  HumanGhost_Eat_Invuln_Timer_ms=0;
 
 
   #if SYSTICK_RESOLUTION==1
@@ -74,6 +76,7 @@ void UB_Systick_Reset_Player_Timers(void) {
   Player_Invuln_Timer_ms = 0;
   Player2_Dying_Timer_ms = 0;
   Player2_Invuln_Timer_ms = 0;
+  HumanGhost_Eat_Invuln_Timer_ms = 0;
 }
 
 
@@ -206,6 +209,9 @@ void SysTick_Handler(void)
     }
     if (Player2_Invuln_Timer_ms != 0) {
       Player2_Invuln_Timer_ms--;
+    }
+    if (HumanGhost_Eat_Invuln_Timer_ms != 0) {
+      HumanGhost_Eat_Invuln_Timer_ms--;
     }
   }
 }

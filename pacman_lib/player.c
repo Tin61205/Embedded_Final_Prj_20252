@@ -286,10 +286,7 @@ static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
         } else if (ghost == &HumanGhost) {
             ghost_id = GHOST_HUMAN;
         }
-        bot_ghost_instant_revive(ghost, ghost_id);
-        Player.score += Game.frightened_points;
-        Game.frightened_points += Game.frightened_points;
-        GUI.refresh_value = GUI_REFRESH_VALUE;
+        bot_ghost_eaten_by_pacman(ghost, ghost_id);
     }
 }
 

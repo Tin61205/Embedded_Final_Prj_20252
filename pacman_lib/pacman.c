@@ -329,7 +329,7 @@ void pacman_start(void) {
 
             UB_Systick_Reset_Player_Timers();
 
-            Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+            Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
 
             if (check == GAME_OVER) {
                 menu_start();
@@ -386,7 +386,7 @@ void pacman_init(uint32_t mode) {
     Game.mode_timer = GAME_CHASE_TIME;
     Game.frightened = BOOL_FALSE;
     Game.frightened_timer = GAME_FRIGHTENED_TIME;
-    Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+    Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
 }
 
 //--------------------------------------------------------------
@@ -765,6 +765,6 @@ void pacman_dec_mode_timer(void) {
     Game.frightened_timer--;
     if (Game.frightened_timer == 0) {
         Game.frightened = BOOL_FALSE;
-        Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+        Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
     }
 }
