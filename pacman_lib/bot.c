@@ -523,7 +523,7 @@ void bot_team_win_pacman(void) {
 }
 
 void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
-    uint32_t pts = GAME_FRIGHTENED_START_POINTS;
+    uint32_t pts;
     extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
 
     if (ghost == 0 || Game.frightened == BOOL_FALSE) {
@@ -535,6 +535,7 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
 
+    pts = Game.frightened_points;
     bot_ghost_instant_revive(ghost, ghost_id);
 
     /* Player-controlled ghost revives immediately on path (spawn/same area)
@@ -543,11 +544,14 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
         HumanGhost_Eat_Invuln_Timer_ms = HUMAN_GHOST_EAT_INVULN_MS;
     }
 
-    /* Fixed +300 per ghost eat (no chain doubling). Saturating add. */
+    /* Chain in one frightened phase: 300 → 600 → 900 → ... */
     if (Player.score > (0xFFFFFFFFu - pts)) {
         Player.score = 0xFFFFFFFFu;
     } else {
         Player.score += pts;
+    }
+    if (Game.frightened_points <= (0xFFFFFFFFu - GAME_FRIGHTENED_STEP_POINTS)) {
+        Game.frightened_points += GAME_FRIGHTENED_STEP_POINTS;
     }
 
     GUI.refresh_value = GUI_REFRESH_VALUE;

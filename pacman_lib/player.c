@@ -305,6 +305,7 @@ static void player_entity_check_event(Player_t *p) {
             UB_Buzzer_Play_EatEnergizer();
             Game.frightened = BOOL_TRUE;
             Game.frightened_timer = GAME_FRIGHTENED_TIME;
+            Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
             if (Blinky.status == GHOST_STATUS_ALIVE) Blinky.new_mode = 1;
             if (Pinky.status == GHOST_STATUS_ALIVE) Pinky.new_mode = 1;
             if (Inky.status == GHOST_STATUS_ALIVE) Inky.new_mode = 1;
