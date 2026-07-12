@@ -31,7 +31,6 @@
 
 //--------------------------------------------------------------
 #define  PLAYER_FRIGHTENED_BUF   5  // speed up player
-#define  PLAYER_MAX_SPEED       10  // fastest speed of player in ms
 
 //--------------------------------------------------------------
 #define  PLAYER_STATUS_ALIVE  0

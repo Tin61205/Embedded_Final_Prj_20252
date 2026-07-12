@@ -473,7 +473,6 @@ uint32_t pacman_play(void) {
     uint32_t ret_wert = GAME_RUN;
     uint32_t joy = GUI_JOY_NONE;
     uint32_t movement = 0;
-    int32_t pl_speed;
 
     // copy screen to background
     UB_LCD_Copy_Layer2_to_Layer1();
@@ -575,9 +574,7 @@ uint32_t pacman_play(void) {
             if (Game.frightened == BOOL_FALSE) {
                 Player_Systick_Timer_ms = Player.akt_speed_ms;
             } else {
-                pl_speed = Player.akt_speed_ms - Player.frightened_buf;
-                if (pl_speed < PLAYER_MAX_SPEED) pl_speed = PLAYER_MAX_SPEED;
-                Player_Systick_Timer_ms = pl_speed;
+                Player_Systick_Timer_ms = Player.akt_speed_ms - Player.frightened_buf;
             }
             movement |= MOVE_PLAYER;
         }
@@ -586,9 +583,7 @@ uint32_t pacman_play(void) {
             if (Game.frightened == BOOL_FALSE) {
                 Player2_Systick_Timer_ms = Player2.akt_speed_ms;
             } else {
-                pl_speed = Player2.akt_speed_ms - Player2.frightened_buf;
-                if (pl_speed < PLAYER_MAX_SPEED) pl_speed = PLAYER_MAX_SPEED;
-                Player2_Systick_Timer_ms = pl_speed;
+                Player2_Systick_Timer_ms = Player2.akt_speed_ms - Player2.frightened_buf;
             }
             movement |= MOVE_PLAYER2;
         }
