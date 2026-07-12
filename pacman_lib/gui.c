@@ -670,7 +670,7 @@ void gui_draw_gui(uint32_t joy) {
             gui_draw_hud_line(260, buf, FONT_COL3);
         }
 
-        sprintf(buf, "S: %d", (int)(Player.score));
+        sprintf(buf, "S: %u", (unsigned int)(Player.score));
         gui_draw_hud_line(275, buf, FONT_COL3);
 
         if (Game.player2_active != 0) {
@@ -685,7 +685,7 @@ void gui_draw_gui(uint32_t joy) {
             UB_Font_DrawString(10, 260, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
         }
 
-        sprintf(buf, "score : %d", (int)(Player.score));
+        sprintf(buf, "score : %u", (unsigned int)(Player.score));
         UB_Font_DrawString(10, 275, buf, & Arial_7x10, FONT_COL3, BACKGROUND_COL);
 
         sprintf(buf, "lives : %d", (int)(Player.lives));

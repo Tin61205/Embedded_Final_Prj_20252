@@ -255,6 +255,11 @@ void pacman_start(void) {
             check = pacman_play();
 
             if (check == GAME_EXIT) {
+                if (Game.play_type == GAME_PLAY_CAMPAIGN) {
+                    if (Player.score > Game.campaign_high_scores[Game.campaign_map_id]) {
+                        Game.campaign_high_scores[Game.campaign_map_id] = Player.score;
+                    }
+                }
                 menu_start();
                 pacman_init(GAME_OVER);
                 player_init(GAME_OVER);
@@ -324,7 +329,7 @@ void pacman_start(void) {
 
             UB_Systick_Reset_Player_Timers();
 
-            Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+            Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
 
             if (check == GAME_OVER) {
                 menu_start();
@@ -381,7 +386,7 @@ void pacman_init(uint32_t mode) {
     Game.mode_timer = GAME_CHASE_TIME;
     Game.frightened = BOOL_FALSE;
     Game.frightened_timer = GAME_FRIGHTENED_TIME;
-    Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+    Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
 }
 
 //--------------------------------------------------------------
@@ -468,7 +473,6 @@ uint32_t pacman_play(void) {
     uint32_t ret_wert = GAME_RUN;
     uint32_t joy = GUI_JOY_NONE;
     uint32_t movement = 0;
-    int32_t pl_speed;
 
     // copy screen to background
     UB_LCD_Copy_Layer2_to_Layer1();
@@ -570,9 +574,7 @@ uint32_t pacman_play(void) {
             if (Game.frightened == BOOL_FALSE) {
                 Player_Systick_Timer_ms = Player.akt_speed_ms;
             } else {
-                pl_speed = Player.akt_speed_ms - Player.frightened_buf;
-                if (pl_speed < PLAYER_MAX_SPEED) pl_speed = PLAYER_MAX_SPEED;
-                Player_Systick_Timer_ms = pl_speed;
+                Player_Systick_Timer_ms = Player.akt_speed_ms - Player.frightened_buf;
             }
             movement |= MOVE_PLAYER;
         }
@@ -581,9 +583,7 @@ uint32_t pacman_play(void) {
             if (Game.frightened == BOOL_FALSE) {
                 Player2_Systick_Timer_ms = Player2.akt_speed_ms;
             } else {
-                pl_speed = Player2.akt_speed_ms - Player2.frightened_buf;
-                if (pl_speed < PLAYER_MAX_SPEED) pl_speed = PLAYER_MAX_SPEED;
-                Player2_Systick_Timer_ms = pl_speed;
+                Player2_Systick_Timer_ms = Player2.akt_speed_ms - Player2.frightened_buf;
             }
             movement |= MOVE_PLAYER2;
         }
@@ -760,6 +760,6 @@ void pacman_dec_mode_timer(void) {
     Game.frightened_timer--;
     if (Game.frightened_timer == 0) {
         Game.frightened = BOOL_FALSE;
-        Game.frightened_points = (GAME_FRIGHTENED_START_POINTS * (Player.level + 1)) / 2;
+        Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
     }
 }

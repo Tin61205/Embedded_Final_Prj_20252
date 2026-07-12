@@ -300,9 +300,13 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     if (joy == GUI_JOY_UP) {
         if (ghost->move == MOVE_UP) return;
         if (ghost->port != PORT_DONE) return;
+        /* Reverse is free only after leaving cell center; at rest require open door
+         * so spawn reverse into a wall cannot trap the human ghost. */
         if (ghost->move == MOVE_DOWN) {
-            ghost->move = MOVE_UP;
-            ghost->next_move = MOVE_UP;
+            if (ghost->delta_y != 0 || bot_ghost_can_turn(xp, yp, MOVE_UP) != 0) {
+                ghost->move = MOVE_UP;
+                ghost->next_move = MOVE_UP;
+            }
             return;
         }
         if (aligned != 0) {
@@ -317,8 +321,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_RIGHT) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_LEFT) {
-            ghost->move = MOVE_RIGHT;
-            ghost->next_move = MOVE_RIGHT;
+            if (ghost->delta_x != 0 || bot_ghost_can_turn(xp, yp, MOVE_RIGHT) != 0) {
+                ghost->move = MOVE_RIGHT;
+                ghost->next_move = MOVE_RIGHT;
+            }
             return;
         }
         if (aligned != 0) {
@@ -333,8 +339,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_DOWN) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_UP) {
-            ghost->move = MOVE_DOWN;
-            ghost->next_move = MOVE_DOWN;
+            if (ghost->delta_y != 0 || bot_ghost_can_turn(xp, yp, MOVE_DOWN) != 0) {
+                ghost->move = MOVE_DOWN;
+                ghost->next_move = MOVE_DOWN;
+            }
             return;
         }
         if (aligned != 0) {
@@ -349,8 +357,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_LEFT) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_RIGHT) {
-            ghost->move = MOVE_LEFT;
-            ghost->next_move = MOVE_LEFT;
+            if (ghost->delta_x != 0 || bot_ghost_can_turn(xp, yp, MOVE_LEFT) != 0) {
+                ghost->move = MOVE_LEFT;
+                ghost->next_move = MOVE_LEFT;
+            }
             return;
         }
         if (aligned != 0) {
@@ -522,6 +532,41 @@ void bot_team_win_pacman(void) {
     GUI.refresh_value = GUI_REFRESH_VALUE;
 }
 
+void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
+    uint32_t pts;
+    extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
+
+    if (ghost == 0 || Game.frightened == BOOL_FALSE) {
+        return;
+    }
+    /* Refuse if already eaten this cycle (e.g. revived in house/gate,
+     * or human-ghost eat invulnerability still active). */
+    if (bot_ghost_can_harm_pacman(ghost, ghost_id) == 0) {
+        return;
+    }
+
+    pts = Game.frightened_points;
+    bot_ghost_instant_revive(ghost, ghost_id);
+
+    /* Player-controlled ghost revives immediately on path (spawn/same area)
+     * while still ALIVE — without invuln, pixel collision re-eats every frame. */
+    if (ghost_id == GHOST_HUMAN) {
+        HumanGhost_Eat_Invuln_Timer_ms = HUMAN_GHOST_EAT_INVULN_MS;
+    }
+
+    /* Chain in one frightened phase: 300 → 600 → 900 → ... */
+    if (Player.score > (0xFFFFFFFFu - pts)) {
+        Player.score = 0xFFFFFFFFu;
+    } else {
+        Player.score += pts;
+    }
+    if (Game.frightened_points <= (0xFFFFFFFFu - GAME_FRIGHTENED_STEP_POINTS)) {
+        Game.frightened_points += GAME_FRIGHTENED_STEP_POINTS;
+    }
+
+    GUI.refresh_value = GUI_REFRESH_VALUE;
+}
+
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
     uint32_t ghost_id = GHOST_BLINKY;
 
@@ -542,24 +587,20 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
     if (Player.status == PLAYER_STATUS_ALIVE && Player.xp == gxp && Player.yp == gyp) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
+            GUI.refresh_value = GUI_REFRESH_VALUE;
         } else {
-            bot_ghost_instant_revive(ghost, ghost_id);
-            Player.score += Game.frightened_points;
-            Game.frightened_points += Game.frightened_points;
+            bot_ghost_eaten_by_pacman(ghost, ghost_id);
         }
-        GUI.refresh_value = GUI_REFRESH_VALUE;
         return;
     }
 
     if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE && Player2.xp == gxp && Player2.yp == gyp) {
         if (Game.frightened == BOOL_FALSE) {
             bot_kill_pacman(&Player2, PLAYER2_START_X, PLAYER2_START_Y);
+            GUI.refresh_value = GUI_REFRESH_VALUE;
         } else {
-            bot_ghost_instant_revive(ghost, ghost_id);
-            Player.score += Game.frightened_points;
-            Game.frightened_points += Game.frightened_points;
+            bot_ghost_eaten_by_pacman(ghost, ghost_id);
         }
-        GUI.refresh_value = GUI_REFRESH_VALUE;
     }
 }
 
@@ -614,6 +655,13 @@ uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
 
 void bot_ghost_validate_position(Ghost_t *ghost) {
     if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
+        /* Human ghost can reverse into a wall at spawn; snap back so input works again. */
+        if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
+                ghost->xp = HumanGhost_Spawn_X;
+                ghost->yp = HumanGhost_Spawn_Y;
+            }
+        }
         ghost->move = MOVE_STOP;
         ghost->next_move = MOVE_STOP;
         ghost->delta_x = 0;
@@ -627,6 +675,24 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
     }
     if (ghost->status == GHOST_STATUS_ALIVE) {
         if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            uint32_t dir;
+
+            /* If still on a non-path cell, snap to spawn first. */
+            if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
+                if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
+                    ghost->xp = HumanGhost_Spawn_X;
+                    ghost->yp = HumanGhost_Spawn_Y;
+                }
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
+            }
+
+            /* Honor current stick direction if open; do not AI-drive the human ghost. */
+            dir = bot_calc_move_player_ghost(ghost->xp, ghost->yp, MOVE_STOP, Game.player2_joy);
+            if (dir != MOVE_STOP) {
+                ghost->move = dir;
+                ghost->next_move = dir;
+            }
             return;
         }
         ghost->next_move = bot_calc_move_by_strategy(ghost_id, ghost->strategy, ghost->xp, ghost->yp, MOVE_STOP);
@@ -833,8 +899,14 @@ void bot_release_ghosts_on_pacman_death(void) {
 
 uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     Room_t *room;
+    extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
 
     if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE) {
+        return 0;
+    }
+    /* Human-controlled ghost: brief post-eat invuln so instant revive
+     * cannot be scored repeatedly while still overlapping Pacman. */
+    if (ghost_id == GHOST_HUMAN && HumanGhost_Eat_Invuln_Timer_ms != 0) {
         return 0;
     }
     if (ghost->dot_cnt < bot_ghost_dot_cnt_max(ghost_id)) {
@@ -1630,7 +1702,9 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
     uint32_t sx = 14;
     uint32_t sy = 11;
     uint32_t init_dir;
+    extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
 
+    HumanGhost_Eat_Invuln_Timer_ms = 0;
     HumanGhost.strategy = GHOST_STRATEGY_RANDOM;
     HumanGhost.akt_speed_ms = speed_ms;
     HumanGhost.status = GHOST_STATUS_DEAD;
@@ -1660,8 +1734,9 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
     if (init_dir == MOVE_STOP) {
         init_dir = bot_calc_move_random(sx, sy, MOVE_STOP);
     }
-    if (init_dir == MOVE_STOP) {
-        init_dir = MOVE_LEFT;
+    /* Never force MOVE_LEFT into a wall — wait for player input instead. */
+    if (init_dir != MOVE_STOP && bot_ghost_can_turn(sx, sy, init_dir) == 0) {
+        init_dir = MOVE_STOP;
     }
 
     HumanGhost.skin = bot_ghost_skin_for_dir(init_dir);

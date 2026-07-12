@@ -48,6 +48,7 @@ static uint32_t menu_run_custom_ghosts(void);
 static void menu_draw_custom_map_select(void);
 static uint32_t menu_run_custom_map_select(void);
 static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, int32_t dir);
+static uint32_t menu_cycle_ghost_strategy(uint32_t strategy, int32_t dir);
 static void menu_draw_campaign_wizard(uint32_t sel_line);
 static uint32_t menu_run_campaign_wizard(void);
 static void menu_draw_highscore_view(void);
@@ -201,6 +202,13 @@ static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, i
     return max_v;
 }
 
+static uint32_t menu_cycle_ghost_strategy(uint32_t strategy, int32_t dir) {
+    if (strategy < GHOST_STRATEGY_CUSTOM_MIN || strategy > GHOST_STRATEGY_CUSTOM_MAX) {
+        strategy = GHOST_STRATEGY_DRUNK;
+    }
+    return menu_cycle_value(strategy, GHOST_STRATEGY_CUSTOM_MIN, GHOST_STRATEGY_CUSTOM_MAX, dir);
+}
+
 static void menu_draw_main(uint32_t sel) {
     UB_LCD_SetLayer_2();
     UB_LCD_SetTransparency(255);
@@ -342,15 +350,15 @@ static uint32_t menu_adjust_ghosts(uint32_t sel_line, int32_t dir) {
         }
         ai_idx = sel_line - 2;
         if (ai_idx < menu_ai_ghost_count()) {
-            Game.custom.ghost_strategies[ai_idx] = menu_cycle_value(
-                Game.custom.ghost_strategies[ai_idx], 0, GHOST_STRATEGY_COUNT - 1, dir);
+            Game.custom.ghost_strategies[ai_idx] = menu_cycle_ghost_strategy(
+                Game.custom.ghost_strategies[ai_idx], dir);
             return 1;
         }
         return 0;
     }
     if (sel_line > 0 && sel_line <= Game.custom.ghost_count) {
-        Game.custom.ghost_strategies[sel_line - 1] = menu_cycle_value(
-            Game.custom.ghost_strategies[sel_line - 1], 0, GHOST_STRATEGY_COUNT - 1, dir);
+        Game.custom.ghost_strategies[sel_line - 1] = menu_cycle_ghost_strategy(
+            Game.custom.ghost_strategies[sel_line - 1], dir);
         return 1;
     }
     return 0;

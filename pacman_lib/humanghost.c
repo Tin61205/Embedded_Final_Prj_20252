@@ -22,6 +22,18 @@ static void humanghost_advance_cell(void) {
     humanghost_calc_next_move();
 }
 
+/* Stop if current direction has no walkable exit from cell center. */
+static uint32_t humanghost_dir_blocked_at_center(uint32_t dir) {
+    return (bot_ghost_can_turn(HumanGhost.xp, HumanGhost.yp, dir) == 0) ? 1 : 0;
+}
+
+static void humanghost_stop_here(void) {
+    HumanGhost.move = MOVE_STOP;
+    HumanGhost.next_move = MOVE_STOP;
+    HumanGhost.delta_x = 0;
+    HumanGhost.delta_y = 0;
+}
+
 static uint32_t last_moving_dir = MOVE_LEFT;
 
 void humanghost_move(void) {
@@ -37,11 +49,31 @@ void humanghost_move(void) {
         return;
     }
 
+    /* At rest on a cell: do not start moving into a wall (spawn reverse bug). */
+    if (HumanGhost.port == PORT_DONE &&
+        HumanGhost.delta_x == 0 && HumanGhost.delta_y == 0 &&
+        humanghost_dir_blocked_at_center(HumanGhost.move) != 0) {
+        humanghost_stop_here();
+        bot_ghost_unstick(&HumanGhost, GHOST_HUMAN);
+        return;
+    }
+
     if (HumanGhost.move == MOVE_UP) {
         HumanGhost.delta_y--;
+        /* Returning to cell center: stop if up is a wall (e.g. reverse into wall). */
+        if (HumanGhost.delta_y == 0 && HumanGhost.port == PORT_DONE) {
+            if (humanghost_dir_blocked_at_center(MOVE_UP) != 0) {
+                humanghost_stop_here();
+                return;
+            }
+        }
         if (ABS(HumanGhost.delta_y) >= ROOM_HEIGHT) {
             HumanGhost.delta_y = 0;
             if (HumanGhost.port == PORT_DONE) {
+                if (!bot_is_walkable(HumanGhost.xp, HumanGhost.yp - 1, 1)) {
+                    humanghost_stop_here();
+                    return;
+                }
                 HumanGhost.yp--;
                 if (Maze.Room[HumanGhost.xp][HumanGhost.yp - 1].special == ROOM_SPEC_PORTAL) {
                     HumanGhost.port = PORT_UP0;
@@ -57,9 +89,19 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_RIGHT) {
         HumanGhost.delta_x++;
+        if (HumanGhost.delta_x == 0 && HumanGhost.port == PORT_DONE) {
+            if (humanghost_dir_blocked_at_center(MOVE_RIGHT) != 0) {
+                humanghost_stop_here();
+                return;
+            }
+        }
         if (ABS(HumanGhost.delta_x) >= ROOM_WIDTH) {
             HumanGhost.delta_x = 0;
             if (HumanGhost.port == PORT_DONE) {
+                if (!bot_is_walkable(HumanGhost.xp + 1, HumanGhost.yp, 1)) {
+                    humanghost_stop_here();
+                    return;
+                }
                 HumanGhost.xp++;
                 if (Maze.Room[HumanGhost.xp + 1][HumanGhost.yp].special == ROOM_SPEC_PORTAL) {
                     HumanGhost.port = PORT_RIGHT0;
@@ -75,9 +117,19 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_DOWN) {
         HumanGhost.delta_y++;
+        if (HumanGhost.delta_y == 0 && HumanGhost.port == PORT_DONE) {
+            if (humanghost_dir_blocked_at_center(MOVE_DOWN) != 0) {
+                humanghost_stop_here();
+                return;
+            }
+        }
         if (ABS(HumanGhost.delta_y) >= ROOM_HEIGHT) {
             HumanGhost.delta_y = 0;
             if (HumanGhost.port == PORT_DONE) {
+                if (!bot_is_walkable(HumanGhost.xp, HumanGhost.yp + 1, 1)) {
+                    humanghost_stop_here();
+                    return;
+                }
                 HumanGhost.yp++;
                 if (Maze.Room[HumanGhost.xp][HumanGhost.yp + 1].special == ROOM_SPEC_PORTAL) {
                     HumanGhost.port = PORT_DOWN0;
@@ -93,9 +145,19 @@ void humanghost_move(void) {
         }
     } else if (HumanGhost.move == MOVE_LEFT) {
         HumanGhost.delta_x--;
+        if (HumanGhost.delta_x == 0 && HumanGhost.port == PORT_DONE) {
+            if (humanghost_dir_blocked_at_center(MOVE_LEFT) != 0) {
+                humanghost_stop_here();
+                return;
+            }
+        }
         if (ABS(HumanGhost.delta_x) >= ROOM_WIDTH) {
             HumanGhost.delta_x = 0;
             if (HumanGhost.port == PORT_DONE) {
+                if (!bot_is_walkable(HumanGhost.xp - 1, HumanGhost.yp, 1)) {
+                    humanghost_stop_here();
+                    return;
+                }
                 HumanGhost.xp--;
                 if (Maze.Room[HumanGhost.xp - 1][HumanGhost.yp].special == ROOM_SPEC_PORTAL) {
                     HumanGhost.port = PORT_LEFT0;

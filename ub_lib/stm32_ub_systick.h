@@ -24,6 +24,7 @@ extern uint32_t  Player_Dying_Timer_ms;
 extern uint32_t  Player_Invuln_Timer_ms;
 extern uint32_t  Player2_Dying_Timer_ms;
 extern uint32_t  Player2_Invuln_Timer_ms;
+extern uint32_t  HumanGhost_Eat_Invuln_Timer_ms;
 
 //--------------------------------------------------------------
 // Function prototypes
