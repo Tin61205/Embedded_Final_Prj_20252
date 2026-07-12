@@ -300,9 +300,13 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     if (joy == GUI_JOY_UP) {
         if (ghost->move == MOVE_UP) return;
         if (ghost->port != PORT_DONE) return;
+        /* Reverse is free only after leaving cell center; at rest require open door
+         * so spawn reverse into a wall cannot trap the human ghost. */
         if (ghost->move == MOVE_DOWN) {
-            ghost->move = MOVE_UP;
-            ghost->next_move = MOVE_UP;
+            if (ghost->delta_y != 0 || bot_ghost_can_turn(xp, yp, MOVE_UP) != 0) {
+                ghost->move = MOVE_UP;
+                ghost->next_move = MOVE_UP;
+            }
             return;
         }
         if (aligned != 0) {
@@ -317,8 +321,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_RIGHT) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_LEFT) {
-            ghost->move = MOVE_RIGHT;
-            ghost->next_move = MOVE_RIGHT;
+            if (ghost->delta_x != 0 || bot_ghost_can_turn(xp, yp, MOVE_RIGHT) != 0) {
+                ghost->move = MOVE_RIGHT;
+                ghost->next_move = MOVE_RIGHT;
+            }
             return;
         }
         if (aligned != 0) {
@@ -333,8 +339,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_DOWN) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_UP) {
-            ghost->move = MOVE_DOWN;
-            ghost->next_move = MOVE_DOWN;
+            if (ghost->delta_y != 0 || bot_ghost_can_turn(xp, yp, MOVE_DOWN) != 0) {
+                ghost->move = MOVE_DOWN;
+                ghost->next_move = MOVE_DOWN;
+            }
             return;
         }
         if (aligned != 0) {
@@ -349,8 +357,10 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
         if (ghost->move == MOVE_LEFT) return;
         if (ghost->port != PORT_DONE) return;
         if (ghost->move == MOVE_RIGHT) {
-            ghost->move = MOVE_LEFT;
-            ghost->next_move = MOVE_LEFT;
+            if (ghost->delta_x != 0 || bot_ghost_can_turn(xp, yp, MOVE_LEFT) != 0) {
+                ghost->move = MOVE_LEFT;
+                ghost->next_move = MOVE_LEFT;
+            }
             return;
         }
         if (aligned != 0) {
@@ -645,6 +655,13 @@ uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
 
 void bot_ghost_validate_position(Ghost_t *ghost) {
     if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
+        /* Human ghost can reverse into a wall at spawn; snap back so input works again. */
+        if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
+                ghost->xp = HumanGhost_Spawn_X;
+                ghost->yp = HumanGhost_Spawn_Y;
+            }
+        }
         ghost->move = MOVE_STOP;
         ghost->next_move = MOVE_STOP;
         ghost->delta_x = 0;
@@ -658,6 +675,24 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
     }
     if (ghost->status == GHOST_STATUS_ALIVE) {
         if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
+            uint32_t dir;
+
+            /* If still on a non-path cell, snap to spawn first. */
+            if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
+                if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
+                    ghost->xp = HumanGhost_Spawn_X;
+                    ghost->yp = HumanGhost_Spawn_Y;
+                }
+                ghost->delta_x = 0;
+                ghost->delta_y = 0;
+            }
+
+            /* Honor current stick direction if open; do not AI-drive the human ghost. */
+            dir = bot_calc_move_player_ghost(ghost->xp, ghost->yp, MOVE_STOP, Game.player2_joy);
+            if (dir != MOVE_STOP) {
+                ghost->move = dir;
+                ghost->next_move = dir;
+            }
             return;
         }
         ghost->next_move = bot_calc_move_by_strategy(ghost_id, ghost->strategy, ghost->xp, ghost->yp, MOVE_STOP);
@@ -1699,8 +1734,9 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
     if (init_dir == MOVE_STOP) {
         init_dir = bot_calc_move_random(sx, sy, MOVE_STOP);
     }
-    if (init_dir == MOVE_STOP) {
-        init_dir = MOVE_LEFT;
+    /* Never force MOVE_LEFT into a wall — wait for player input instead. */
+    if (init_dir != MOVE_STOP && bot_ghost_can_turn(sx, sy, init_dir) == 0) {
+        init_dir = MOVE_STOP;
     }
 
     HumanGhost.skin = bot_ghost_skin_for_dir(init_dir);
