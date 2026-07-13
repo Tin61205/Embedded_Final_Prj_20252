@@ -141,10 +141,8 @@ typedef struct {
 //------------------------------------------------------------------------
 extern Skin_t Room_Skin[ROOM_SKIN_CNT];
 extern Skin_t Player_Skin[PLAYER_SKIN_CNT];
-extern Skin_t Blinky_Skin[GHOST_SKIN_CNT];
-extern Skin_t Pinky_Skin[GHOST_SKIN_CNT];
-extern Skin_t Inky_Skin[GHOST_SKIN_CNT];
-extern Skin_t Clyde_Skin[GHOST_SKIN_CNT];
+/* One sprite sheet row per AI slot (base art); body color recolored by type. */
+extern Skin_t Ghost_Skin[4][GHOST_SKIN_CNT];
 extern Skin_t Button_Skin[BUTTON_SKIN_CNT];
 
 

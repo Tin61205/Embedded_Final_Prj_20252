@@ -165,7 +165,7 @@ static void menu_custom_defaults(void) {
     Game.custom.two_player_mode = CUSTOM_2P_COOP;
     Game.custom.ghost_count = 1;
     for (i = 0; i < CUSTOM_MAX_GHOSTS; i++) {
-        Game.custom.ghost_strategies[i] = GHOST_STRATEGY_BLINKY;
+        Game.custom.ghost_strategies[i] = GHOST_TYPE_CHASE;
     }
 }
 
@@ -203,10 +203,10 @@ static uint32_t menu_cycle_value(uint32_t val, uint32_t min_v, uint32_t max_v, i
 }
 
 static uint32_t menu_cycle_ghost_strategy(uint32_t strategy, int32_t dir) {
-    if (strategy < GHOST_STRATEGY_CUSTOM_MIN || strategy > GHOST_STRATEGY_CUSTOM_MAX) {
-        strategy = GHOST_STRATEGY_DRUNK;
+    if (strategy < GHOST_TYPE_CUSTOM_MIN || strategy > GHOST_TYPE_CUSTOM_MAX) {
+        strategy = GHOST_TYPE_DRUNK;
     }
-    return menu_cycle_value(strategy, GHOST_STRATEGY_CUSTOM_MIN, GHOST_STRATEGY_CUSTOM_MAX, dir);
+    return menu_cycle_value(strategy, GHOST_TYPE_CUSTOM_MIN, GHOST_TYPE_CUSTOM_MAX, dir);
 }
 
 static void menu_draw_main(uint32_t sel) {

@@ -14,11 +14,14 @@ extern uint32_t  Gui_Touch_Timer_ms;
 extern uint32_t  Mode_Systic_Timer_ms;
 extern uint32_t  Player_Systick_Timer_ms;
 extern uint32_t  Player2_Systick_Timer_ms;
-extern uint32_t  Blinky_Systic_Timer_ms;
-extern uint32_t  Pinky_Systic_Timer_ms;
-extern uint32_t  Inky_Systic_Timer_ms;
-extern uint32_t  Clyde_Systic_Timer_ms;
+extern uint32_t  Ghost_Systick_Timer_ms[4];
 extern uint32_t  HumanGhost_Systic_Timer_ms;
+
+/* Legacy aliases */
+#define Blinky_Systic_Timer_ms  Ghost_Systick_Timer_ms[0]
+#define Pinky_Systic_Timer_ms   Ghost_Systick_Timer_ms[1]
+#define Inky_Systic_Timer_ms    Ghost_Systick_Timer_ms[2]
+#define Clyde_Systic_Timer_ms   Ghost_Systick_Timer_ms[3]
 extern uint32_t  UB_Game_Timers_Paused;
 extern uint32_t  Player_Dying_Timer_ms;
 extern uint32_t  Player_Invuln_Timer_ms;

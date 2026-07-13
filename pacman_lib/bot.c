@@ -12,19 +12,13 @@
 #include "gui.h"
 #include "pacman.h"
 #include "player.h"
-#include "blinky.h"
-#include "pinky.h"
-#include "inky.h"
-#include "clyde.h"
+#include "ghost.h"
 #include "humanghost.h"
 
 // Global variable definitions (declared extern in header)
 Player_t Player;
 Player_t Player2;
-Ghost_t Blinky;
-Ghost_t Pinky;
-Ghost_t Inky;
-Ghost_t Clyde;
+Ghost_t Ghosts[GHOST_MAX];
 Ghost_t HumanGhost;
 
 static uint32_t Ghost_Spawn_X[4];
@@ -412,21 +406,15 @@ void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn
             if (Maze.Room[x][y].typ == ROOM_TYP_PATH && Maze.Room[x][y].special == ROOM_SPEC_NONE) {
                 int32_t min_dist = 999999;
                 
-                if (Blinky.status == GHOST_STATUS_ALIVE) {
-                    int32_t dist = ABS((int32_t)x - (int32_t)Blinky.xp) + ABS((int32_t)y - (int32_t)Blinky.yp);
-                    if (dist < min_dist) min_dist = dist;
-                }
-                if (Pinky.status == GHOST_STATUS_ALIVE) {
-                    int32_t dist = ABS((int32_t)x - (int32_t)Pinky.xp) + ABS((int32_t)y - (int32_t)Pinky.yp);
-                    if (dist < min_dist) min_dist = dist;
-                }
-                if (Inky.status == GHOST_STATUS_ALIVE) {
-                    int32_t dist = ABS((int32_t)x - (int32_t)Inky.xp) + ABS((int32_t)y - (int32_t)Inky.yp);
-                    if (dist < min_dist) min_dist = dist;
-                }
-                if (Clyde.status == GHOST_STATUS_ALIVE) {
-                    int32_t dist = ABS((int32_t)x - (int32_t)Clyde.xp) + ABS((int32_t)y - (int32_t)Clyde.yp);
-                    if (dist < min_dist) min_dist = dist;
+                {
+                    uint32_t gi;
+                    for (gi = 0; gi < GHOST_MAX; gi++) {
+                        if (Ghosts[gi].status == GHOST_STATUS_ALIVE) {
+                            int32_t dist = ABS((int32_t)x - (int32_t)Ghosts[gi].xp) +
+                                           ABS((int32_t)y - (int32_t)Ghosts[gi].yp);
+                            if (dist < min_dist) min_dist = dist;
+                        }
+                    }
                 }
                 if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
                     int32_t dist = ABS((int32_t)x - (int32_t)HumanGhost.xp) + ABS((int32_t)y - (int32_t)HumanGhost.yp);
@@ -568,17 +556,7 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
 }
 
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
-    uint32_t ghost_id = GHOST_BLINKY;
-
-    if (ghost == &Pinky) {
-        ghost_id = GHOST_PINKY;
-    } else if (ghost == &Inky) {
-        ghost_id = GHOST_INKY;
-    } else if (ghost == &Clyde) {
-        ghost_id = GHOST_CLYDE;
-    } else if (ghost == &HumanGhost) {
-        ghost_id = GHOST_HUMAN;
-    }
+    uint32_t ghost_id = ghost_id_from_ptr(ghost);
 
     if (Game.collision == BOOL_FALSE || bot_ghost_can_harm_pacman(ghost, ghost_id) == 0) {
         return;
@@ -619,17 +597,17 @@ uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint1
         return 1;
     }
 
-    if (ghost->strategy == GHOST_STRATEGY_BLINKY) {
+    if (ghost->strategy == GHOST_TYPE_CHASE) {
         *color = GHOST_COLOR_CHASE;
-    } else if (ghost->strategy == GHOST_STRATEGY_PINKY) {
+    } else if (ghost->strategy == GHOST_TYPE_AMBUSH) {
         *color = GHOST_COLOR_AMBUSH;
-    } else if (ghost->strategy == GHOST_STRATEGY_INKY) {
+    } else if (ghost->strategy == GHOST_TYPE_TRICKY) {
         *color = GHOST_COLOR_TRICKY;
-    } else if (ghost->strategy == GHOST_STRATEGY_CLYDE) {
+    } else if (ghost->strategy == GHOST_TYPE_SHY) {
         *color = GHOST_COLOR_SHY;
-    } else if (ghost->strategy == GHOST_STRATEGY_DRUNK) {
+    } else if (ghost->strategy == GHOST_TYPE_DRUNK) {
         *color = GHOST_COLOR_DRUNK;
-    } else if (ghost->strategy == GHOST_STRATEGY_LAZY) {
+    } else if (ghost->strategy == GHOST_TYPE_LAZY) {
         *color = GHOST_COLOR_LAZY;
     } else {
         *color = GHOST_COLOR_RANDOM;
@@ -741,60 +719,48 @@ void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
 
-    if (ghost_id == GHOST_BLINKY) {
-        hx = BLINKY_HOME_X;
-        hy = BLINKY_HOME_Y;
-        if (ghost->xp != hx || ghost->yp != hy) {
-            return;
-        }
-        ghost->status = GHOST_STATUS_ALIVE;
+    if (ghost_id >= GHOST_MAX) {
+        return;
+    }
+
+    ghosts_get_home(ghost_id, &hx, &hy);
+    if (ghost->xp != hx || ghost->yp != hy) {
+        return;
+    }
+
+    ghost->status = GHOST_STATUS_ALIVE;
+    ghost->dot_cnt = 0;
+    if (ghost_id == GHOST_0) {
         ghost->skin = GHOST_SKIN_UP1;
+        ghost->delta_x = 0;
+        ghost->delta_y = 0;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = 0;
-    } else if (ghost_id == GHOST_PINKY) {
-        hx = PINKY_HOME_X;
-        hy = PINKY_HOME_Y;
-        if (ghost->xp != hx || ghost->yp != hy) {
-            return;
-        }
-        ghost->status = GHOST_STATUS_ALIVE;
+    } else if (ghost_id == GHOST_1) {
         ghost->skin = GHOST_SKIN_UP1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = 0;
-    } else if (ghost_id == GHOST_INKY) {
-        hx = INKY_HOME_X;
-        hy = INKY_HOME_Y;
-        if (ghost->xp != hx || ghost->yp != hy) {
-            return;
-        }
-        ghost->status = GHOST_STATUS_ALIVE;
+    } else if (ghost_id == GHOST_2) {
         ghost->skin = GHOST_SKIN_RIGHT1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_RIGHT;
         ghost->next_move = MOVE_RIGHT;
-        ghost->dot_cnt = 0;
     } else {
-        hx = CLYDE_HOME_X;
-        hy = CLYDE_HOME_Y;
-        if (ghost->xp != hx || ghost->yp != hy) {
-            return;
-        }
-        ghost->status = GHOST_STATUS_ALIVE;
         ghost->skin = GHOST_SKIN_LEFT1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
-        ghost->dot_cnt = 0;
     }
 }
 
 void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
+    uint32_t hx;
+    uint32_t hy;
+
     if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
         uint32_t sx = HumanGhost_Spawn_X;
         uint32_t sy = HumanGhost_Spawn_Y;
@@ -822,73 +788,54 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
         return;
     }
 
-    if (ghost_id == GHOST_BLINKY) {
-        ghost->xp = BLINKY_HOME_X;
-        ghost->yp = BLINKY_HOME_Y;
-        ghost->status = GHOST_STATUS_ALIVE;
+    if (ghost_id >= GHOST_MAX) {
+        return;
+    }
+
+    ghosts_get_home(ghost_id, &hx, &hy);
+    ghost->xp = hx;
+    ghost->yp = hy;
+    ghost->status = GHOST_STATUS_ALIVE;
+    ghost->dot_cnt = ghost_dot_cnt_max(ghost_id);
+    ghost->port = PORT_DONE;
+
+    if (ghost_id == GHOST_0) {
         ghost->skin = GHOST_SKIN_UP1;
         ghost->delta_x = 0;
         ghost->delta_y = 0;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = BLINKY_DOT_CNT_MAX;
-        ghost->port = PORT_DONE;
-    } else if (ghost_id == GHOST_PINKY) {
-        ghost->xp = PINKY_HOME_X;
-        ghost->yp = PINKY_HOME_Y;
-        ghost->status = GHOST_STATUS_ALIVE;
+    } else if (ghost_id == GHOST_1) {
         ghost->skin = GHOST_SKIN_UP1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_UP;
         ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = PINKY_DOT_CNT_MAX;
-        ghost->port = PORT_DONE;
-    } else if (ghost_id == GHOST_INKY) {
-        ghost->xp = INKY_HOME_X;
-        ghost->yp = INKY_HOME_Y;
-        ghost->status = GHOST_STATUS_ALIVE;
+    } else if (ghost_id == GHOST_2) {
         ghost->skin = GHOST_SKIN_RIGHT1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_RIGHT;
         ghost->next_move = MOVE_RIGHT;
-        ghost->dot_cnt = INKY_DOT_CNT_MAX;
-        ghost->port = PORT_DONE;
     } else {
-        ghost->xp = CLYDE_HOME_X;
-        ghost->yp = CLYDE_HOME_Y;
-        ghost->status = GHOST_STATUS_ALIVE;
         ghost->skin = GHOST_SKIN_LEFT1;
         ghost->delta_x = GHOST_HOME_X_DIFF;
         ghost->delta_y = GHOST_HOME_Y_DIFF;
         ghost->move = MOVE_LEFT;
         ghost->next_move = MOVE_LEFT;
-        ghost->dot_cnt = CLYDE_DOT_CNT_MAX;
-        ghost->port = PORT_DONE;
     }
 }
 
 void bot_release_ghosts_on_pacman_death(void) {
-    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
-        Blinky.new_mode = 0;
-        Blinky.dot_cnt = BLINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Blinky, GHOST_BLINKY);
-    }
-    if ((Game.ghost_active_mask & MOVE_PINKY) != 0 && Pinky.status == GHOST_STATUS_ALIVE) {
-        Pinky.new_mode = 0;
-        Pinky.dot_cnt = PINKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Pinky, GHOST_PINKY);
-    }
-    if ((Game.ghost_active_mask & MOVE_INKY) != 0 && Inky.status == GHOST_STATUS_ALIVE) {
-        Inky.new_mode = 0;
-        Inky.dot_cnt = INKY_DOT_CNT_MAX;
-        bot_ghost_unstick(&Inky, GHOST_INKY);
-    }
-    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0 && Clyde.status == GHOST_STATUS_ALIVE) {
-        Clyde.new_mode = 0;
-        Clyde.dot_cnt = CLYDE_DOT_CNT_MAX;
-        bot_ghost_unstick(&Clyde, GHOST_CLYDE);
+    uint32_t i;
+
+    for (i = 0; i < GHOST_MAX; i++) {
+        if ((Game.ghost_active_mask & ghost_move_mask(i)) != 0 &&
+            Ghosts[i].status == GHOST_STATUS_ALIVE) {
+            Ghosts[i].new_mode = 0;
+            Ghosts[i].dot_cnt = ghost_dot_cnt_max(i);
+            bot_ghost_unstick(&Ghosts[i], i);
+        }
     }
     if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
         HumanGhost.new_mode = 0;
@@ -1099,10 +1046,10 @@ uint32_t bot_calc_move_inky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
         txp -= 2;
     }
 
-    // spot Blinky (fallback to self if Blinky is inactive)
-    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0 && Blinky.status == GHOST_STATUS_ALIVE) {
-        bxp = Blinky.xp;
-        byp = Blinky.yp;
+    /* Tricky AI: use slot-0 as partner ghost (fallback to self if inactive). */
+    if ((Game.ghost_active_mask & MOVE_GHOST0) != 0 && Ghosts[0].status == GHOST_STATUS_ALIVE) {
+        bxp = Ghosts[0].xp;
+        byp = Ghosts[0].yp;
     } else {
         bxp = xp;
         byp = yp;
@@ -1162,18 +1109,8 @@ static void bot_ghost_home_target(uint32_t ghost_id, uint32_t *tx, uint32_t *ty)
         *ty = 14;
         return;
     }
-    if (ghost_id == GHOST_BLINKY) {
-        *tx = BLINKY_HOME_X;
-        *ty = BLINKY_HOME_Y;
-    } else if (ghost_id == GHOST_PINKY) {
-        *tx = PINKY_HOME_X;
-        *ty = PINKY_HOME_Y;
-    } else if (ghost_id == GHOST_INKY) {
-        *tx = INKY_HOME_X;
-        *ty = INKY_HOME_Y;
-    } else if (ghost_id == GHOST_CLYDE) {
-        *tx = CLYDE_HOME_X;
-        *ty = CLYDE_HOME_Y;
+    if (ghost_id < GHOST_MAX) {
+        ghosts_get_home(ghost_id, tx, ty);
     } else {
         *tx = GHOST_HOUSE_EXIT_X;
         *ty = GHOST_HOUSE_EXIT_Y;
@@ -1379,22 +1316,7 @@ uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
-    // spot the scatter point as target
-    if (ghost == GHOST_BLINKY) {
-        txp = BLINKY_SCATTER_X;
-        typ = BLINKY_SCATTER_Y;
-    } else if (ghost == GHOST_PINKY) {
-        txp = PINKY_SCATTER_X;
-        typ = PINKY_SCATTER_Y;
-    } else if (ghost == GHOST_INKY) {
-        txp = INKY_SCATTER_X;
-        typ = INKY_SCATTER_Y;
-    } else {
-        txp = CLYDE_SCATTER_X;
-        typ = CLYDE_SCATTER_Y;
-    }
-
-    // calc the new move
+    ghosts_get_scatter(ghost, &txp, &typ);
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
 
     return (ret_wert);
@@ -1564,19 +1486,19 @@ uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
 // resolve ghost personality to movement
 //--------------------------------------------------------------
 uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
-    if (strategy == GHOST_STRATEGY_RANDOM || strategy == GHOST_STRATEGY_DRUNK) {
+    if (strategy == GHOST_TYPE_RANDOM || strategy == GHOST_TYPE_DRUNK) {
         return bot_calc_move_random(xp, yp, akt_dir);
     }
-    if (strategy == GHOST_STRATEGY_LAZY) {
+    if (strategy == GHOST_TYPE_LAZY) {
         return bot_calc_move_lazy(xp, yp, akt_dir);
     }
-    if (strategy == GHOST_STRATEGY_BLINKY) {
+    if (strategy == GHOST_TYPE_CHASE) {
         return bot_calc_move_blinky(xp, yp, akt_dir);
     }
-    if (strategy == GHOST_STRATEGY_PINKY) {
+    if (strategy == GHOST_TYPE_AMBUSH) {
         return bot_calc_move_pinky(xp, yp, akt_dir);
     }
-    if (strategy == GHOST_STRATEGY_INKY) {
+    if (strategy == GHOST_TYPE_TRICKY) {
         return bot_calc_move_inky(xp, yp, akt_dir);
     }
     return bot_calc_move_clyde(ghost, xp, yp, akt_dir);
@@ -1586,12 +1508,12 @@ uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t x
 // human-readable ghost personality label
 //--------------------------------------------------------------
 const char* bot_strategy_name(uint32_t strategy) {
-    if (strategy == GHOST_STRATEGY_BLINKY) return "Chase";
-    if (strategy == GHOST_STRATEGY_PINKY) return "Ambush";
-    if (strategy == GHOST_STRATEGY_INKY) return "Tricky";
-    if (strategy == GHOST_STRATEGY_CLYDE) return "Shy";
-    if (strategy == GHOST_STRATEGY_DRUNK) return "Drunk";
-    if (strategy == GHOST_STRATEGY_LAZY) return "Lazy";
+    if (strategy == GHOST_TYPE_CHASE) return "Chase";
+    if (strategy == GHOST_TYPE_AMBUSH) return "Ambush";
+    if (strategy == GHOST_TYPE_TRICKY) return "Tricky";
+    if (strategy == GHOST_TYPE_SHY) return "Shy";
+    if (strategy == GHOST_TYPE_DRUNK) return "Drunk";
+    if (strategy == GHOST_TYPE_LAZY) return "Lazy";
     return "Random";
 }
 
@@ -1691,11 +1613,7 @@ static uint32_t bot_ghost_skin_for_dir(uint32_t dir) {
 }
 
 static uint32_t bot_ghost_dot_cnt_max(uint32_t ghost_id) {
-    if (ghost_id == GHOST_BLINKY) return BLINKY_DOT_CNT_MAX;
-    if (ghost_id == GHOST_PINKY) return PINKY_DOT_CNT_MAX;
-    if (ghost_id == GHOST_INKY) return INKY_DOT_CNT_MAX;
-    if (ghost_id == GHOST_HUMAN) return HUMAN_GHOST_DOT_CNT_MAX;
-    return CLYDE_DOT_CNT_MAX;
+    return ghost_dot_cnt_max(ghost_id);
 }
 
 void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint32_t *used_y, uint32_t used_cnt) {
@@ -1749,7 +1667,6 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
 // apply custom ghost setup: count, personality, speed, spawn
 //--------------------------------------------------------------
 void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms) {
-    Ghost_t *ghosts[4];
     uint32_t i;
     uint32_t used_x[4];
     uint32_t used_y[4];
@@ -1760,28 +1677,19 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         ai_count = bot_custom_ai_ghost_count();
     }
 
-    ghosts[0] = &Blinky;
-    ghosts[1] = &Pinky;
-    ghosts[2] = &Inky;
-    ghosts[3] = &Clyde;
-
-    for (i = 0; i < 4; i++) {
-        ghosts[i]->strategy = strategies[i];
-        ghosts[i]->akt_speed_ms = speed_ms;
-        ghosts[i]->status = GHOST_STATUS_DEAD;
-        ghosts[i]->move = MOVE_STOP;
-        ghosts[i]->next_move = MOVE_STOP;
-        ghosts[i]->delta_x = 0;
-        ghosts[i]->delta_y = 0;
-        ghosts[i]->skin_cnt = 0;
-        ghosts[i]->port = PORT_DONE;
-        ghosts[i]->dot_cnt = 0;
-        ghosts[i]->new_mode = 0;
-        
-        if (i == 0) ghosts[i]->frightened_buf = 30;
-        else if (i == 1) ghosts[i]->frightened_buf = 30;
-        else if (i == 2) ghosts[i]->frightened_buf = 30;
-        else ghosts[i]->frightened_buf = 30;
+    for (i = 0; i < GHOST_MAX; i++) {
+        Ghosts[i].strategy = strategies[i];
+        Ghosts[i].akt_speed_ms = speed_ms;
+        Ghosts[i].status = GHOST_STATUS_DEAD;
+        Ghosts[i].move = MOVE_STOP;
+        Ghosts[i].next_move = MOVE_STOP;
+        Ghosts[i].delta_x = 0;
+        Ghosts[i].delta_y = 0;
+        Ghosts[i].skin_cnt = 0;
+        Ghosts[i].port = PORT_DONE;
+        Ghosts[i].dot_cnt = 0;
+        Ghosts[i].new_mode = 0;
+        Ghosts[i].frightened_buf = GHOST_FRIGHTENED_BUF_DEFAULT;
     }
 
     for (i = 0; i < ai_count; i++) {
@@ -1807,14 +1715,14 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         Ghost_Spawn_X[i] = sx;
         Ghost_Spawn_Y[i] = sy;
 
-        ghosts[i]->status = GHOST_STATUS_ALIVE;
-        ghosts[i]->xp = sx;
-        ghosts[i]->yp = sy;
-        ghosts[i]->delta_x = 0;
-        ghosts[i]->delta_y = 0;
-        ghosts[i]->port = PORT_DONE;
+        Ghosts[i].status = GHOST_STATUS_ALIVE;
+        Ghosts[i].xp = sx;
+        Ghosts[i].yp = sy;
+        Ghosts[i].delta_x = 0;
+        Ghosts[i].delta_y = 0;
+        Ghosts[i].port = PORT_DONE;
 
-        init_dir = bot_calc_move_by_strategy(i, ghosts[i]->strategy, sx, sy, MOVE_STOP);
+        init_dir = bot_calc_move_by_strategy(i, Ghosts[i].strategy, sx, sy, MOVE_STOP);
         if (init_dir == MOVE_STOP) {
             init_dir = bot_calc_only_exit(sx, sy);
         }
@@ -1823,19 +1731,19 @@ void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint3
         }
         init_skin = bot_ghost_skin_for_dir(init_dir);
 
-        ghosts[i]->skin = init_skin;
-        ghosts[i]->move = init_dir;
-        ghosts[i]->next_move = init_dir;
-        ghosts[i]->dot_cnt = bot_ghost_dot_cnt_max(i);
-        ghosts[i]->new_mode = 0;
+        Ghosts[i].skin = init_skin;
+        Ghosts[i].move = init_dir;
+        Ghosts[i].next_move = init_dir;
+        Ghosts[i].dot_cnt = bot_ghost_dot_cnt_max(i);
+        Ghosts[i].new_mode = 0;
 
-        bot_ghost_validate_position(ghosts[i]);
-        if (ghosts[i]->move == MOVE_STOP) {
-            init_dir = bot_calc_move_random(ghosts[i]->xp, ghosts[i]->yp, MOVE_STOP);
+        bot_ghost_validate_position(&Ghosts[i]);
+        if (Ghosts[i].move == MOVE_STOP) {
+            init_dir = bot_calc_move_random(Ghosts[i].xp, Ghosts[i].yp, MOVE_STOP);
             if (init_dir != MOVE_STOP) {
-                ghosts[i]->move = init_dir;
-                ghosts[i]->next_move = init_dir;
-                ghosts[i]->skin = bot_ghost_skin_for_dir(init_dir);
+                Ghosts[i].move = init_dir;
+                Ghosts[i].next_move = init_dir;
+                Ghosts[i].skin = bot_ghost_skin_for_dir(init_dir);
             }
         }
     }

@@ -17,16 +17,10 @@ void gui_draw_player(void);
 void gui_clear_player(void);
 void gui_draw_player2(void);
 void gui_clear_player2(void);
-void gui_draw_blinky(void);
-void gui_clear_blinky(void);
 static void gui_draw_ghost_sprite(Image2LCD_t koord, Skin_t *skin_table, uint32_t skin_idx,
                                 uint32_t ghost_id, Ghost_t *ghost);
-void gui_draw_pinky(void);
-void gui_clear_pinky(void);
-void gui_clear_inky(void);
-void gui_draw_inky(void);
-void gui_clear_clyde(void);
-void gui_draw_clyde(void);
+static void gui_draw_ghost(uint32_t id);
+static void gui_clear_ghost(uint32_t id);
 void gui_clear_humanghost(void);
 void gui_draw_humanghost(void);
 static void gui_draw_hud_line(uint16_t y, const char *text, uint32_t color);
@@ -45,12 +39,15 @@ void gui_clear_screen(void) {
 // clear player and all ghosts
 //--------------------------------------------------------------
 void gui_clear_bots(void) {
+    uint32_t i;
+
     gui_clear_player();
     if (Game.player2_active != 0) gui_clear_player2();
-    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_clear_blinky();
-    if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_clear_pinky();
-    if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_clear_inky();
-    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_clear_clyde();
+    for (i = 0; i < GHOST_MAX; i++) {
+        if ((Game.ghost_active_mask & ghost_move_mask(i)) != 0) {
+            gui_clear_ghost(i);
+        }
+    }
     if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_clear_humanghost();
 }
 
@@ -58,12 +55,15 @@ void gui_clear_bots(void) {
 // draw player and all ghosts
 //--------------------------------------------------------------
 void gui_draw_bots(void) {
+    uint32_t i;
+
     gui_draw_player();
     if (Game.player2_active != 0) gui_draw_player2();
-    if ((Game.ghost_active_mask & MOVE_BLINKY) != 0) gui_draw_blinky();
-    if ((Game.ghost_active_mask & MOVE_PINKY) != 0) gui_draw_pinky();
-    if ((Game.ghost_active_mask & MOVE_INKY) != 0) gui_draw_inky();
-    if ((Game.ghost_active_mask & MOVE_CLYDE) != 0) gui_draw_clyde();
+    for (i = 0; i < GHOST_MAX; i++) {
+        if ((Game.ghost_active_mask & ghost_move_mask(i)) != 0) {
+            gui_draw_ghost(i);
+        }
+    }
     if ((Game.ghost_active_mask & MOVE_HUMAN_GHOST) != 0) gui_draw_humanghost();
 }
 
@@ -329,231 +329,54 @@ static void gui_draw_ghost_sprite(Image2LCD_t koord, Skin_t *skin_table, uint32_
 }
 
 //--------------------------------------------------------------
-// draw bot : Blinky
+// draw AI ghost slot id
 //--------------------------------------------------------------
-void gui_draw_blinky(void) {
+static void gui_draw_ghost(uint32_t id) {
     Image2LCD_t koord;
+    Ghost_t *g;
+    Skin_t *skin_table;
     uint32_t x, y, s;
 
-    x = Blinky.xp;
-    y = Blinky.yp;
+    if (id >= GHOST_MAX) {
+        return;
+    }
+    g = &Ghosts[id];
+    skin_table = Ghost_Skin[id];
 
-    if (Blinky.port != PORT_DONE) {
-        // dont draw while porting
-        // its easier not to draw than calc the port animation
+    x = g->xp;
+    y = g->yp;
+
+    if (g->port != PORT_DONE) {
+        /* Skip draw while porting (avoids partial portal animation). */
     } else {
-        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Blinky.delta_x + BOTS_DIFF_X;
-        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Blinky.delta_y + BOTS_DIFF_Y;
+        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + g->delta_x + BOTS_DIFF_X;
+        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + g->delta_y + BOTS_DIFF_Y;
         if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
         if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
-        s = Blinky.skin;
-        gui_draw_ghost_sprite(koord, Blinky_Skin, s, GHOST_BLINKY, &Blinky);
+        s = g->skin;
+        gui_draw_ghost_sprite(koord, skin_table, s, id, g);
     }
 }
 
 //--------------------------------------------------------------
-// clear bot : Blinky (repaint all rooms around the bot pos)
+// clear AI ghost slot (repaint rooms around its cell)
 //--------------------------------------------------------------
-void gui_clear_blinky(void) {
+static void gui_clear_ghost(uint32_t id) {
     Image2LCD_t koord;
+    Ghost_t *g;
     uint32_t x, y, s;
     uint32_t xp, yp;
-    int16_t xmin, xmax; // signed int !!
-    int16_t ymin, ymax; // signed int !!
+    int16_t xmin, xmax;
+    int16_t ymin, ymax;
 
-    xp = Blinky.xp;
-    yp = Blinky.yp;
-
-    xmin = xp - 1;
-    xmax = xp + 1;
-    ymin = yp - 1;
-    ymax = yp + 1;
-
-    if (xmin < 0) xmin = 0;
-    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
-    if (ymin < 0) ymin = 0;
-    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
-
-    koord.w = ROOM_WIDTH;
-    koord.h = ROOM_HEIGHT;
-
-    for (y = ymin; y <= ymax; y++) {
-        for (x = xmin; x <= xmax; x++) {
-            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
-            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
-            s = Maze.Room[x][y].skin;
-            koord.source_xp = Room_Skin[s].xp;
-            koord.source_yp = Room_Skin[s].yp;
-            UB_Graphic2D_DrawImageRect(koord);
-        }
+    if (id >= GHOST_MAX) {
+        return;
     }
-}
-
-//--------------------------------------------------------------
-// draw bot : Pinky
-//--------------------------------------------------------------
-void gui_draw_pinky(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-
-    x = Pinky.xp;
-    y = Pinky.yp;
-
-    if (Pinky.port != PORT_DONE) {
-        // dont draw while porting
-        // its easier not to draw than calc the port animation
-    } else {
-        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Pinky.delta_x + BOTS_DIFF_X;
-        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Pinky.delta_y + BOTS_DIFF_Y;
-        if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
-        if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
-        koord.w = BOTS_WIDTH;
-        koord.h = BOTS_HEIGHT;
-        s = Pinky.skin;
-        gui_draw_ghost_sprite(koord, Pinky_Skin, s, GHOST_PINKY, &Pinky);
-    }
-}
-
-//--------------------------------------------------------------
-// clear bot : Pinky (repaint all rooms around the bot pos)
-//--------------------------------------------------------------
-void gui_clear_pinky(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-    uint32_t xp, yp;
-    int16_t xmin, xmax; // signed int !!
-    int16_t ymin, ymax; // signed int !!
-
-    xp = Pinky.xp;
-    yp = Pinky.yp;
-
-    xmin = xp - 1;
-    xmax = xp + 1;
-    ymin = yp - 1;
-    ymax = yp + 1;
-
-    if (xmin < 0) xmin = 0;
-    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
-    if (ymin < 0) ymin = 0;
-    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
-
-    koord.w = ROOM_WIDTH;
-    koord.h = ROOM_HEIGHT;
-
-    for (y = ymin; y <= ymax; y++) {
-        for (x = xmin; x <= xmax; x++) {
-            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
-            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
-            s = Maze.Room[x][y].skin;
-            koord.source_xp = Room_Skin[s].xp;
-            koord.source_yp = Room_Skin[s].yp;
-            UB_Graphic2D_DrawImageRect(koord);
-        }
-    }
-}
-
-//--------------------------------------------------------------
-// draw bot : Inky
-//--------------------------------------------------------------
-void gui_draw_inky(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-
-    x = Inky.xp;
-    y = Inky.yp;
-
-    if (Inky.port != PORT_DONE) {
-        // dont draw while porting
-        // its easier not to draw than calc the port animation
-    } else {
-        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Inky.delta_x + BOTS_DIFF_X;
-        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Inky.delta_y + BOTS_DIFF_Y;
-        if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
-        if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
-        koord.w = BOTS_WIDTH;
-        koord.h = BOTS_HEIGHT;
-        s = Inky.skin;
-        gui_draw_ghost_sprite(koord, Inky_Skin, s, GHOST_INKY, &Inky);
-    }
-}
-
-//--------------------------------------------------------------
-// clear bot : Inky (repaint all rooms around the bot pos)
-//--------------------------------------------------------------
-void gui_clear_inky(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-    uint32_t xp, yp;
-    int16_t xmin, xmax; // signed int !!
-    int16_t ymin, ymax; // signed int !!
-
-    xp = Inky.xp;
-    yp = Inky.yp;
-
-    xmin = xp - 1;
-    xmax = xp + 1;
-    ymin = yp - 1;
-    ymax = yp + 1;
-
-    if (xmin < 0) xmin = 0;
-    if (xmax >= ROOM_CNT_X) xmax = ROOM_CNT_X - 1;
-    if (ymin < 0) ymin = 0;
-    if (ymax >= ROOM_CNT_Y) ymax = ROOM_CNT_Y - 1;
-
-    koord.w = ROOM_WIDTH;
-    koord.h = ROOM_HEIGHT;
-
-    for (y = ymin; y <= ymax; y++) {
-        for (x = xmin; x <= xmax; x++) {
-            koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX;
-            koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY;
-            s = Maze.Room[x][y].skin;
-            koord.source_xp = Room_Skin[s].xp;
-            koord.source_yp = Room_Skin[s].yp;
-            UB_Graphic2D_DrawImageRect(koord);
-        }
-    }
-}
-
-//--------------------------------------------------------------
-// draw bot : Clyde
-//--------------------------------------------------------------
-void gui_draw_clyde(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-
-    x = Clyde.xp;
-    y = Clyde.yp;
-
-    if (Clyde.port != PORT_DONE) {
-        // don't draw while porting
-        // its easier not to draw than calc the port animation
-    } else {
-        koord.dest_xp = (x * ROOM_WIDTH) + GUI_MAZE_STARTX + Clyde.delta_x + BOTS_DIFF_X;
-        koord.dest_yp = (y * ROOM_HEIGHT) + GUI_MAZE_STARTY + Clyde.delta_y + BOTS_DIFF_Y;
-        if (koord.dest_xp < GUI_MAZE_STARTX) koord.dest_xp = GUI_MAZE_STARTX;
-        if (koord.dest_yp < GUI_MAZE_STARTY) koord.dest_yp = GUI_MAZE_STARTY;
-        koord.w = BOTS_WIDTH;
-        koord.h = BOTS_HEIGHT;
-        s = Clyde.skin;
-        gui_draw_ghost_sprite(koord, Clyde_Skin, s, GHOST_CLYDE, &Clyde);
-    }
-}
-
-//--------------------------------------------------------------
-// clear bot : Clyde (repaint all rooms around the bot pos)
-//--------------------------------------------------------------
-void gui_clear_clyde(void) {
-    Image2LCD_t koord;
-    uint32_t x, y, s;
-    uint32_t xp, yp;
-    int16_t xmin, xmax; // signed int !!
-    int16_t ymin, ymax; // signed int !!
-
-    xp = Clyde.xp;
-    yp = Clyde.yp;
+    g = &Ghosts[id];
+    xp = g->xp;
+    yp = g->yp;
 
     xmin = xp - 1;
     xmax = xp + 1;
@@ -599,7 +422,7 @@ void gui_draw_humanghost(void) {
         koord.w = BOTS_WIDTH;
         koord.h = BOTS_HEIGHT;
         s = HumanGhost.skin;
-        gui_draw_ghost_sprite(koord, Blinky_Skin, s, GHOST_HUMAN, &HumanGhost);
+        gui_draw_ghost_sprite(koord, Ghost_Skin[0], s, GHOST_HUMAN, &HumanGhost);
     }
 }
 
@@ -1180,7 +1003,7 @@ void gui_show_lost_screen(uint32_t score) {
     // YOU LOST text
     gui_draw_string_scale(36, 60, "YOU LOST", &Arial_7x10, RGB_COL_RED, RGB_COL_BLACK, 3);
     
-    // Draw a Blinky ghost at center
+    // Draw a red ghost decoration at center
     UB_Graphic2D_DrawFullCircleDMA(120, 135, 16, RGB_COL_RED);
     UB_Graphic2D_DrawFullRectDMA(104, 135, 32, 16, RGB_COL_RED);
     UB_Graphic2D_DrawFullCircleDMA(113, 132, 4, RGB_COL_WHITE); // left eye

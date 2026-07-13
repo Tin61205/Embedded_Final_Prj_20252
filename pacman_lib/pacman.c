@@ -2,6 +2,7 @@
 // Includes
 //--------------------------------------------------------------
 #include "pacman.h"
+#include "ghost.h"
 #include <stdio.h>
 #include "stm32_ub_buzzer.h"
 #include "humanghost.h"
@@ -9,105 +10,28 @@
 // Global variable definition (declared extern in header)
 Game_t Game;
 
-//--------------------------------------------------------------
-// level settings
-// speed in ms [Player, Blinky, Pinky, Inky, Clyde]
-//--------------------------------------------------------------
-Level_t Level[] = {
-    {
-        30,
-        40,
-        50,
-        60,
-        70
-    },
-    {
-        26,
-        35,
-        44,
-        52,
-        60
-    },
-    {
-        22,
-        30,
-        38,
-        44,
-        50
-    },
-    {
-        18,
-        25,
-        32,
-        36,
-        40
-    },
-    {
-        14,
-        20,
-        26,
-        28,
-        30
-    },
-    {
-        10,
-        18,
-        24,
-        26,
-        28
-    },
-    {
-        10,
-        16,
-        22,
-        24,
-        26
-    },
-    {
-        10,
-        14,
-        20,
-        22,
-        24
-    },
-    {
-        10,
-        12,
-        18,
-        20,
-        22
-    },
-    {
-        10,
-        10,
-        16,
-        18,
-        20
-    },
-};
-
 CampaignDifficulty_t CampaignDifficultyScenario[10] = {
     // Ghost delay: 34ms (lv1, slowest) → 24ms (lv10, fastest)
     // 1: 4 Ghost (all Lazy), 34ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 34, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY } },
+    { 4, MOVE_GHOST_ALL, 34, { GHOST_TYPE_LAZY, GHOST_TYPE_LAZY, GHOST_TYPE_LAZY, GHOST_TYPE_LAZY } },
     // 2: 4 Ghost (all Drunk), 33ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 33, { GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    { 4, MOVE_GHOST_ALL, 33, { GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK } },
     // 3: 3 Ghost (Lazy + 2 Drunk), 32ms
-    { 3, MOVE_BLINKY | MOVE_PINKY | MOVE_CLYDE, 32, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK } },
+    { 3, MOVE_GHOST0 | MOVE_GHOST1 | MOVE_GHOST3, 32, { GHOST_TYPE_LAZY, GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK } },
     // 4: 4 Ghost (Lazy + Drunk mix), 31ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 31, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_DRUNK } },
+    { 4, MOVE_GHOST_ALL, 31, { GHOST_TYPE_LAZY, GHOST_TYPE_DRUNK, GHOST_TYPE_LAZY, GHOST_TYPE_DRUNK } },
     // 5: 3 Ghost (1 Chase, 1 Drunk, 1 Lazy), 30ms
-    { 3, MOVE_BLINKY | MOVE_PINKY | MOVE_CLYDE, 30, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_LAZY } },
-    // 6: 3 Ghost (1 Chase, 1 Lazy, 1 Tricky Inky), 29ms
-    { 3, MOVE_BLINKY | MOVE_INKY | MOVE_CLYDE, 29, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_DRUNK, GHOST_STRATEGY_INKY, GHOST_STRATEGY_LAZY } },
+    { 3, MOVE_GHOST0 | MOVE_GHOST1 | MOVE_GHOST3, 30, { GHOST_TYPE_CHASE, GHOST_TYPE_DRUNK, GHOST_TYPE_DRUNK, GHOST_TYPE_LAZY } },
+    // 6: 3 Ghost (1 Chase, 1 Lazy, 1 Tricky), 29ms
+    { 3, MOVE_GHOST0 | MOVE_GHOST2 | MOVE_GHOST3, 29, { GHOST_TYPE_CHASE, GHOST_TYPE_DRUNK, GHOST_TYPE_TRICKY, GHOST_TYPE_LAZY } },
     // 7: 4 Ghost (2 Lazy, 1 Tricky, 1 Shy), 28ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 28, { GHOST_STRATEGY_LAZY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } },
+    { 4, MOVE_GHOST_ALL, 28, { GHOST_TYPE_LAZY, GHOST_TYPE_LAZY, GHOST_TYPE_TRICKY, GHOST_TYPE_SHY } },
     // 8: 4 Ghost (1 Chase, 1 Ambush, 1 Lazy, 1 Shy), 27ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 27, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_LAZY, GHOST_STRATEGY_CLYDE } },
+    { 4, MOVE_GHOST_ALL, 27, { GHOST_TYPE_CHASE, GHOST_TYPE_AMBUSH, GHOST_TYPE_LAZY, GHOST_TYPE_SHY } },
     // 9: 4 Ghost (Chase, Ambush, Tricky, Shy), 26ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 26, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } },
+    { 4, MOVE_GHOST_ALL, 26, { GHOST_TYPE_CHASE, GHOST_TYPE_AMBUSH, GHOST_TYPE_TRICKY, GHOST_TYPE_SHY } },
     // 10: 4 Ghost (Chase, Ambush, Tricky, Shy) - Ác mộng, 24ms
-    { 4, MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE, 24, { GHOST_STRATEGY_BLINKY, GHOST_STRATEGY_PINKY, GHOST_STRATEGY_INKY, GHOST_STRATEGY_CLYDE } }
+    { 4, MOVE_GHOST_ALL, 24, { GHOST_TYPE_CHASE, GHOST_TYPE_AMBUSH, GHOST_TYPE_TRICKY, GHOST_TYPE_SHY } }
 };
 
 /* Pacman delay (ms/tick): cố định 28ms cho mọi cấp độ Campaign. */
@@ -125,15 +49,13 @@ void pacman_apply_campaign_difficulty(uint32_t mode) {
     Game.numberOfBots = config.ghost_count;
     Game.ghost_active_mask = config.active_mask;
     
-    Blinky.akt_speed_ms = config.ghost_speed;
-    Pinky.akt_speed_ms = config.ghost_speed;
-    Inky.akt_speed_ms = config.ghost_speed;
-    Clyde.akt_speed_ms = config.ghost_speed;
-    
-    Blinky.strategy = config.strategies[0];
-    Pinky.strategy = config.strategies[1];
-    Inky.strategy = config.strategies[2];
-    Clyde.strategy = config.strategies[3];
+    {
+        uint32_t gi;
+        for (gi = 0; gi < GHOST_MAX; gi++) {
+            Ghosts[gi].akt_speed_ms = config.ghost_speed;
+            Ghosts[gi].strategy = config.strategies[gi];
+        }
+    }
     
     Player.akt_speed_ms = CampaignPlayerSpeedMs[diff - 1];
     Player.level = diff;
@@ -147,9 +69,9 @@ void pacman_apply_campaign_difficulty(uint32_t mode) {
 
 uint32_t pacman_hw_init(void);
 uint32_t pacman_play(void);
+
 void pacman_dec_mode_timer(void);
 void pacman_init(uint32_t mode);
-void pacman_set_level(void);
 
 //--------------------------------------------------------------
 // init and start endless pacman gameplay
@@ -160,7 +82,7 @@ void pacman_start(void) {
 
     Game.numberOfBots = 4;
     Game.play_type = GAME_PLAY_CAMPAIGN;
-    Game.ghost_active_mask = MOVE_BLINKY | MOVE_PINKY | MOVE_INKY | MOVE_CLYDE;
+    Game.ghost_active_mask = MOVE_GHOST_ALL;
     Game.player2_joy = GUI_JOY_NONE;
     Game.player2_active = 0;
     Game.campaign_coop = 0;
@@ -177,10 +99,7 @@ void pacman_start(void) {
 
     // Khởi tạo Player và ghost
     player_init(GAME_OVER);
-    blinky_init(GAME_OVER);
-    pinky_init(GAME_OVER);
-    inky_init(GAME_OVER);
-    clyde_init(GAME_OVER);
+    ghosts_init(GAME_OVER);
 
     menu_start();
 
@@ -266,10 +185,7 @@ void pacman_start(void) {
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
                     pacman_apply_custom_config(GAME_OVER);
                 } else {
-                    blinky_init(GAME_OVER);
-                    pinky_init(GAME_OVER);
-                    inky_init(GAME_OVER);
-                    clyde_init(GAME_OVER);
+                    ghosts_init(GAME_OVER);
                     pacman_apply_campaign_difficulty(GAME_OVER);
                 }
                 maze_build_map((Game.play_type == GAME_PLAY_CUSTOM) ? Game.custom.map_id : Game.campaign_map_id);
@@ -320,10 +236,7 @@ void pacman_start(void) {
             if (Game.play_type == GAME_PLAY_CUSTOM) {
                 pacman_apply_custom_config(check);
             } else {
-                blinky_init(check);
-                pinky_init(check);
-                inky_init(check);
-                clyde_init(check);
+                ghosts_init(check);
                 pacman_apply_campaign_difficulty(check);
             }
 
@@ -336,10 +249,7 @@ void pacman_start(void) {
                 if (Game.play_type == GAME_PLAY_CUSTOM) {
                     pacman_apply_custom_config(GAME_OVER);
                 } else {
-                    blinky_init(GAME_OVER);
-                    pinky_init(GAME_OVER);
-                    inky_init(GAME_OVER);
-                    clyde_init(GAME_OVER);
+                    ghosts_init(GAME_OVER);
                     pacman_apply_campaign_difficulty(GAME_OVER);
                 }
             }
@@ -389,25 +299,6 @@ void pacman_init(uint32_t mode) {
     Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
 }
 
-//--------------------------------------------------------------
-// init Level
-//--------------------------------------------------------------
-void pacman_set_level(void) {
-    if (Player.level <= GAME_MAX_LEVEL) {
-        Player.akt_speed_ms = Level[Player.level - 1].player_speed;
-        Blinky.akt_speed_ms = Level[Player.level - 1].blinky_speed;
-        Pinky.akt_speed_ms = Level[Player.level - 1].pinky_speed;
-        Inky.akt_speed_ms = Level[Player.level - 1].inky_speed;
-        Clyde.akt_speed_ms = Level[Player.level - 1].clyde_speed;
-    } else {
-        Player.akt_speed_ms = Level[GAME_MAX_LEVEL - 1].player_speed;
-        Blinky.akt_speed_ms = Level[GAME_MAX_LEVEL - 1].blinky_speed;
-        Pinky.akt_speed_ms = Level[GAME_MAX_LEVEL - 1].pinky_speed;
-        Inky.akt_speed_ms = Level[GAME_MAX_LEVEL - 1].inky_speed;
-        Clyde.akt_speed_ms = Level[GAME_MAX_LEVEL - 1].clyde_speed;
-    }
-}
-
 void pacman_apply_custom_config(uint32_t mode) {
     uint32_t speed_ms = GHOST_SPEED_NORMAL_MS;
     uint32_t player_speed_ms = PLAYER_SPEED_NORMAL_MS;
@@ -441,10 +332,7 @@ void pacman_apply_custom_config(uint32_t mode) {
             Game.ghost_active_mask |= MOVE_HUMAN_GHOST;
         }
         for (i = 0; i < ai_count; i++) {
-            if (i == 0) Game.ghost_active_mask |= MOVE_BLINKY;
-            if (i == 1) Game.ghost_active_mask |= MOVE_PINKY;
-            if (i == 2) Game.ghost_active_mask |= MOVE_INKY;
-            if (i == 3) Game.ghost_active_mask |= MOVE_CLYDE;
+            if (i < GHOST_MAX) Game.ghost_active_mask |= ghost_move_mask(i);
         }
     }
 
@@ -589,67 +477,26 @@ uint32_t pacman_play(void) {
         }
 
         //----------------------------------------
-        // Blinky Timer
+        // AI ghost timers
         //----------------------------------------
-        if (allow_ghost_move != 0 && Blinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
-            if (Blinky.status == GHOST_STATUS_ALIVE) {
-                if (Game.frightened == BOOL_FALSE) {
-                    Blinky_Systic_Timer_ms = Blinky.akt_speed_ms;
-                } else {
-                    Blinky_Systic_Timer_ms = Blinky.akt_speed_ms + Blinky.frightened_buf;
+        {
+            uint32_t gi;
+            for (gi = 0; gi < GHOST_MAX; gi++) {
+                uint32_t gmask = ghost_move_mask(gi);
+                if (allow_ghost_move != 0 && Ghost_Systick_Timer_ms[gi] == 0 &&
+                    (Game.ghost_active_mask & gmask) != 0) {
+                    if (Ghosts[gi].status == GHOST_STATUS_ALIVE) {
+                        if (Game.frightened == BOOL_FALSE) {
+                            Ghost_Systick_Timer_ms[gi] = Ghosts[gi].akt_speed_ms;
+                        } else {
+                            Ghost_Systick_Timer_ms[gi] = Ghosts[gi].akt_speed_ms + Ghosts[gi].frightened_buf;
+                        }
+                    } else {
+                        Ghost_Systick_Timer_ms[gi] = GHOST_DEAD_DELAY_MS;
+                    }
+                    movement |= gmask;
                 }
-            } else {
-                Blinky_Systic_Timer_ms = GHOST_DEAD_DELAY_MS;
             }
-            movement |= MOVE_BLINKY;
-        }
-
-        //----------------------------------------
-        // Pinky Timer
-        //----------------------------------------
-        if (allow_ghost_move != 0 && Pinky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
-            if (Pinky.status == GHOST_STATUS_ALIVE) {
-                if (Game.frightened == BOOL_FALSE) {
-                    Pinky_Systic_Timer_ms = Pinky.akt_speed_ms;
-                } else {
-                    Pinky_Systic_Timer_ms = Pinky.akt_speed_ms + Pinky.frightened_buf;
-                }
-            } else {
-                Pinky_Systic_Timer_ms = GHOST_DEAD_DELAY_MS;
-            }
-            movement |= MOVE_PINKY;
-        }
-
-        //----------------------------------------
-        // Inky Timer
-        //----------------------------------------
-        if (allow_ghost_move != 0 && Inky_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
-            if (Inky.status == GHOST_STATUS_ALIVE) {
-                if (Game.frightened == BOOL_FALSE) {
-                    Inky_Systic_Timer_ms = Inky.akt_speed_ms;
-                } else {
-                    Inky_Systic_Timer_ms = Inky.akt_speed_ms + Inky.frightened_buf;
-                }
-            } else {
-                Inky_Systic_Timer_ms = GHOST_DEAD_DELAY_MS;
-            }
-            movement |= MOVE_INKY;
-        }
-
-        //----------------------------------------
-        // Clyde Timer
-        //----------------------------------------
-        if (allow_ghost_move != 0 && Clyde_Systic_Timer_ms == 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
-            if (Clyde.status == GHOST_STATUS_ALIVE) {
-                if (Game.frightened == BOOL_FALSE) {
-                    Clyde_Systic_Timer_ms = Clyde.akt_speed_ms;
-                } else {
-                    Clyde_Systic_Timer_ms = Clyde.akt_speed_ms + Clyde.frightened_buf;
-                }
-            } else {
-                Clyde_Systic_Timer_ms = GHOST_DEAD_DELAY_MS;
-            }
-            movement |= MOVE_CLYDE;
         }
 
         if (allow_ghost_move != 0 && HumanGhost_Systic_Timer_ms == 0 &&
@@ -694,20 +541,14 @@ uint32_t pacman_play(void) {
             player2_change_direction(Game.player2_joy);
         }
 
-        if (allow_ghost_move != 0 && (movement & MOVE_BLINKY) != 0 && (Game.ghost_active_mask & MOVE_BLINKY) != 0) {
-            blinky_move();
-        }
-
-        if (allow_ghost_move != 0 && (movement & MOVE_PINKY) != 0 && (Game.ghost_active_mask & MOVE_PINKY) != 0) {
-            pinky_move();
-        }
-
-        if (allow_ghost_move != 0 && (movement & MOVE_INKY) != 0 && (Game.ghost_active_mask & MOVE_INKY) != 0) {
-            inky_move();
-        }
-
-        if (allow_ghost_move != 0 && (movement & MOVE_CLYDE) != 0 && (Game.ghost_active_mask & MOVE_CLYDE) != 0) {
-            clyde_move();
+        if (allow_ghost_move != 0) {
+            uint32_t gi;
+            for (gi = 0; gi < GHOST_MAX; gi++) {
+                uint32_t gmask = ghost_move_mask(gi);
+                if ((movement & gmask) != 0 && (Game.ghost_active_mask & gmask) != 0) {
+                    ghost_move(gi);
+                }
+            }
         }
 
         if (allow_ghost_move != 0 && (movement & MOVE_HUMAN_GHOST) != 0 &&
