@@ -1,6 +1,3 @@
-//--------------------------------------------------------------
-// Includes
-//--------------------------------------------------------------
 #include "maze_generate.h"
 
 void maze_generate_setonewallskin_outside(uint32_t x, uint32_t y, uint32_t r);

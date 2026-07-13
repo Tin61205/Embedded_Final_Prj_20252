@@ -15,6 +15,7 @@
 "./cmsis_lib/source/stm32f4xx_tim.o"
 "./cmsis_lib/source/stm32f4xx_usart.o"
 "./pacman_lib/bot.o"
+"./pacman_lib/bot_move.o"
 "./pacman_lib/ghost.o"
 "./pacman_lib/gui.o"
 "./pacman_lib/humanghost.o"

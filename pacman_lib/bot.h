@@ -165,6 +165,8 @@ extern Ghost_t HumanGhost;
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
+uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t akt_dir);
+uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
 uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_blinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_pinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
