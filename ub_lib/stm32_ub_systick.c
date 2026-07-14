@@ -10,10 +10,7 @@ uint32_t  Gui_Touch_Timer_ms;
 uint32_t  Mode_Systic_Timer_ms;
 uint32_t  Player_Systick_Timer_ms;
 uint32_t  Player2_Systick_Timer_ms;
-uint32_t  Blinky_Systic_Timer_ms;
-uint32_t  Pinky_Systic_Timer_ms;
-uint32_t  Inky_Systic_Timer_ms;
-uint32_t  Clyde_Systic_Timer_ms;
+uint32_t  Ghost_Systick_Timer_ms[4];
 uint32_t  HumanGhost_Systic_Timer_ms;
 uint32_t  UB_Game_Timers_Paused = 0;
 uint32_t  Player_Dying_Timer_ms = 0;
@@ -50,7 +47,12 @@ void UB_Systick_Init(void) {
   Player2_Systick_Timer_ms=0;
   UB_Game_Timers_Paused=0;
   Gui_Touch_Timer_ms=0;
-  Blinky_Systic_Timer_ms=0;
+  {
+    uint32_t i;
+    for (i = 0; i < 4; i++) {
+      Ghost_Systick_Timer_ms[i] = 0;
+    }
+  }
   HumanGhost_Systic_Timer_ms=0;
   Mode_Systic_Timer_ms=0;
   Player_Dying_Timer_ms=0;
@@ -175,20 +177,13 @@ void SysTick_Handler(void)
       Player2_Systick_Timer_ms--;
     }
 
-    if(Blinky_Systic_Timer_ms!=0) {
-      Blinky_Systic_Timer_ms--;
-    }
-
-    if(Pinky_Systic_Timer_ms!=0) {
-      Pinky_Systic_Timer_ms--;
-    }
-
-    if(Inky_Systic_Timer_ms!=0) {
-      Inky_Systic_Timer_ms--;
-    }
-
-    if(Clyde_Systic_Timer_ms!=0) {
-      Clyde_Systic_Timer_ms--;
+    {
+      uint32_t i;
+      for (i = 0; i < 4; i++) {
+        if (Ghost_Systick_Timer_ms[i] != 0) {
+          Ghost_Systick_Timer_ms[i]--;
+        }
+      }
     }
 
     if(HumanGhost_Systic_Timer_ms!=0) {

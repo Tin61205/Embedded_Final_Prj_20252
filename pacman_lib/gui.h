@@ -22,10 +22,7 @@
 #include "maze.h"
 #include "skin.h"
 #include "player.h"
-#include "blinky.h"
-#include "pinky.h"
-#include "inky.h"
-#include "clyde.h"
+#include "ghost.h"
 
 
 

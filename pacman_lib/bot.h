@@ -73,12 +73,13 @@ extern Player_t Player;
 extern Player_t Player2;
 
 //--------------------------------------------------------------
-// Ghosts
+// Ghosts: GHOST_MAX AI slots + optional human-controlled ghost
 //--------------------------------------------------------------
-#define GHOST_BLINKY 0
-#define GHOST_PINKY 1
-#define GHOST_INKY 2
-#define GHOST_CLYDE 3
+#define GHOST_MAX   4
+#define GHOST_0     0
+#define GHOST_1     1
+#define GHOST_2     2
+#define GHOST_3     3
 #define GHOST_HUMAN 4
 
 //--------------------------------------------------------------
@@ -92,21 +93,39 @@ extern Player_t Player2;
 #define GHOST_STATUS_DEAD 1
 
 //--------------------------------------------------------------
-// ghost strategies
+// Ghost personalities (type) — not tied to a fixed slot
 //--------------------------------------------------------------
-#define GHOST_STRATEGY_RANDOM 0
-#define GHOST_STRATEGY_BLINKY 1
-#define GHOST_STRATEGY_PINKY 2
-#define GHOST_STRATEGY_INKY 3
-#define GHOST_STRATEGY_CLYDE 4
-#define GHOST_STRATEGY_DRUNK 5
-#define GHOST_STRATEGY_LAZY 6
+#define GHOST_TYPE_RANDOM 0
+#define GHOST_TYPE_CHASE  1
+#define GHOST_TYPE_AMBUSH 2
+#define GHOST_TYPE_TRICKY 3
+#define GHOST_TYPE_SHY    4
+#define GHOST_TYPE_DRUNK  5
+#define GHOST_TYPE_LAZY   6
 
-#define GHOST_STRATEGY_COUNT 7
+#define GHOST_TYPE_COUNT  7
 
 /* Custom mode exposes the 6 playable personalities (Random is internal only). */
-#define GHOST_STRATEGY_CUSTOM_MIN  GHOST_STRATEGY_BLINKY
-#define GHOST_STRATEGY_CUSTOM_MAX  GHOST_STRATEGY_LAZY
+#define GHOST_TYPE_CUSTOM_MIN  GHOST_TYPE_CHASE
+#define GHOST_TYPE_CUSTOM_MAX  GHOST_TYPE_LAZY
+
+/* Legacy aliases (strategy naming) */
+#define GHOST_STRATEGY_RANDOM  GHOST_TYPE_RANDOM
+#define GHOST_STRATEGY_BLINKY  GHOST_TYPE_CHASE
+#define GHOST_STRATEGY_PINKY   GHOST_TYPE_AMBUSH
+#define GHOST_STRATEGY_INKY    GHOST_TYPE_TRICKY
+#define GHOST_STRATEGY_CLYDE   GHOST_TYPE_SHY
+#define GHOST_STRATEGY_DRUNK   GHOST_TYPE_DRUNK
+#define GHOST_STRATEGY_LAZY    GHOST_TYPE_LAZY
+#define GHOST_STRATEGY_COUNT   GHOST_TYPE_COUNT
+#define GHOST_STRATEGY_CUSTOM_MIN  GHOST_TYPE_CUSTOM_MIN
+#define GHOST_STRATEGY_CUSTOM_MAX  GHOST_TYPE_CUSTOM_MAX
+
+/* Legacy slot id aliases */
+#define GHOST_BLINKY GHOST_0
+#define GHOST_PINKY  GHOST_1
+#define GHOST_INKY   GHOST_2
+#define GHOST_CLYDE  GHOST_3
 
 #define GHOST_SPAWN_MIN_DIST 64
 
@@ -140,15 +159,14 @@ typedef struct {
 }
 Ghost_t;
 
-extern Ghost_t Blinky;
-extern Ghost_t Pinky;
-extern Ghost_t Inky;
-extern Ghost_t Clyde;
+extern Ghost_t Ghosts[GHOST_MAX];
 extern Ghost_t HumanGhost;
 
 //--------------------------------------------------------------
 // Globale Funktionen
 //--------------------------------------------------------------
+uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t akt_dir);
+uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
 uint32_t bot_calc_move_random(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_blinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_pinky(uint32_t xp, uint32_t yp, uint32_t akt_dir);

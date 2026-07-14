@@ -13,10 +13,9 @@
 // Includes
 //--------------------------------------------------------------
 #include "player.h"
+#include "ghost.h"
 #include <stdio.h>
 #include "stm32_ub_buzzer.h"
-
-extern Level_t Level[];
 
 static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, uint32_t mode, uint32_t owns_meta);
 static void player_entity_move(Player_t *p, void (*check_fn)(Player_t *));
@@ -67,11 +66,8 @@ static void player_entity_init(Player_t *p, uint32_t start_x, uint32_t start_y, 
         p->lives = PLAYER_START_LIVES;
     }
     if (owns_meta == 1) {
-        if (p->level <= GAME_MAX_LEVEL) {
-            p->akt_speed_ms = Level[p->level - 1].player_speed;
-        } else {
-            p->akt_speed_ms = Level[GAME_MAX_LEVEL - 1].player_speed;
-        }
+        /* Default; overwritten by pacman_apply_campaign_difficulty / pacman_apply_custom_config. */
+        p->akt_speed_ms = PLAYER_SPEED_NORMAL_MS;
         if ((mode == GAME_PLAYER_WIN) || (mode == GAME_OVER)) {
             p->point_dots = 0;
         }
@@ -276,17 +272,7 @@ static void player_entity_handle_ghost_hit(Player_t *p, Ghost_t *ghost) {
             }
         }
     } else {
-        uint32_t ghost_id = GHOST_BLINKY;
-        if (ghost == &Pinky) {
-            ghost_id = GHOST_PINKY;
-        } else if (ghost == &Inky) {
-            ghost_id = GHOST_INKY;
-        } else if (ghost == &Clyde) {
-            ghost_id = GHOST_CLYDE;
-        } else if (ghost == &HumanGhost) {
-            ghost_id = GHOST_HUMAN;
-        }
-        bot_ghost_eaten_by_pacman(ghost, ghost_id);
+        bot_ghost_eaten_by_pacman(ghost, ghost_id_from_ptr(ghost));
     }
 }
 
@@ -306,10 +292,14 @@ static void player_entity_check_event(Player_t *p) {
             Game.frightened = BOOL_TRUE;
             Game.frightened_timer = GAME_FRIGHTENED_TIME;
             Game.frightened_points = GAME_FRIGHTENED_START_POINTS;
-            if (Blinky.status == GHOST_STATUS_ALIVE) Blinky.new_mode = 1;
-            if (Pinky.status == GHOST_STATUS_ALIVE) Pinky.new_mode = 1;
-            if (Inky.status == GHOST_STATUS_ALIVE) Inky.new_mode = 1;
-            if (Clyde.status == GHOST_STATUS_ALIVE) Clyde.new_mode = 1;
+            {
+                uint32_t gi;
+                for (gi = 0; gi < GHOST_MAX; gi++) {
+                    if (Ghosts[gi].status == GHOST_STATUS_ALIVE) {
+                        Ghosts[gi].new_mode = 1;
+                    }
+                }
+            }
             if (bot_is_human_ghost_active() != 0 && HumanGhost.status == GHOST_STATUS_ALIVE) {
                 HumanGhost.new_mode = 1;
             }
@@ -317,10 +307,12 @@ static void player_entity_check_event(Player_t *p) {
         Maze.Room[xp][yp].points = ROOM_POINTS_NONE;
         Maze.Room[xp][yp].skin = ROOM_SKIN_POINTS_NONE;
         GUI.refresh_value = GUI_REFRESH_VALUE;
-        Blinky.dot_cnt++;
-        Pinky.dot_cnt++;
-        Inky.dot_cnt++;
-        Clyde.dot_cnt++;
+        {
+            uint32_t gi;
+            for (gi = 0; gi < GHOST_MAX; gi++) {
+                Ghosts[gi].dot_cnt++;
+            }
+        }
         if (bot_is_human_ghost_active() != 0) {
             HumanGhost.dot_cnt++;
         }
@@ -331,17 +323,14 @@ static void player_entity_check_event(Player_t *p) {
     }
 
     if (Game.collision == BOOL_TRUE) {
-        if (bot_ghost_can_harm_pacman(&Blinky, GHOST_BLINKY) != 0 && Blinky.xp == xp && Blinky.yp == yp) {
-            player_entity_handle_ghost_hit(p, &Blinky);
-        }
-        if (bot_ghost_can_harm_pacman(&Pinky, GHOST_PINKY) != 0 && Pinky.xp == xp && Pinky.yp == yp) {
-            player_entity_handle_ghost_hit(p, &Pinky);
-        }
-        if (bot_ghost_can_harm_pacman(&Inky, GHOST_INKY) != 0 && Inky.xp == xp && Inky.yp == yp) {
-            player_entity_handle_ghost_hit(p, &Inky);
-        }
-        if (bot_ghost_can_harm_pacman(&Clyde, GHOST_CLYDE) != 0 && Clyde.xp == xp && Clyde.yp == yp) {
-            player_entity_handle_ghost_hit(p, &Clyde);
+        {
+            uint32_t gi;
+            for (gi = 0; gi < GHOST_MAX; gi++) {
+                if (bot_ghost_can_harm_pacman(&Ghosts[gi], gi) != 0 &&
+                    Ghosts[gi].xp == xp && Ghosts[gi].yp == yp) {
+                    player_entity_handle_ghost_hit(p, &Ghosts[gi]);
+                }
+            }
         }
         if (bot_is_human_ghost_active() != 0 &&
             bot_ghost_can_harm_pacman(&HumanGhost, GHOST_HUMAN) != 0 &&
@@ -564,13 +553,11 @@ void player_check_collisions(void) {
 }
 
 static void player_check_entity_collision(Player_t *p) {
-    Ghost_t *ghosts[4] = { &Blinky, &Pinky, &Inky, &Clyde };
-    uint32_t active_ghost_mask[4] = { MOVE_BLINKY, MOVE_PINKY, MOVE_INKY, MOVE_CLYDE };
     int i;
 
-    for (i = 0; i < 4; i++) {
-        Ghost_t *g = ghosts[i];
-        if ((Game.ghost_active_mask & active_ghost_mask[i]) != 0 &&
+    for (i = 0; i < GHOST_MAX; i++) {
+        Ghost_t *g = &Ghosts[i];
+        if ((Game.ghost_active_mask & ghost_move_mask((uint32_t)i)) != 0 &&
             bot_ghost_can_harm_pacman(g, (uint32_t)i) != 0) {
             // Chỉ tính va chạm nếu khoảng cách tọa độ logic tối đa là 1 ô
             if (ABS((int32_t)p->xp - (int32_t)g->xp) > 1 || ABS((int32_t)p->yp - (int32_t)g->yp) > 1) {
