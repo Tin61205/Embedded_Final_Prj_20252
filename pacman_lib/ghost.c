@@ -1,44 +1,53 @@
-//--------------------------------------------------------------
-// Unified ghost entity: move / init for Ghosts[0..GHOST_MAX-1]
-//--------------------------------------------------------------
 #include "ghost.h"
 #include "pacman.h"
 #include "gui.h"
 #include "humanghost.h"
 
+// Khai báo các hàm static nội bộ
 static void ghost_change_skin(Ghost_t *g, uint32_t direction);
 static void ghost_check_event(Ghost_t *g, uint32_t id);
 static void ghost_calc_next_move(Ghost_t *g, uint32_t id);
 
+// Tọa độ X bắt đầu của các Ghost
 static const uint8_t GhostStartX[GHOST_MAX] = {
     GHOST_START_X0, GHOST_START_X1, GHOST_START_X2, GHOST_START_X3
 };
+// Tọa độ Y bắt đầu của các Ghost
 static const uint8_t GhostStartY[GHOST_MAX] = {
     GHOST_START_Y0, GHOST_START_Y1, GHOST_START_Y2, GHOST_START_Y3
 };
+// Tọa độ X nhà của các Ghost
 static const uint8_t GhostHomeX[GHOST_MAX] = {
     GHOST_HOME_X0, GHOST_HOME_X1, GHOST_HOME_X2, GHOST_HOME_X3
 };
+// Tọa độ Y nhà của các Ghost
 static const uint8_t GhostHomeY[GHOST_MAX] = {
     GHOST_HOME_Y0, GHOST_HOME_Y1, GHOST_HOME_Y2, GHOST_HOME_Y3
 };
+// Tọa độ X khi phân tán (scatter)
 static const uint8_t GhostScatterX[GHOST_MAX] = {
     GHOST_SCATTER_X0, GHOST_SCATTER_X1, GHOST_SCATTER_X2, GHOST_SCATTER_X3
 };
+// Tọa độ Y khi phân tán (scatter)
 static const uint8_t GhostScatterY[GHOST_MAX] = {
     GHOST_SCATTER_Y0, GHOST_SCATTER_Y1, GHOST_SCATTER_Y2, GHOST_SCATTER_Y3
 };
-/* Slot 0 starts outside house; 1..3 start inside with pixel offset. */
+// Độ lệch trục X trong nhà (Ghost 0 ở ngoài, Ghost 1..3 ở trong)
 static const int8_t GhostHomeDeltaX[GHOST_MAX] = { 0, GHOST_HOME_X_DIFF, GHOST_HOME_X_DIFF, GHOST_HOME_X_DIFF };
+// Độ lệch trục Y trong nhà (Ghost 0 ở ngoài, Ghost 1..3 ở trong)
 static const int8_t GhostHomeDeltaY[GHOST_MAX] = { 0, GHOST_HOME_Y_DIFF, GHOST_HOME_Y_DIFF, GHOST_HOME_Y_DIFF };
+// Hướng di chuyển ban đầu của các Ghost
 static const uint8_t GhostInitDir[GHOST_MAX] = { MOVE_LEFT, MOVE_UP, MOVE_RIGHT, MOVE_LEFT };
+// Skin ban đầu tương ứng của các Ghost
 static const uint8_t GhostInitSkin[GHOST_MAX] = {
     GHOST_SKIN_LEFT1, GHOST_SKIN_UP1, GHOST_SKIN_RIGHT1, GHOST_SKIN_LEFT1
 };
+// Chiến thuật di chuyển mặc định của các Ghost
 static const uint8_t GhostDefaultType[GHOST_MAX] = {
     GHOST_TYPE_CHASE, GHOST_TYPE_AMBUSH, GHOST_TYPE_TRICKY, GHOST_TYPE_SHY
 };
 
+// Trả về bitmask di chuyển tương ứng của Ghost dựa trên ID
 uint32_t ghost_move_mask(uint32_t id) {
     if (id >= GHOST_MAX) {
         return 0;
@@ -46,6 +55,7 @@ uint32_t ghost_move_mask(uint32_t id) {
     return (1u << (id + 1)); /* MOVE_GHOST0 = 0x02 */
 }
 
+// Lấy số lượng dot tối đa Ghost cần ăn trước khi được rời nhà
 uint32_t ghost_dot_cnt_max(uint32_t id) {
     (void)id;
     if (id == GHOST_HUMAN) {
@@ -54,6 +64,7 @@ uint32_t ghost_dot_cnt_max(uint32_t id) {
     return GHOST_DOT_CNT_MAX_DEFAULT;
 }
 
+// Lấy tọa độ nhà của Ghost theo ID
 void ghosts_get_home(uint32_t id, uint32_t *hx, uint32_t *hy) {
     if (id < GHOST_MAX) {
         *hx = GhostHomeX[id];
@@ -64,6 +75,7 @@ void ghosts_get_home(uint32_t id, uint32_t *hx, uint32_t *hy) {
     }
 }
 
+// Lấy tọa độ góc phân tán (scatter) của Ghost theo ID
 void ghosts_get_scatter(uint32_t id, uint32_t *sx, uint32_t *sy) {
     if (id < GHOST_MAX) {
         *sx = GhostScatterX[id];
@@ -74,6 +86,7 @@ void ghosts_get_scatter(uint32_t id, uint32_t *sx, uint32_t *sy) {
     }
 }
 
+// Tìm ID Ghost dựa vào địa chỉ con trỏ đối tượng
 uint32_t ghost_id_from_ptr(const Ghost_t *ghost) {
     uint32_t i;
 
@@ -91,10 +104,7 @@ uint32_t ghost_id_from_ptr(const Ghost_t *ghost) {
     return 0;
 }
 
-//--------------------------------------------------------------
-// Reset all AI ghost slots (position/state). Personality/speed
-// are applied afterwards by campaign/custom config.
-//--------------------------------------------------------------
+// Khởi tạo và reset trạng thái ban đầu cho toàn bộ Ghost
 void ghosts_init(uint32_t mode) {
     uint32_t i;
 
@@ -121,6 +131,7 @@ void ghosts_init(uint32_t mode) {
     }
 }
 
+// Di chuyển Ghost từng pixel và xử lý logic đi qua cổng dịch chuyển (portal)
 void ghost_move(uint32_t id) {
     Ghost_t *g;
 
@@ -129,13 +140,16 @@ void ghost_move(uint32_t id) {
     }
     g = &Ghosts[id];
 
+    // DEAD: inactive / not in play (eaten ghosts use instant revive at home)
     if (g->status == GHOST_STATUS_DEAD) {
-        bot_ghost_try_revive(g, id);
+        return;
     }
-    if (g->status == GHOST_STATUS_ALIVE && g->dot_cnt < ghost_dot_cnt_max(id)) {
+    // Chưa ăn đủ số dot yêu cầu thì chưa được di chuyển
+    if (g->dot_cnt < ghost_dot_cnt_max(id)) {
         return;
     }
 
+    // Xử lý khi Ghost bị đứng yên
     if (g->move == MOVE_STOP) {
         bot_ghost_unstick(g, id);
     }
@@ -143,6 +157,7 @@ void ghost_move(uint32_t id) {
         return;
     }
 
+    // Xử lý di chuyển theo hướng Lên
     if (g->move == MOVE_UP) {
         g->delta_y--;
         ghost_change_skin(g, MOVE_UP);
@@ -164,6 +179,7 @@ void ghost_move(uint32_t id) {
             g->move = g->next_move;
             ghost_calc_next_move(g, id);
         }
+    // Xử lý di chuyển theo hướng Phải
     } else if (g->move == MOVE_RIGHT) {
         g->delta_x++;
         ghost_change_skin(g, MOVE_RIGHT);
@@ -185,6 +201,7 @@ void ghost_move(uint32_t id) {
             g->move = g->next_move;
             ghost_calc_next_move(g, id);
         }
+    // Xử lý di chuyển theo hướng Xuống
     } else if (g->move == MOVE_DOWN) {
         g->delta_y++;
         ghost_change_skin(g, MOVE_DOWN);
@@ -206,6 +223,7 @@ void ghost_move(uint32_t id) {
             g->move = g->next_move;
             ghost_calc_next_move(g, id);
         }
+    // Xử lý di chuyển theo hướng Trái
     } else if (g->move == MOVE_LEFT) {
         g->delta_x--;
         ghost_change_skin(g, MOVE_LEFT);
@@ -232,6 +250,7 @@ void ghost_move(uint32_t id) {
     }
 }
 
+// Cập nhật skin hoạt ảnh của Ghost dựa trên hướng đi và trạng thái (sợ hãi/bị ăn)
 static void ghost_change_skin(Ghost_t *g, uint32_t direction) {
     g->skin_cnt++;
     if (g->skin_cnt > 7) {
@@ -253,6 +272,7 @@ static void ghost_change_skin(Ghost_t *g, uint32_t direction) {
         g->skin = (g->skin_cnt < 4) ? GHOST_SKIN_LEFT2 : GHOST_SKIN_LEFT1;
     }
 
+    // Xử lý skin nhấp nháy khi Ghost ở trạng thái bị sợ hãi (Frightened)
     if (Game.frightened == BOOL_TRUE) {
         if (Game.frightened_timer > GAME_FRIGHTENED_BLINK) {
             g->skin = GHOST_SKIN_FRIGHTEN1;
@@ -262,12 +282,14 @@ static void ghost_change_skin(Ghost_t *g, uint32_t direction) {
     }
 }
 
+// Kiểm tra sự kiện: sửa vị trí lỗi, kiểm tra va chạm Pacman
 static void ghost_check_event(Ghost_t *g, uint32_t id) {
+    (void)id;
     bot_ghost_validate_position(g);
     bot_ghost_hit_pacman(g->xp, g->yp, g);
-    bot_ghost_try_revive(g, id);
 }
 
+// Tính toán nước đi tiếp theo của Ghost tại các ngã rẽ dựa trên trạng thái hiện tại
 static void ghost_calc_next_move(Ghost_t *g, uint32_t id) {
     uint32_t door_cnt = 0;
     uint32_t xp, yp;
@@ -284,15 +306,13 @@ static void ghost_calc_next_move(Ghost_t *g, uint32_t id) {
     if (g->move == MOVE_DOWN) yp++;
     if (g->move == MOVE_LEFT) xp--;
 
+    // Đếm số lượng hướng đi khả thi xung quanh ô tiếp theo
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) door_cnt++;
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_R) != 0) door_cnt++;
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) door_cnt++;
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) door_cnt++;
 
-    if ((g->status == GHOST_STATUS_DEAD) && (Maze.Room[xp][yp].special == ROOM_SPEC_GATE)) {
-        door_cnt = 2;
-    }
-
+    // Quay ngược hướng khi có thay đổi chế độ ở ngã rẽ
     if (door_cnt > 1 && g->new_mode == 1) {
         g->new_mode = 0;
         if (g->move == MOVE_UP) g->next_move = MOVE_DOWN;
@@ -302,20 +322,18 @@ static void ghost_calc_next_move(Ghost_t *g, uint32_t id) {
         return;
     }
 
-    if (g->status == GHOST_STATUS_DEAD) {
-        g->next_move = bot_calc_move_dead(id, xp, yp, g->move);
-        return;
-    }
-
+    // Chọn nước đi tùy theo số lượng lối thoát khả dụng
     if (door_cnt == 0) {
         g->next_move = MOVE_STOP;
     } else if (door_cnt == 1) {
         g->next_move = bot_calc_only_exit(xp, yp);
     } else {
+        // Nếu bị sợ hãi thì di chuyển ngẫu nhiên
         if (Game.frightened == BOOL_TRUE) {
             g->next_move = bot_calc_move_random(xp, yp, g->move);
             return;
         }
+        // Di chuyển theo chiến thuật (chase, ambush, v.v.)
         g->next_move = bot_calc_move_by_strategy(id, g->strategy, xp, yp, g->move);
     }
 }
