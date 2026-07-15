@@ -28,7 +28,6 @@
 // Thời gian chế độ game (đơn vị: 100ms)
 //--------------------------------------------------------------
 #define GAME_MODE_TIMER      100 /**< Chu kỳ timer cơ sở (100ms) */
-#define GAME_SCATTER_TIME    70  /**< Thời gian Scatter (phân tán): 7 giây */
 #define GAME_CHASE_TIME      200 /**< Thời gian Chase (đuổi bắt): 20 giây */
 #define GAME_FRIGHTENED_TIME 60  /**< Thời gian Frightened (hoảng sợ): 6 giây */
 #define GAME_FRIGHTENED_BLINK 20  /**< Thời gian nhấp nháy báo hết hoảng sợ: 2 giây */
@@ -80,7 +79,6 @@
 //--------------------------------------------------------------
 // Lựa chọn chế độ và cấu hình
 //--------------------------------------------------------------
-#define GAME_MODE_SCATTER 0 /**< Chế độ phân tán (ghost về góc) */
 #define GAME_MODE_CHASE   1 /**< Chế độ đuổi bắt (ghost đuổi pacman) */
 
 #define GAME_PLAY_CAMPAIGN 0 /**< Chế độ chơi chiến dịch */
@@ -130,7 +128,7 @@ CampaignDifficulty_t;
 typedef struct {
     uint32_t collision;                           /**< Trạng thái va chạm */
     uint32_t controller;                          /**< Bộ điều khiển được dùng (Cảm ứng/Nút nhấn) */
-    uint32_t mode;                                /**< Chế độ hoạt động hiện tại (Scatter/Chase) */
+    uint32_t mode;                                /**< Chế độ hoạt động hiện tại (Chase) */
     uint32_t mode_timer;                          /**< Bộ đếm thời gian chế độ hiện tại */
     uint32_t frightened;                          /**< Trạng thái hoảng sợ của ghost */
     uint32_t frightened_timer;                    /**< Thời gian còn lại của hoảng sợ */

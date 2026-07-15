@@ -24,14 +24,6 @@ static const uint8_t GhostHomeX[GHOST_MAX] = {
 static const uint8_t GhostHomeY[GHOST_MAX] = {
     GHOST_HOME_Y0, GHOST_HOME_Y1, GHOST_HOME_Y2, GHOST_HOME_Y3
 };
-// Tọa độ X khi phân tán (scatter)
-static const uint8_t GhostScatterX[GHOST_MAX] = {
-    GHOST_SCATTER_X0, GHOST_SCATTER_X1, GHOST_SCATTER_X2, GHOST_SCATTER_X3
-};
-// Tọa độ Y khi phân tán (scatter)
-static const uint8_t GhostScatterY[GHOST_MAX] = {
-    GHOST_SCATTER_Y0, GHOST_SCATTER_Y1, GHOST_SCATTER_Y2, GHOST_SCATTER_Y3
-};
 // Độ lệch trục X trong nhà (Ghost 0 ở ngoài, Ghost 1..3 ở trong)
 static const int8_t GhostHomeDeltaX[GHOST_MAX] = { 0, GHOST_HOME_X_DIFF, GHOST_HOME_X_DIFF, GHOST_HOME_X_DIFF };
 // Độ lệch trục Y trong nhà (Ghost 0 ở ngoài, Ghost 1..3 ở trong)
@@ -75,15 +67,10 @@ void ghosts_get_home(uint32_t id, uint32_t *hx, uint32_t *hy) {
     }
 }
 
-// Lấy tọa độ góc phân tán (scatter) của Ghost theo ID
-void ghosts_get_scatter(uint32_t id, uint32_t *sx, uint32_t *sy) {
-    if (id < GHOST_MAX) {
-        *sx = GhostScatterX[id];
-        *sy = GhostScatterY[id];
-    } else {
-        *sx = 0;
-        *sy = 0;
-    }
+// Lấy tọa độ góc scatter cố định của Shy (Clyde)
+void ghosts_get_scatter(uint32_t *sx, uint32_t *sy) {
+    *sx = GHOST_SCATTER_X;
+    *sy = GHOST_SCATTER_Y;
 }
 
 // Tìm ID Ghost dựa vào địa chỉ con trỏ đối tượng

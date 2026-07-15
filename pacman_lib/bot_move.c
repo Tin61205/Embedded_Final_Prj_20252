@@ -179,14 +179,14 @@ uint32_t bot_calc_move_inky(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
 }
 
 //--------------------------------------------------------------
-// bot strategy : clyde
+// bot strategy : clyde / shy
 //                 if the distance to the player is large enough
 //                 set the player as target and chase him
-//                 else set the scatter point as target
+//                 else flee toward the fixed Shy scatter corner
 //
 //                 (but don't go backwards to avoid toggling)
 //--------------------------------------------------------------
-uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+uint32_t bot_calc_move_clyde(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
     uint32_t d_clyde = INIT_DISTANCE;
@@ -199,24 +199,23 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
         // player is far away (more than 8 Rooms) -> chase him directly
         ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
     } else {
-        // player is nearby -> shy flee to home corner
-        ret_wert = bot_calc_move_scatter(ghost, xp, yp, akt_dir);
+        // player is nearby -> shy flee to scatter corner
+        ret_wert = bot_calc_move_scatter(xp, yp, akt_dir);
     }
 
     return (ret_wert);
 }
 
 //--------------------------------------------------------------
-// bot strategy : scatter
-//                 move to the room with the shortest distance
-//                 to the scatter point
+// bot strategy : scatter (Shy only)
+//                 move toward the fixed Shy scatter corner
 //                 (but don't go backwards to avoid toggling)
 //--------------------------------------------------------------
-uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+uint32_t bot_calc_move_scatter(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t txp, typ;
 
-    ghosts_get_scatter(ghost, &txp, &typ);
+    ghosts_get_scatter(&txp, &typ);
     ret_wert = bot_calc_move(xp, yp, txp, typ, akt_dir);
 
     return (ret_wert);
@@ -246,6 +245,8 @@ uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir) {
 // resolve ghost personality to movement
 //--------------------------------------------------------------
 uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir) {
+    (void)ghost; /* reserved; Shy scatter is a fixed corner, not per-slot */
+
     if (strategy == GHOST_TYPE_RANDOM || strategy == GHOST_TYPE_DRUNK) {
         return bot_calc_move_random(xp, yp, akt_dir);
     }
@@ -261,7 +262,7 @@ uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t x
     if (strategy == GHOST_TYPE_TRICKY) {
         return bot_calc_move_inky(xp, yp, akt_dir);
     }
-    return bot_calc_move_clyde(ghost, xp, yp, akt_dir);
+    return bot_calc_move_clyde(xp, yp, akt_dir);
 }
 
 //--------------------------------------------------------------
