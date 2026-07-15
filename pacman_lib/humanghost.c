@@ -37,6 +37,11 @@ static void humanghost_stop_here(void) {
 static uint32_t last_moving_dir = MOVE_LEFT;
 
 void humanghost_move(void) {
+    // DEAD: inactive (eaten human ghost uses instant revive at spawn)
+    if (HumanGhost.status == GHOST_STATUS_DEAD) {
+        return;
+    }
+
     if (HumanGhost.move != MOVE_STOP) {
         last_moving_dir = HumanGhost.move;
     }
@@ -209,7 +214,6 @@ void humanghost_change_skin(uint32_t direction) {
 void humanghost_check_event(void) {
     bot_ghost_validate_position(&HumanGhost);
     bot_ghost_hit_pacman(HumanGhost.xp, HumanGhost.yp, &HumanGhost);
-    bot_ghost_try_revive(&HumanGhost, GHOST_HUMAN);
 }
 
 void humanghost_calc_next_move(void) {
@@ -232,22 +236,12 @@ void humanghost_calc_next_move(void) {
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_D) != 0) door_cnt++;
     if ((Maze.Room[xp][yp].door & ROOM_DOOR_L) != 0) door_cnt++;
 
-    if ((HumanGhost.status == GHOST_STATUS_DEAD) && (Maze.Room[xp][yp].special == ROOM_SPEC_GATE)) {
-        // when dead and on a gate ignore the door count
-        door_cnt = 2;
-    }
-
     if (door_cnt > 1 && HumanGhost.new_mode == 1) {
         HumanGhost.new_mode = 0;
         if (HumanGhost.move == MOVE_UP) HumanGhost.next_move = MOVE_DOWN;
         if (HumanGhost.move == MOVE_RIGHT) HumanGhost.next_move = MOVE_LEFT;
         if (HumanGhost.move == MOVE_DOWN) HumanGhost.next_move = MOVE_UP;
         if (HumanGhost.move == MOVE_LEFT) HumanGhost.next_move = MOVE_RIGHT;
-        return;
-    }
-
-    if (HumanGhost.status == GHOST_STATUS_DEAD) {
-        HumanGhost.next_move = bot_calc_move_dead(GHOST_HUMAN, xp, yp, HumanGhost.move);
         return;
     }
 

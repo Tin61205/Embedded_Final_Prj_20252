@@ -15,7 +15,7 @@
 #include "ghost.h"
 #include "humanghost.h"
 
-// Global variable definitions (declared extern in header)
+// Định nghĩa các biến toàn cục (đã được khai báo extern trong header)
 Player_t Player;
 Player_t Player2;
 Ghost_t Ghosts[GHOST_MAX];
@@ -25,9 +25,6 @@ static uint32_t Ghost_Spawn_X[4];
 static uint32_t Ghost_Spawn_Y[4];
 static uint32_t HumanGhost_Spawn_X;
 static uint32_t HumanGhost_Spawn_Y;
-/* Set by bot_move when a dead ghost returns home (avoid portal loops). */
-uint32_t bot_avoid_portal = 0;
-
 static uint32_t bot_ghost_skin_for_dir(uint32_t dir);
 static uint32_t bot_ghost_dot_cnt_max(uint32_t ghost_id);
 
@@ -38,6 +35,8 @@ uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
 //--------------------------------------------------------------
 // Mode / multiplayer helpers
 //--------------------------------------------------------------
+
+// Kiểm tra xem game có đang ở chế độ co-op 2 người chơi hay không
 uint32_t bot_is_2p_coop(void) {
     if (Game.play_type == GAME_PLAY_CUSTOM) {
         return (Game.custom.player_count == CUSTOM_PLAYER_2 &&
@@ -49,12 +48,14 @@ uint32_t bot_is_2p_coop(void) {
     return 0;
 }
 
+// Kiểm tra xem game có đang ở chế độ 2 người chơi đấu Ghost (P1 Pacman vs P2 Ghost) hay không
 uint32_t bot_is_2p_vs_ghost(void) {
     return (Game.play_type == GAME_PLAY_CUSTOM &&
             Game.custom.player_count == CUSTOM_PLAYER_2 &&
             Game.custom.two_player_mode == CUSTOM_2P_VS_GHOST) ? 1 : 0;
 }
 
+// Lấy số lượng AI Ghost (không bao gồm Ghost do người chơi điều khiển)
 uint32_t bot_custom_ai_ghost_count(void) {
     if (bot_is_2p_vs_ghost()) {
         return (Game.custom.ghost_count > 0) ? (Game.custom.ghost_count - 1) : 0;
@@ -62,14 +63,17 @@ uint32_t bot_custom_ai_ghost_count(void) {
     return Game.custom.ghost_count;
 }
 
+// Kiểm tra xem Ghost ID đó có phải do người chơi điều khiển hay không
 uint32_t bot_is_player_controlled_ghost(uint32_t ghost_id) {
     return (bot_is_2p_vs_ghost() && ghost_id == GHOST_HUMAN) ? 1 : 0;
 }
 
+// Kiểm tra xem Ghost người chơi điều khiển có đang hoạt động không
 uint32_t bot_is_human_ghost_active(void) {
     return bot_is_2p_vs_ghost() ? 1 : 0;
 }
 
+// Kiểm tra xem Ghost có thể rẽ theo hướng đi chỉ định tại tọa độ hiện tại không
 uint32_t bot_ghost_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
     if (dir == MOVE_UP) {
         return (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 1)) ? 1 : 0;
@@ -86,6 +90,7 @@ uint32_t bot_ghost_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
     return 0;
 }
 
+// Kiểm tra xem Ghost có được phép di chuyển dựa trên trạng thái của Pacman hay không
 uint32_t bot_should_allow_ghost_move(void) {
     if (bot_is_2p_coop()) {
         return (Player.status == PLAYER_STATUS_ALIVE ||
@@ -99,6 +104,7 @@ uint32_t bot_should_allow_ghost_move(void) {
             Player.status == PLAYER_STATUS_DYING) ? 1 : 0;
 }
 
+// Tính toán hướng di chuyển tiếp theo cho Human Ghost dựa trên input Joystick
 uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, uint32_t joy) {
     if (joy == GUI_JOY_UP && (akt_dir != MOVE_DOWN) && bot_ghost_can_turn(xp, yp, MOVE_UP)) {
         return MOVE_UP;
@@ -129,6 +135,7 @@ uint32_t bot_calc_move_player_ghost(uint32_t xp, uint32_t yp, uint32_t akt_dir, 
     return MOVE_STOP;
 }
 
+// Áp dụng trực tiếp Joystick điều khiển cho Human Ghost bao gồm cả quay đầu tự do
 void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     uint32_t xp;
     uint32_t yp;
@@ -293,8 +300,6 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     if (joy == GUI_JOY_UP) {
         if (ghost->move == MOVE_UP) return;
         if (ghost->port != PORT_DONE) return;
-        /* Reverse is free only after leaving cell center; at rest require open door
-         * so spawn reverse into a wall cannot trap the human ghost. */
         if (ghost->move == MOVE_DOWN) {
             if (ghost->delta_y != 0 || bot_ghost_can_turn(xp, yp, MOVE_UP) != 0) {
                 ghost->move = MOVE_UP;
@@ -367,12 +372,14 @@ void bot_apply_player_ghost_input(Ghost_t *ghost, uint32_t joy) {
     }
 }
 
+// Lấy tọa độ (X, Y) của người chơi gần nhất với vị trí (xp, yp)
 void bot_get_nearest_player(uint32_t xp, uint32_t yp, uint32_t *txp, uint32_t *typ) {
     Player_t *target = bot_get_nearest_player_ptr(xp, yp);
     *txp = target->xp;
     *typ = target->yp;
 }
 
+// Lấy con trỏ đối tượng người chơi còn sống gần nhất với vị trí (xp, yp)
 Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
     uint32_t p1_alive = (Player.status == PLAYER_STATUS_ALIVE) ? 1 : 0;
     uint32_t p2_alive = (Game.player2_active != 0 && Player2.status == PLAYER_STATUS_ALIVE) ? 1 : 0;
@@ -394,6 +401,7 @@ Player_t* bot_get_nearest_player_ptr(uint32_t xp, uint32_t yp) {
     return &Player;
 }
 
+// Tìm vị trí hồi sinh an toàn nhất cho người chơi (cách xa các Ghost nhất có thể)
 void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn_x, uint32_t *respawn_y) {
     uint32_t best_x = start_x;
     uint32_t best_y = start_y;
@@ -432,6 +440,7 @@ void bot_find_safe_respawn(uint32_t start_x, uint32_t start_y, uint32_t *respawn
     *respawn_y = best_y;
 }
 
+// Xử lý sự kiện Pacman bị tiêu diệt: giảm mạng, chạy âm thanh và hồi sinh tại vị trí an toàn
 void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
     extern uint32_t Player_Dying_Timer_ms;
     extern uint32_t Player2_Dying_Timer_ms;
@@ -460,7 +469,6 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
         UB_Buzzer_Play_Die_NonBlocking();
     } else {
         // --- CHẾ ĐỘ 1 NGƯỜI CHƠI (BLOCKING NHƯ CŨ) ---
-        // Play death sound (blocking tone sequence)
         UB_Buzzer_Play_Die();
 
         if (p->lives > 0) {
@@ -482,7 +490,6 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
             p->port = PORT_DONE;
             p->status = PLAYER_STATUS_ALIVE;
 
-            // Vẽ lại toàn bộ mê cung và đồng bộ 2 layer LCD để xóa hoàn toàn sprite cũ ở vị trí chết
             extern void gui_draw_maze(void);
             extern void gui_draw_bots(void);
             extern void UB_LCD_Copy_Layer2_to_Layer1(void);
@@ -497,10 +504,12 @@ void bot_kill_pacman(Player_t *p, uint32_t start_x, uint32_t start_y) {
     }
 }
 
+// Xử lý tiêu diệt Pacman 1
 void bot_team_kill_pacman(void) {
     bot_kill_pacman(&Player, PLAYER_START_X, PLAYER_START_Y);
 }
 
+// Kiểm tra xem game có kết thúc trong chế độ co-op hay không (khi cả 2 người chơi hết mạng)
 uint32_t bot_coop_is_game_over(void) {
     if (bot_is_2p_coop()) {
         return (Player.lives == 0 && Player2.lives == 0) ? 1 : 0;
@@ -511,6 +520,7 @@ uint32_t bot_coop_is_game_over(void) {
     return 0;
 }
 
+// Thiết lập trạng thái chiến thắng (Win) cho người chơi
 void bot_team_win_pacman(void) {
     Player.status = PLAYER_STATUS_WIN;
     if (bot_is_2p_coop() && Player2.status == PLAYER_STATUS_ALIVE) {
@@ -519,6 +529,7 @@ void bot_team_win_pacman(void) {
     GUI.refresh_value = GUI_REFRESH_VALUE;
 }
 
+// Xử lý khi Ghost bị Pacman ăn: chuyển về nhà, cộng điểm số và tăng điểm thưởng chuỗi
 void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     uint32_t pts;
     extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
@@ -526,8 +537,6 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     if (ghost == 0 || Game.frightened == BOOL_FALSE) {
         return;
     }
-    /* Refuse if already eaten this cycle (e.g. revived in house/gate,
-     * or human-ghost eat invulnerability still active). */
     if (bot_ghost_can_harm_pacman(ghost, ghost_id) == 0) {
         return;
     }
@@ -535,13 +544,10 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     pts = Game.frightened_points;
     bot_ghost_instant_revive(ghost, ghost_id);
 
-    /* Player-controlled ghost revives immediately on path (spawn/same area)
-     * while still ALIVE — without invuln, pixel collision re-eats every frame. */
     if (ghost_id == GHOST_HUMAN) {
         HumanGhost_Eat_Invuln_Timer_ms = HUMAN_GHOST_EAT_INVULN_MS;
     }
 
-    /* Chain in one frightened phase: 300 → 600 → 900 → ... */
     if (Player.score > (0xFFFFFFFFu - pts)) {
         Player.score = 0xFFFFFFFFu;
     } else {
@@ -554,6 +560,7 @@ void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     GUI.refresh_value = GUI_REFRESH_VALUE;
 }
 
+// Kiểm tra và xử lý va chạm giữa một Ghost cụ thể và các Pacman
 void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
     uint32_t ghost_id = ghost_id_from_ptr(ghost);
 
@@ -581,6 +588,7 @@ void bot_ghost_hit_pacman(uint32_t gxp, uint32_t gyp, Ghost_t *ghost) {
     }
 }
 
+// Lấy mã màu sắc cơ thể của Ghost theo ID hoặc theo chiến thuật di chuyển
 uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint16_t *color) {
     if (color == 0 || ghost == 0) {
         return 0;
@@ -614,6 +622,7 @@ uint32_t bot_ghost_get_body_color(uint32_t ghost_id, const Ghost_t *ghost, uint1
     return 1;
 }
 
+// Kiểm tra xem Pacman có thể rẽ theo hướng đi mong muốn tại tọa độ nhất định hay không
 uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
     if (dir == MOVE_UP) {
         return (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 0)) ? 1 : 0;
@@ -630,9 +639,9 @@ uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir) {
     return 0;
 }
 
+// Xác thực và điều chỉnh lại vị trí của Ghost nếu bị rơi vào tường do các lỗi dịch chuyển
 void bot_ghost_validate_position(Ghost_t *ghost) {
     if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
-        /* Human ghost can reverse into a wall at spawn; snap back so input works again. */
         if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
             if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
                 ghost->xp = HumanGhost_Spawn_X;
@@ -646,6 +655,7 @@ void bot_ghost_validate_position(Ghost_t *ghost) {
     }
 }
 
+// Tìm hướng đi mới khi Ghost bị kẹt (không thể di chuyển)
 void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
     if (ghost->move != MOVE_STOP) {
         return;
@@ -654,7 +664,6 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
         if (ghost == &HumanGhost && bot_is_human_ghost_active() != 0) {
             uint32_t dir;
 
-            /* If still on a non-path cell, snap to spawn first. */
             if (!bot_is_walkable(ghost->xp, ghost->yp, 1)) {
                 if (bot_is_walkable(HumanGhost_Spawn_X, HumanGhost_Spawn_Y, 1)) {
                     ghost->xp = HumanGhost_Spawn_X;
@@ -664,7 +673,6 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
                 ghost->delta_y = 0;
             }
 
-            /* Honor current stick direction if open; do not AI-drive the human ghost. */
             dir = bot_calc_move_player_ghost(ghost->xp, ghost->yp, MOVE_STOP, Game.player2_joy);
             if (dir != MOVE_STOP) {
                 ghost->move = dir;
@@ -682,80 +690,9 @@ void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id) {
         ghost->move = ghost->next_move;
         return;
     }
-    if (ghost->status == GHOST_STATUS_DEAD) {
-        bot_ghost_try_revive(ghost, ghost_id);
-        if (ghost->status == GHOST_STATUS_ALIVE) {
-            return;
-        }
-        ghost->next_move = bot_calc_move_dead(ghost_id, ghost->xp, ghost->yp, MOVE_STOP);
-        ghost->move = ghost->next_move;
-        bot_ghost_try_revive(ghost, ghost_id);
-    }
 }
 
-void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id) {
-    uint32_t hx;
-    uint32_t hy;
-
-    if (ghost->status != GHOST_STATUS_DEAD) {
-        return;
-    }
-
-    if (Game.play_type == GAME_PLAY_CUSTOM && ghost_id == GHOST_HUMAN) {
-        hx = 14;
-        hy = 14;
-        if (ghost->xp != hx || ghost->yp != hy) {
-            return;
-        }
-
-        ghost->status = GHOST_STATUS_ALIVE;
-        ghost->delta_x = 0;
-        ghost->delta_y = 0;
-        ghost->skin = GHOST_SKIN_UP1;
-        ghost->move = MOVE_UP;
-        ghost->next_move = MOVE_UP;
-        ghost->dot_cnt = HUMAN_GHOST_DOT_CNT_MAX;
-        return;
-    }
-
-    if (ghost_id >= GHOST_MAX) {
-        return;
-    }
-
-    ghosts_get_home(ghost_id, &hx, &hy);
-    if (ghost->xp != hx || ghost->yp != hy) {
-        return;
-    }
-
-    ghost->status = GHOST_STATUS_ALIVE;
-    ghost->dot_cnt = 0;
-    if (ghost_id == GHOST_0) {
-        ghost->skin = GHOST_SKIN_UP1;
-        ghost->delta_x = 0;
-        ghost->delta_y = 0;
-        ghost->move = MOVE_UP;
-        ghost->next_move = MOVE_UP;
-    } else if (ghost_id == GHOST_1) {
-        ghost->skin = GHOST_SKIN_UP1;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
-        ghost->move = MOVE_UP;
-        ghost->next_move = MOVE_UP;
-    } else if (ghost_id == GHOST_2) {
-        ghost->skin = GHOST_SKIN_RIGHT1;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
-        ghost->move = MOVE_RIGHT;
-        ghost->next_move = MOVE_RIGHT;
-    } else {
-        ghost->skin = GHOST_SKIN_LEFT1;
-        ghost->delta_x = GHOST_HOME_X_DIFF;
-        ghost->delta_y = GHOST_HOME_Y_DIFF;
-        ghost->move = MOVE_LEFT;
-        ghost->next_move = MOVE_LEFT;
-    }
-}
-
+// Hồi sinh Ghost về trạng thái Alive ngay lập tức tại tọa độ nhà (áp dụng khi bị ăn)
 void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
     uint32_t hx;
     uint32_t hy;
@@ -825,6 +762,7 @@ void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id) {
     }
 }
 
+// Giải phóng toàn bộ Ghost rời nhà khi Pacman bị chết và hồi sinh
 void bot_release_ghosts_on_pacman_death(void) {
     uint32_t i;
 
@@ -843,6 +781,7 @@ void bot_release_ghosts_on_pacman_death(void) {
     }
 }
 
+// Kiểm tra xem Ghost có thể gây hại/va chạm làm mất mạng Pacman hay không
 uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     Room_t *room;
     extern uint32_t HumanGhost_Eat_Invuln_Timer_ms;
@@ -850,8 +789,6 @@ uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     if (ghost == 0 || ghost->status != GHOST_STATUS_ALIVE) {
         return 0;
     }
-    /* Human-controlled ghost: brief post-eat invuln so instant revive
-     * cannot be scored repeatedly while still overlapping Pacman. */
     if (ghost_id == GHOST_HUMAN && HumanGhost_Eat_Invuln_Timer_ms != 0) {
         return 0;
     }
@@ -872,21 +809,12 @@ uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id) {
     return 1;
 }
 
+// Kiểm tra xem ô tọa độ (x, y) có thể đi qua được hay không (cho người chơi hoặc Ghost)
 uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
     Room_t *room;
 
     if (x >= ROOM_CNT_X || y >= ROOM_CNT_Y) {
         return 0;
-    }
-
-    if (bot_avoid_portal != 0 && Maze.Room[x][y].special == ROOM_SPEC_PORTAL) {
-        return 0;
-    }
-
-    if (bot_avoid_portal != 0 && Maze_selected_map == MAZE_MAP_CLASSIC) {
-        if ((x == 12 || x == 15) && (y >= 16) && (y <= 19)) {
-            return 0;
-        }
     }
 
     room = &Maze.Room[x][y];
@@ -911,22 +839,14 @@ uint32_t bot_is_walkable(uint32_t x, uint32_t y, uint32_t for_ghost) {
     return 0;
 }
 
-
-//--------------------------------------------------------------
-// search the room around the actual position
-// with the shortest distance to a target position
-// but dont go back
-// x1,y1 = actual position
-// x2,y2 = target position
-//--------------------------------------------------------------
+// Tìm hướng đi tối ưu từ (x1, y1) đến mục tiêu (x2, y2) không đi lùi
 uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t akt_dir) {
     uint32_t ret_wert = MOVE_STOP;
     uint32_t xn, yn;
     uint32_t d_up = INIT_DISTANCE, d_right = INIT_DISTANCE, d_down = INIT_DISTANCE, d_left = INIT_DISTANCE;
     uint32_t d_min;
 
-    // calc for all possible directions the distance
-    // but dont go back
+    // Tính khoảng cách cho 4 hướng đi khả thi xung quanh
     if (((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) && (akt_dir != MOVE_DOWN) && bot_is_walkable(x1, y1 - 1, 1)) {
         xn = x1;
         yn = y1 - 1;
@@ -948,8 +868,7 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
         d_left = bot_calc_distance(x2, y2, xn, yn);
     }
 
-    // search the shortest distance
-    // in this order (up,left,down,right)
+    // Chọn hướng đi có khoảng cách ngắn nhất theo ưu tiên: lên, trái, xuống, phải
     d_min = INIT_DISTANCE;
     if (d_up < d_min) {
         d_min = d_up;
@@ -968,8 +887,7 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
         ret_wert = MOVE_RIGHT;
     }
 
-    // Fallback: if no valid direction is found (e.g. dead end or corner case)
-    // select any available door (even if it is backwards)
+    // Trường hợp dự phòng nếu bị kẹt (cho phép đi lùi)
     if (ret_wert == MOVE_STOP) {
         if (((Maze.Room[x1][y1].door & ROOM_DOOR_U) != 0) && bot_is_walkable(x1, y1 - 1, 1)) {
             d_up = bot_calc_distance(x2, y2, x1, y1 - 1);
@@ -1006,9 +924,7 @@ uint32_t bot_calc_move(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
     return (ret_wert);
 }
 
-//--------------------------------------------------------------
-// pick the only walkable exit at a cell (corridor / dead-end)
-//--------------------------------------------------------------
+// Tìm lối thoát duy nhất khi đi vào ngõ cụt hoặc hành lang đơn giản
 uint32_t bot_calc_only_exit(uint32_t xp, uint32_t yp) {
     if (((Maze.Room[xp][yp].door & ROOM_DOOR_U) != 0) && bot_is_walkable(xp, yp - 1, 1)) {
         return MOVE_UP;
@@ -1025,19 +941,14 @@ uint32_t bot_calc_only_exit(uint32_t xp, uint32_t yp) {
     return MOVE_STOP;
 }
 
-//--------------------------------------------------------------
-// calc the distane between two points
-// c = SQRT(a*a + b*b)
-//--------------------------------------------------------------
+// Tính bình phương khoảng cách giữa 2 điểm
 uint32_t bot_calc_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2) {
     int32_t dx = (int32_t)x1 - (int32_t)x2;
     int32_t dy = (int32_t)y1 - (int32_t)y2;
     return (uint32_t)(dx * dx + dy * dy);
 }
 
-//--------------------------------------------------------------
-// integer SQRT
-//--------------------------------------------------------------
+// Tính căn bậc hai số nguyên
 uint32_t UB_SQRT(uint32_t wert) {
     uint32_t ret_wert = 0;
     uint32_t square = 1;
@@ -1053,9 +964,7 @@ uint32_t UB_SQRT(uint32_t wert) {
     return (ret_wert);
 }
 
-//--------------------------------------------------------------
-// find random path cell far enough from pacman start
-//--------------------------------------------------------------
+// Tìm vị trí xuất phát ngẫu nhiên cho Ghost đảm bảo xa vị trí Pacman
 static uint32_t bot_find_spawn_pos(uint32_t *xp, uint32_t *yp) {
     uint32_t tries = 0;
     uint32_t px = Player.xp;
@@ -1084,9 +993,7 @@ static uint32_t bot_find_spawn_pos(uint32_t *xp, uint32_t *yp) {
     return 0;
 }
 
-//--------------------------------------------------------------
-// find spawn cell for custom mode (unique, walkable, far from player)
-//--------------------------------------------------------------
+// Tìm vị trí xuất phát cho chế độ chơi tùy chỉnh (Custom)
 static uint32_t bot_find_custom_spawn(uint32_t *xp, uint32_t *yp,
     const uint32_t *used_x, const uint32_t *used_y, uint32_t used_cnt) {
     uint32_t x, y, u;
@@ -1140,6 +1047,7 @@ static uint32_t bot_find_custom_spawn(uint32_t *xp, uint32_t *yp,
     return found;
 }
 
+// Lấy skin hoạt ảnh ban đầu dựa trên hướng di chuyển của Ghost
 static uint32_t bot_ghost_skin_for_dir(uint32_t dir) {
     if (dir == MOVE_UP) return GHOST_SKIN_UP1;
     if (dir == MOVE_RIGHT) return GHOST_SKIN_RIGHT1;
@@ -1148,10 +1056,12 @@ static uint32_t bot_ghost_skin_for_dir(uint32_t dir) {
     return GHOST_SKIN_LEFT1;
 }
 
+// Lấy số lượng dot ăn tối đa trước khi Ghost xuất phát
 static uint32_t bot_ghost_dot_cnt_max(uint32_t ghost_id) {
     return ghost_dot_cnt_max(ghost_id);
 }
 
+// Khởi tạo các thông số ban đầu cho Human Ghost (do người chơi thứ 2 điều khiển)
 void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint32_t *used_y, uint32_t used_cnt) {
     uint32_t sx = 14;
     uint32_t sy = 11;
@@ -1188,7 +1098,6 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
     if (init_dir == MOVE_STOP) {
         init_dir = bot_calc_move_random(sx, sy, MOVE_STOP);
     }
-    /* Never force MOVE_LEFT into a wall — wait for player input instead. */
     if (init_dir != MOVE_STOP && bot_ghost_can_turn(sx, sy, init_dir) == 0) {
         init_dir = MOVE_STOP;
     }
@@ -1199,9 +1108,7 @@ void bot_init_human_ghost(uint32_t speed_ms, const uint32_t *used_x, const uint3
     bot_ghost_validate_position(&HumanGhost);
 }
 
-//--------------------------------------------------------------
-// apply custom ghost setup: count, personality, speed, spawn
-//--------------------------------------------------------------
+// Thiết lập và khởi tạo cấu hình các Ghost trong chế độ chơi tùy chỉnh (Custom)
 void bot_apply_custom_ghosts(uint32_t ghost_count, uint32_t strategies[4], uint32_t speed_ms) {
     uint32_t i;
     uint32_t used_x[4];

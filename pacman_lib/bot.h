@@ -175,8 +175,6 @@ uint32_t bot_calc_move_clyde(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t 
 uint32_t bot_calc_move_lazy(uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_by_strategy(uint32_t ghost, uint32_t strategy, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 uint32_t bot_calc_move_scatter(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
-uint32_t bot_calc_move_home(uint32_t ghost, uint32_t xp, uint32_t yp, uint32_t akt_dir);
-uint32_t bot_calc_move_dead(uint32_t ghost_id, uint32_t xp, uint32_t yp, uint32_t akt_dir);
 void bot_ghost_instant_revive(Ghost_t *ghost, uint32_t ghost_id);
 void bot_ghost_eaten_by_pacman(Ghost_t *ghost, uint32_t ghost_id);
 uint32_t bot_calc_only_exit(uint32_t xp, uint32_t yp);
@@ -202,7 +200,6 @@ uint32_t bot_ghost_can_harm_pacman(Ghost_t *ghost, uint32_t ghost_id);
 uint32_t bot_player_can_turn(uint32_t xp, uint32_t yp, uint32_t dir);
 void bot_ghost_validate_position(Ghost_t *ghost);
 void bot_ghost_unstick(Ghost_t *ghost, uint32_t ghost_id);
-void bot_ghost_try_revive(Ghost_t *ghost, uint32_t ghost_id);
 uint32_t bot_ghost_can_turn(uint32_t xp, uint32_t yp, uint32_t dir);
 uint32_t bot_should_allow_ghost_move(void);
 void bot_release_ghosts_on_pacman_death(void);
